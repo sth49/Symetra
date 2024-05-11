@@ -1,34 +1,18 @@
-import Content from "./components/layout/Content";
-import Header from "./components/layout/Header";
+import Content from "./components/Content";
+import Header from "./components/Header";
 import React, { useState, useEffect } from "react";
-import Papa from "papaparse";
+import trialData from "./data/ParaSuit";
+import configData from "./data/config";
+import { Hyperparam, HyperparamJson } from "./model/hyperparam";
+import { Experiment } from "./model/experiment";
 function App() {
-  const [data, setData] = useState([]);
+  const [exp, setExp] = useState<Experiment | null>(null);
+
   useEffect(() => {
-    // CSV 파일의 URL 지정
-    const csvFileUrl = "./src/data/ParaSuit_t.csv";
-
-    async function fetchData() {
-      const response = await fetch(csvFileUrl);
-      console.log(response);
-      const reader = response.body?.getReader(); // Add null check for response.body
-      const result = await reader?.read(); // Add null check for reader
-      const decoder = new TextDecoder("utf-8");
-      const csv = decoder.decode(result?.value); // Add null check for result
-
-      // 파싱된 데이터를 상태로 설정
-      Papa.parse(csv, {
-        header: true,
-        dynamicTyping: true,
-        complete: (results) => {
-          setData(results.data);
-        },
-      });
-    }
-
-    fetchData();
+    const experiment = Experiment.fromJson(configData, trialData);
+    setExp(experiment);
   }, []);
-  console.log(data);
+
   return (
     <>
       <Header />
