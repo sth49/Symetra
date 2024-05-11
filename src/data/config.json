@@ -328,21 +328,21 @@
       "value": [1.0, 355.0],
       "displayName": "ST",
       "type": "numerical",
-      "valueType": "float"
+      "valueType": "int"
     },
     {
       "name": "uncovered-update-interval",
       "value": [1.0, 333.0],
       "displayName": "UUI",
       "type": "numerical",
-      "valueType": "float"
+      "valueType": "int"
     },
     {
       "name": "max-solver-time",
       "value": [1.0, 179.0],
       "displayName": "MST",
       "type": "numerical",
-      "valueType": "float"
+      "valueType": "int"
     },
     {
       "name": "max-memory",
@@ -356,7 +356,7 @@
       "value": [3.0, 249.0],
       "displayName": "BT",
       "type": "numerical",
-      "valueType": "float"
+      "valueType": "int"
     },
     {
       "name": "max-static-solve-pct",
@@ -409,6 +409,7 @@
     }
   ],
   "metric": {
-    "name": "Coverage"
+    "name": "Coverage",
+    "displayName": "cvrg"
   }
 }

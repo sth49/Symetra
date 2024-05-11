@@ -1,3 +1,6 @@
+import * as d3 from "d3";
+import { schemeCategory10 } from "d3";
+
 export enum HyperparamTypes {
   Numerical,
   Categorical,
@@ -14,10 +17,10 @@ export interface HyperparamJson {
 }
 
 export class Metric {
-  constructor(public name: string) {}
+  constructor(public name: string, public displayName: string) {}
 
   static fromJson(json: Metric) {
-    return new Metric(json.name);
+    return new Metric(json.name, json.displayName);
   }
 }
 
@@ -26,7 +29,7 @@ export class Hyperparam {
   constructor(
     public name: string,
     public displayName: string,
-    public value: unknown,
+    public value: string[] | number[] | boolean[] | string[][],
     public valueType: string
   ) {}
 
@@ -50,27 +53,45 @@ export class Hyperparam {
 export class NumericalHyperparam extends Hyperparam {
   type = HyperparamTypes.Numerical;
   constructor(json: HyperparamJson) {
-    console.log(json);
-    super(json.name, json.displayName, json.value, json.valueType);
+    const value = json.value as number[];
+    super(json.name, json.displayName, value, json.valueType);
+  }
+  formatting(value: number) {
+    if (this.valueType === "int") {
+      return value;
+    } else {
+      return value.toFixed(2);
+    }
   }
 }
 
 export class CategoricalHyperparam extends Hyperparam {
   type = HyperparamTypes.Categorical;
+  public scale: d3.ScaleOrdinal<string, string>; // Add the missing type arguments
+
   constructor(json: HyperparamJson) {
-    super(json.name, json.displayName, json.value, json.valueType);
+    const value = (json.value as string[]).sort();
+    super(json.name, json.displayName, value, json.valueType);
+    this.scale = d3
+      .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
+      .domain(value);
+  }
+  getColor(value: string) {
+    return this.scale(value);
   }
 }
 
 export class BooleanHyperparam extends Hyperparam {
   type = HyperparamTypes.Boolean;
   constructor(json: HyperparamJson) {
-    super(json.name, json.displayName, json.value, json.valueType);
+    const value = json.value as boolean[];
+    super(json.name, json.displayName, value, json.valueType);
   }
 }
 export class ListHyperparam extends Hyperparam {
   type = HyperparamTypes.List;
   constructor(json: HyperparamJson) {
-    super(json.name, json.displayName, json.value, json.valueType);
+    const value = json.value as number[];
+    super(json.name, json.displayName, value, json.valueType);
   }
 }

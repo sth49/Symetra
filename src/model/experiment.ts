@@ -1,16 +1,10 @@
 import { Hyperparam, HyperparamJson, Metric } from "./hyperparam";
-import { Trial } from "./trial";
+import { Trial, TrialJson } from "./trial";
 
 export interface ConfigJson {
   name: string;
   hyperparameters: HyperparamJson[];
   metric: Metric;
-}
-
-export interface TrialJson {
-  id: number;
-  params: { [name: string]: unknown };
-  metric: number;
 }
 
 export class Experiment {
@@ -31,6 +25,8 @@ export class Experiment {
     trialJson.map((trial: TrialJson) => {
       trials.push(Trial.fromJson(trial));
     });
+
+    console.log(trials);
 
     return new Experiment(
       configJson.name,

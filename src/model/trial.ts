@@ -1,6 +1,11 @@
 export type ParamDict = {
   [name: string]: unknown;
 };
+export interface TrialJson {
+  id: number;
+  config: { [name: string]: unknown };
+  metric: number;
+}
 
 export class Trial {
   constructor(
@@ -8,7 +13,7 @@ export class Trial {
     public params: ParamDict,
     public metric: number
   ) {}
-  static fromJson(json: any) {
-    return new Trial(json.id, json.params, json.metric);
+  static fromJson(json: TrialJson) {
+    return new Trial(json.id, json.config, json.metric);
   }
 }
