@@ -28,17 +28,42 @@ const DataTable = (props: TableProps) => {
   console.log(props.data);
   const exp = props.data;
   const [sort, setSort] = useState<string>("metric");
-  const [direction, setDirection] = useState<string>("asc"); // asc or desc
+  const [direction, setDirection] = useState<number>(-1); // -1 is desc, 1 is asc
 
-  function TableHead(props: { colName: string }) {
+  function TableHead(props: { colName: string | Hyperparam }) {
     return (
       <Th p={2}>
         <Box>
           <Center>
-            <Text as="b">{props.colName}</Text>
+            <Text as="b">
+              {props.colName instanceof Hyperparam
+                ? props.colName.displayName
+                : props.colName}
+            </Text>
           </Center>
           <Box>
-            <Button size={"small"}>sort</Button>
+            <Button
+              size={"small"}
+              onClick={() => {
+                console.log("sort", props, sort, direction);
+                if (
+                  props.colName instanceof Hyperparam
+                    ? props.colName.name === sort
+                    : props.colName === sort
+                ) {
+                  setDirection(direction * -1);
+                } else {
+                  setSort(
+                    props.colName instanceof Hyperparam
+                      ? props.colName.name
+                      : props.colName
+                  );
+                  setDirection(-1);
+                }
+              }}
+            >
+              sort
+            </Button>
             <Button size={"small"}>group</Button>
           </Box>
         </Box>
@@ -52,19 +77,23 @@ const DataTable = (props: TableProps) => {
         <Table variant="simple">
           <Thead>
             <Tr>
-              <TableHead colName={"ID"} />
-              <TableHead colName={exp ? exp.metric.displayName : "Metric"} />
+              <TableHead colName={"id"} />
+              <TableHead colName={"metric"} />
 
               {exp?.hyperparams.map((hp: Hyperparam, index: number) => {
-                return <TableHead colName={hp.displayName} />;
+                return <TableHead colName={hp} />;
               })}
             </Tr>
           </Thead>
           <Tbody>
             {exp?.trials
-              .sort(
-                (a, b) => (b[sort] - a[sort]) * (direction === "asc" ? 1 : -1)
-              )
+              .sort((a, b) => {
+                if (sort === "metric" || sort === "id") {
+                  return (a[sort] - b[sort]) * direction;
+                } else {
+                  return (a.params[sort] - b.params[sort]) * direction;
+                }
+              })
               .map((trial, index) => {
                 return (
                   <Tr key={index}>
