@@ -1,28 +1,11 @@
-import Content from "./components/Content";
+import DataTable from "./components/DataTable";
 import Header from "./components/Header";
 import React, { useState, useEffect, ReactNode } from "react";
 import trialData from "./data/ParaSuit";
 import configData from "./data/config";
-import {
-  CategoricalHyperparam,
-  Hyperparam,
-  HyperparamTypes,
-  NumericalHyperparam,
-} from "./model/hyperparam";
+import { HyperparamTypes } from "./model/hyperparam";
 import { Experiment } from "./model/experiment";
 
-import {
-  Table,
-  Thead,
-  Tbody,
-  Tfoot,
-  Tr,
-  Th,
-  Td,
-  TableCaption,
-  TableContainer,
-  Box,
-} from "@chakra-ui/react";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
 
@@ -30,136 +13,88 @@ function App() {
     const experiment = Experiment.fromJson(configData, trialData);
     setExp(experiment);
     console.log(experiment);
+
+    let trials = experiment.trials.filter((trial) => trial.metric > 0);
+
+    let masks = trials.map((t) => {
+      let mask = [];
+      experiment.hyperparams.forEach((hp) => {
+        if (hp.type === HyperparamTypes.Boolean) {
+          mask.push(t.params[hp.name] ? 1 : 0);
+        }
+      });
+      return mask;
+    });
+
+    let repr = [];
+    masks.forEach((mask) => {
+      let overlap = false;
+      repr.forEach((r) => {
+        let diff = 0;
+        for (let i = 0; i < mask.length; i++) {
+          diff += Math.abs(mask[i] - r[i]);
+        }
+        if (diff <= 10) {
+          overlap = true;
+        }
+      });
+
+      if (!overlap) {
+        repr.push(mask);
+      }
+    });
+
+    console.log(repr.length, trials.length);
+    experiment.hyperparams.forEach((hp) => {
+      if (hp.type === HyperparamTypes.Boolean) {
+        let t = trials.filter((t) => t.params[hp.name]);
+        let f = trials.filter((t) => !t.params[hp.name]);
+
+        let tsum = t.reduce((acc, t) => acc + t.metric, 0);
+        let fsum = f.reduce((acc, t) => acc + t.metric, 0);
+
+        let diff = tsum / t.length - fsum / f.length;
+
+        // console.log(Math.abs(diff), hp.name);
+      }
+    });
+
+    experiment.hyperparams.forEach((hp1) => {
+      experiment.hyperparams.forEach((hp2) => {
+        if (
+          hp1.type === HyperparamTypes.Boolean &&
+          hp2.type === HyperparamTypes.Boolean
+        ) {
+          let counter = {
+            true: {
+              true: 0,
+              false: 0,
+            },
+            false: {
+              true: 0,
+              false: 0,
+            },
+          };
+          trials.forEach((trial) => {
+            counter[trial.params[hp1.name]][trial.params[hp2.name]] += 1;
+          });
+          let p =
+            (counter[true][true] +
+              counter[false][false] -
+              counter[true][false] -
+              counter[false][true]) /
+            trials.length;
+          // if (hp1 !== hp2 && Math.abs(p) > 0.2)
+          // console.log(hp1.name, hp2.name, p, Math.abs(p));
+        }
+      });
+    });
   }, []);
 
   return (
     <>
       <Header />
-      <Box p={2}>
-        <TableContainer>
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th p={2}>id</Th>
-                <Th p={2}>{exp?.metric.displayName}</Th>
-                {exp?.hyperparams.map((hp: Hyperparam, index: number) => {
-                  return (
-                    <Th key={index} p={0} pr={2} pl={2}>
-                      {hp.displayName}
-                    </Th>
-                  );
-                })}
-              </Tr>
-            </Thead>
-            <Tbody>
-              {exp?.trials
-                .sort((a, b) => b.metric - a.metric)
-                .map((trial, index) => {
-                  return (
-                    <Tr key={index}>
-                      <Td p={0}>{trial.id}</Td>
-                      <Td p={0}>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          {trial.metric}
-                        </Box>
-                      </Td>
-                      {exp?.hyperparams.map((hp, index) => {
-                        if (hp instanceof CategoricalHyperparam) {
-                          return (
-                            <Td p={0} key={index}>
-                              <Box
-                                display="flex"
-                                justifyContent="center"
-                                alignItems="center"
-                              >
-                                <svg width={12} height={12}>
-                                  <rect
-                                    width={12}
-                                    height={12}
-                                    fill={hp.getColor(
-                                      trial.params[hp.name] as string
-                                    )}
-                                  ></rect>
-                                </svg>
-                              </Box>
-                            </Td>
-                          );
-                        } else if (hp instanceof NumericalHyperparam) {
-                          return (
-                            <Td key={index} p={0}>
-                              {hp.formatting(trial.params[hp.name] as number)}
-                            </Td>
-                          );
-                        }
-                        switch (hp.type) {
-                          case HyperparamTypes.Boolean:
-                            return (
-                              <Td key={index} p={0}>
-                                {trial.params[hp.name] ? (
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                  >
-                                    <svg width={12} height={12}>
-                                      <circle
-                                        cx="6"
-                                        cy="6"
-                                        r="5"
-                                        fill="gray"
-                                      ></circle>
-                                    </svg>
-                                  </Box>
-                                ) : (
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                  >
-                                    <svg width={12} height={12}>
-                                      <circle
-                                        cx="6"
-                                        cy="6"
-                                        r="5"
-                                        fill="white"
-                                        stroke="gray"
-                                      ></circle>
-                                    </svg>
-                                  </Box>
-                                )}
-                              </Td>
-                            );
-
-                          default:
-                            return <Td p={0}>d</Td>;
-                        }
-                      })}
-                    </Tr>
-                  );
-                })}
-              {/* <Tr>
-              <Td>inches</Td>
-              <Td>millimetres (mm)</Td>
-              <Td isNumeric>25.4</Td>
-            </Tr>
-            <Tr>
-              <Td>feet</Td>
-              <Td>centimetres (cm)</Td>
-              <Td isNumeric>30.48</Td>
-            </Tr>
-            <Tr>
-              <Td>yards</Td>
-              <Td>metres (m)</Td>
-              <Td isNumeric>0.91444</Td>
-            </Tr> */}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </Box>
+      <DataTable data={exp} />
     </>
   );
 }
