@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useMemo, useState } from "react";
 import { FixedSizeList as List } from "react-window";
 import { Experiment } from "../model/experiment";
-import { Hyperparam } from "../model/hyperparam";
-import { useTableStyles } from "@chakra-ui/react";
-
+import { Hyperparam, HyperparamTypes } from "../model/hyperparam";
+import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 import {
   ColumnDef,
   flexRender,
@@ -11,9 +12,11 @@ import {
   getSortedRowModel,
   Row,
   useReactTable,
+  getGroupedRowModel,
 } from "@tanstack/react-table";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Box, Button } from "@chakra-ui/react";
 interface OptimizedDataTableProps {
   data: Experiment | null;
 }
@@ -26,46 +29,112 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
       ...trial.params,
     }))
   );
+  const booleanAggregationFn = (columnId, leafRows, childRows) => {
+    const total = leafRows.length;
+    const trueCount = leafRows.filter(
+      (row) => row.original[columnId] === true
+    ).length;
+
+    return { trueCount, total };
+  };
 
   const exp = props.data;
 
   const columns = React.useMemo(() => {
-    // useMemo 내부에서 배열을 직접 반환합니다.
     return [
       {
         accessorKey: "id",
         header: "ID",
-        size: 60,
+        size: 40,
+        enableGrouping: false,
+        cell: ({ cell }) => cell.getValue(cell.column.accessorKey).toFixed(0),
+        aggregationFn: "count",
       },
       {
         accessorKey: "metric",
         header: "Metric",
-        size: 60,
+        size: 80,
+        enableGrouping: true,
+        cell: ({ cell }) => cell.getValue(cell.column.accessorKey).toFixed(2),
+        aggregationFn: "mean",
       },
       ...(exp?.hyperparams.map((hp: Hyperparam) => ({
         accessorKey: hp.name,
         header: hp.displayName,
         size: 60,
+        enableGrouping: true,
+        aggregationFn:
+          hp.type === HyperparamTypes.Boolean ? booleanAggregationFn : "mean",
+
+        cell: ({ cell, row, column }) => {
+          switch (hp.type) {
+            case HyperparamTypes.Boolean: {
+              console.log("getIsAggre", cell.getIsAggregated());
+              // console.log("getValue", cell.getValue(cell.column.accessorKey));
+              return (
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <svg width={12} height={12}>
+                    <circle
+                      cx="6"
+                      cy="6"
+                      r="5"
+                      stroke={
+                        cell.getValue(cell.column.accessorKey)
+                          ? "white"
+                          : "gray"
+                      }
+                      fill={
+                        cell.getValue(cell.column.accessorKey)
+                          ? "gray"
+                          : "white"
+                      }
+                    ></circle>
+                  </svg>
+                </Box>
+              );
+            }
+            case HyperparamTypes.Categorical: {
+              return (
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <svg width={12} height={12}>
+                    <rect
+                      width={12}
+                      height={12}
+                      fill={hp.getColor(
+                        cell.getValue(cell.column.accessorKey) as string
+                      )}
+                    ></rect>
+                  </svg>
+                </Box>
+              );
+            }
+            case HyperparamTypes.Numerical: {
+              return hp.formatting(cell.getValue(cell.column.accessorKey));
+            }
+            default: {
+              return "U";
+            }
+          }
+        },
       })) || []), // exp?.hyperparams가 undefined일 경우 빈 배열을 확장
     ];
   }, [exp]); // 의존성 배열에 exp를 포함시킵니다.
 
-  console.log(columns);
-
   const table = useReactTable({
-    data,
+    data: data || [], // Provide a default value for data
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
     debugTable: true,
+    initialState: {
+      columnPinning: {
+        left: ["id"],
+      },
+    },
   });
 
   const { rows } = table.getRowModel();
-
-  const [sortConfig, setSortConfig] = useState({
-    key: "id",
-    direction: "ascending",
-  });
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -73,7 +142,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     count: rows.length,
     estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
     getScrollElement: () => tableContainerRef.current,
-    //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
       navigator.userAgent.indexOf("Firefox") === -1
@@ -82,73 +150,9 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     overscan: 5,
   });
 
-  // 셀 렌더링 컴포넌트
-  //   const Row = ({ index, style, data }) => (
-  //     <div
-  //       style={{
-  //         ...style,
-  //         display: "flex",
-  //         flexDirection: "row",
-  //         justifyContent: "space-between",
-  //         padding: "10px",
-  //         borderBottom: "1px solid #ccc",
-  //       }}
-  //     >
-  //       <div>{data[index].id}</div>
-  //       <div>{data[index].metric}</div>
-  //       {exp?.hyperparams.map((hp: Hyperparam, i: number) => {
-  //         return <div>{data[index].params[hp.name]}</div>;
-  //       })}
-  //       {/* {columns.map((col, i) => {
-  //         return RenderDataCell(col, data[index][col]);
-  //       })} */}
-  //     </div>
-  //   );
-
-  const sortedData = useMemo(() => {
-    if (!sortConfig) {
-      return data;
-    }
-    const sorted = [...data].sort((a, b) => {
-      if (sortConfig.key === "id" || sortConfig.key === "metric") {
-        if (a[sortConfig.key] < b[sortConfig.key])
-          return sortConfig.direction === "ascending" ? -1 : 1;
-        if (a[sortConfig.key] > b[sortConfig.key])
-          return sortConfig.direction === "ascending" ? 1 : -1;
-        return 0;
-      } else {
-        if (a.params[sortConfig.key] < b.params[sortConfig.key])
-          return sortConfig.direction === "ascending" ? -1 : 1;
-        if (a.params[sortConfig.key] > b.params[sortConfig.key])
-          return sortConfig.direction === "ascending" ? 1 : -1;
-        return 0;
-      }
-    });
-    return sorted;
-  }, [data, sortConfig]);
-
-  const requestSort = (key) => {
-    let direction = "ascending";
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "ascending"
-    ) {
-      direction = "descending";
-    }
-    setSortConfig({ key, direction });
-  };
-
   return (
     <div className="app">
-      {process.env.NODE_ENV === "development" ? (
-        <p>
-          <strong>Notice:</strong> You are currently running React in
-          development mode. Virtualized rendering performance will be slightly
-          degraded until this application is built for production.
-        </p>
-      ) : null}
-      ({data.length} rows)
+      ({data?.length ?? 0} rows X {columns.length} columns)
       <div
         className="container"
         ref={tableContainerRef}
@@ -160,12 +164,28 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
       >
         {/* Even though we're still using sematic table tags, we must use CSS grid and flexbox for dynamic row heights */}
         <table style={{ display: "grid" }}>
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id}>
+                    <div onClick={header.column.getToggleGroupingHandler()}>
+                      {(header as HeaderGroup).isGrouped ? "👇" : "👉"}{" "}
+                      {/* 그룹화 상태 아이콘 */}
+                      {header.column.columnDef.header}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
           <thead
             style={{
               display: "grid",
               position: "sticky",
               top: 0,
               zIndex: 1,
+              backgroundColor: "white",
             }}
           >
             {table.getHeaderGroups().map((headerGroup) => (
@@ -174,6 +194,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                 style={{ display: "flex", width: "100%" }}
               >
                 {headerGroup.headers.map((header) => {
+                  console.log("header", header);
                   return (
                     <th
                       key={header.id}
@@ -195,9 +216,21 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                           header.getContext()
                         )}
                         {{
-                          asc: " 🔼",
-                          desc: " 🔽",
+                          asc: <ArrowUpIcon />,
+                          desc: <ArrowDownIcon />,
                         }[header.column.getIsSorted() as string] ?? null}
+                        <div>
+                          <Button
+                            size={"small"}
+                            onClick={header.column.getToggleGroupingHandler()}
+                          >
+                            {(
+                              header as HeaderGroup
+                            ).column.getGroupedIndex() !== -1
+                              ? "UG"
+                              : "G"}
+                          </Button>
+                        </div>
                       </div>
                     </th>
                   );
@@ -213,7 +246,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
             }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index] as Row<Person>;
+              const row = rows[virtualRow.index] as Row<any>;
               return (
                 <tr
                   data-index={virtualRow.index} //needed for dynamic row height measurement
@@ -227,6 +260,8 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                   }}
                 >
                   {row.getVisibleCells().map((cell) => {
+                    // console.log(cell.column.columnDef.cell);
+                    // console.log(cell.getContext());
                     return (
                       <td
                         key={cell.id}
@@ -251,59 +286,4 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     </div>
   );
 };
-//   return (
-//     <div>
-//       <div
-//         style={{
-//           display: "flex",
-//           flexDirection: "row",
-//           justifyContent: "space-between",
-//           padding: "10px",
-//           background: "#f0f0f0",
-//           transform: "translateZ(0)", // 브라우저 레이어 변환을 통해 하드웨어 가속 사용
-//         }}
-//       >
-//         {/* <button onClick={() => requestSort("id")}>ID</button>
-//         <button onClick={() => requestSort("metric")}>metric</button>
-//         <button onClick={() => requestSort("email")}>Email</button>
-//         <button onClick={() => requestSort("city")}>City</button>
-//         <button onClick={() => requestSort("job")}>Job Title</button> */}
-
-//         {/* {columns.map((col, i) => {
-//           return (
-//             <div
-//               style={{
-//                 padding: 3,
-//                 borderLeft: "1px solid #000",
-//               }}
-//               onClick={() => requestSort(col)}
-//             >
-//               {col}
-//             </div>
-//           );
-//         })} */}
-//         {/* {columns.map((col, i) => {
-//           return (
-//             <button
-//               onClick={() => requestSort(col)}
-//               style={{ padding: 3, borderLeft: "1px solid #000" }}
-//             >
-//               {col}
-//             </button>
-//           );
-//         })} */}
-//       </div>
-//       {/* <List
-//         height={600}
-//         width={"100%"}
-//         itemCount={sortedData.length}
-//         itemSize={50}
-//         itemData={sortedData}
-//       >
-//         {Row}
-//       </List> */}
-//     </div>
-//   );
-// };
-
 export default OptimizedDataTable;

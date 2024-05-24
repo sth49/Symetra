@@ -25,6 +25,12 @@ export class Metric {
 }
 
 export class Hyperparam {
+  getColor(arg0: string): string | undefined {
+    throw new Error("Method not implemented.");
+  }
+  formatting(arg0: any): any {
+    throw new Error("Method not implemented.");
+  }
   public type!: HyperparamTypes;
   constructor(
     public name: string,
