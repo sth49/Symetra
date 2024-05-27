@@ -16,7 +16,16 @@ import {
 } from "@tanstack/react-table";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Box, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Table,
+  TableCaption,
+  TableContainer,
+  Th,
+  Thead,
+  Tr,
+} from "@chakra-ui/react";
 interface OptimizedDataTableProps {
   data: Experiment | null;
 }
@@ -36,6 +45,17 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     ).length;
 
     return { trueCount, total };
+  };
+
+  const categoricalAggregationFn = (columnId, leafRows, childRows) => {
+    const total = leafRows.length;
+    const counts = leafRows.reduce((acc, row) => {
+      const value = row.original[columnId];
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {});
+
+    return { counts, total };
   };
 
   const exp = props.data;
@@ -61,16 +81,56 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
       ...(exp?.hyperparams.map((hp: Hyperparam) => ({
         accessorKey: hp.name,
         header: hp.displayName,
-        size: 60,
+        size: hp.displayName.length * 20 + 20,
+
         enableGrouping: true,
         aggregationFn:
-          hp.type === HyperparamTypes.Boolean ? booleanAggregationFn : "mean",
+          hp.type === HyperparamTypes.Boolean
+            ? booleanAggregationFn
+            : hp.type === HyperparamTypes.Categorical
+            ? categoricalAggregationFn
+            : "median",
 
         cell: ({ cell, row, column }) => {
+          // console.log(cell.getIsAggregated());
+
           switch (hp.type) {
             case HyperparamTypes.Boolean: {
-              console.log("getIsAggre", cell.getIsAggregated());
               // console.log("getValue", cell.getValue(cell.column.accessorKey));
+              if (cell.getIsAggregated()) {
+                const { trueCount, total } = cell.getValue(
+                  cell.column.accessorKey
+                );
+                const percentage = (trueCount / total) * 100;
+
+                return (
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <svg height="20" width="20">
+                      <circle
+                        r="9"
+                        cx="10"
+                        cy="10"
+                        fill="white"
+                        stroke="gray"
+                      />
+                      <circle
+                        r="5"
+                        cx="10"
+                        cy="10"
+                        fill="transparent"
+                        stroke="gray"
+                        strokeWidth="10"
+                        strokeDasharray={`${(percentage * 31.4) / 100} 31.4`}
+                        transform="rotate(-90) translate(-20)"
+                      />
+                    </svg>
+                  </Box>
+                );
+              }
               return (
                 <Box display="flex" justifyContent="center" alignItems="center">
                   <svg width={12} height={12}>
@@ -94,6 +154,39 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               );
             }
             case HyperparamTypes.Categorical: {
+              if (cell.getIsAggregated()) {
+                const { counts, total } = cell.getValue(
+                  cell.column.accessorKey
+                );
+                const categories = Object.keys(counts);
+                const barWidth = 30 / categories.length; // 바의 넓이를 균등하게 분배
+
+                return (
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <svg width={30} height={20}>
+                      {categories.map((category, index) => {
+                        const barHeight = (counts[category] / total) * 20; // 바의 높이는 최대 50
+                        return (
+                          <rect
+                            key={category}
+                            x={index * barWidth}
+                            y={20 - barHeight}
+                            width={barWidth}
+                            height={barHeight}
+                            fill={hp.getColor(category)}
+                            stroke="black"
+                            strokeWidth="1"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </Box>
+                );
+              }
               return (
                 <Box display="flex" justifyContent="center" alignItems="center">
                   <svg width={12} height={12}>
@@ -129,7 +222,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     debugTable: true,
     initialState: {
       columnPinning: {
-        left: ["id"],
+        left: ["id", "metric"],
       },
     },
   });
@@ -162,23 +255,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
           height: "800px", //should be a fixed height
         }}
       >
-        {/* Even though we're still using sematic table tags, we must use CSS grid and flexbox for dynamic row heights */}
         <table style={{ display: "grid" }}>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
-                    <div onClick={header.column.getToggleGroupingHandler()}>
-                      {(header as HeaderGroup).isGrouped ? "👇" : "👉"}{" "}
-                      {/* 그룹화 상태 아이콘 */}
-                      {header.column.columnDef.header}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
           <thead
             style={{
               display: "grid",
@@ -186,6 +263,8 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               top: 0,
               zIndex: 1,
               backgroundColor: "white",
+              borderBottom: "0.5px solid gray",
+              padding: "2px",
             }}
           >
             {table.getHeaderGroups().map((headerGroup) => (
@@ -194,12 +273,10 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                 style={{ display: "flex", width: "100%" }}
               >
                 {headerGroup.headers.map((header) => {
-                  console.log("header", header);
                   return (
                     <th
                       key={header.id}
                       style={{
-                        display: "flex",
                         width: header.getSize(),
                       }}
                     >
@@ -208,7 +285,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                           className: header.column.getCanSort()
                             ? "cursor-pointer select-none"
                             : "",
-                          onClick: header.column.getToggleSortingHandler(),
                         }}
                       >
                         {flexRender(
@@ -219,18 +295,33 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                           asc: <ArrowUpIcon />,
                           desc: <ArrowDownIcon />,
                         }[header.column.getIsSorted() as string] ?? null}
-                        <div>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Button
+                          size={"small"}
+                          onClick={header.column.getToggleSortingHandler()}
+                          colorScheme="yellow"
+                          p={1}
+                        >
+                          S
+                        </Button>
+                        {header.column.getCanGroup() && (
                           <Button
                             size={"small"}
                             onClick={header.column.getToggleGroupingHandler()}
+                            p={1}
+                            colorScheme="blue"
                           >
-                            {(
-                              header as HeaderGroup
-                            ).column.getGroupedIndex() !== -1
+                            {header.column.getGroupedIndex() !== -1
                               ? "UG"
                               : "G"}
                           </Button>
-                        </div>
+                        )}
                       </div>
                     </th>
                   );
@@ -260,13 +351,12 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                   }}
                 >
                   {row.getVisibleCells().map((cell) => {
-                    // console.log(cell.column.columnDef.cell);
-                    // console.log(cell.getContext());
                     return (
                       <td
                         key={cell.id}
                         style={{
                           display: "flex",
+                          justifyContent: "center",
                           width: cell.column.getSize(),
                         }}
                       >
