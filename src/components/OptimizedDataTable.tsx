@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useMemo, useState } from "react";
-import { FixedSizeList as List } from "react-window";
 import { Experiment } from "../model/experiment";
 import { Hyperparam, HyperparamTypes } from "../model/hyperparam";
 import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
+import { ViolinPlot, BoxPlot } from "@visx/stats";
+import { scaleBand, scaleLinear } from "@visx/scale";
+import { Group } from "@visx/group";
 import {
   ColumnDef,
   flexRender,
@@ -16,18 +18,14 @@ import {
 } from "@tanstack/react-table";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import {
-  Box,
-  Button,
-  Table,
-  TableCaption,
-  TableContainer,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 interface OptimizedDataTableProps {
   data: Experiment | null;
+}
+
+export interface BinData {
+  value: number;
+  count: number;
 }
 
 const OptimizedDataTable = (props: OptimizedDataTableProps) => {
@@ -54,8 +52,13 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
       acc[value] = (acc[value] || 0) + 1;
       return acc;
     }, {});
-
     return { counts, total };
+  };
+
+  const numericalAggregationFn = (columnId, leafRows, childRows) => {
+    // for violin plot
+    const values = leafRows.map((row) => row.original[columnId]);
+    return values;
   };
 
   const exp = props.data;
@@ -89,14 +92,13 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
             ? booleanAggregationFn
             : hp.type === HyperparamTypes.Categorical
             ? categoricalAggregationFn
-            : "median",
+            : hp.type === HyperparamTypes.Numerical
+            ? numericalAggregationFn
+            : "mean",
 
         cell: ({ cell, row, column }) => {
-          // console.log(cell.getIsAggregated());
-
           switch (hp.type) {
             case HyperparamTypes.Boolean: {
-              // console.log("getValue", cell.getValue(cell.column.accessorKey));
               if (cell.getIsAggregated()) {
                 const { trueCount, total } = cell.getValue(
                   cell.column.accessorKey
@@ -202,6 +204,70 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               );
             }
             case HyperparamTypes.Numerical: {
+              if (cell.getIsAggregated()) {
+                // return violin plot
+                const points = cell.getValue(cell.column.accessorKey);
+                points.sort((a, b) => a - b);
+                const sampleSize = points.length;
+                const firstQuartile = points[Math.floor(sampleSize / 4)];
+                const thirdQuartile = points[Math.floor((sampleSize * 3) / 4)];
+                const IQR = thirdQuartile - firstQuartile;
+                let min = Math.min(...points);
+                let max = Math.max(...points);
+
+                const outliers = points.filter((p) => p < min || p > max);
+                if (outliers.length === 0) {
+                  min = Math.min(...points);
+                  max = Math.max(...points);
+                }
+                const binWidth =
+                  2 * IQR * (sampleSize - outliers.length) ** (-1 / 3) || 1;
+                const binNum = Math.round((max - min) / binWidth);
+                const actualBinWidth = (max - min) / binNum;
+                const bins: number[] = new Array(binNum + 2).fill(0);
+                const values: number[] = new Array(binNum + 2).fill(min);
+                for (let ii = 1; ii <= binNum; ii += 1) {
+                  values[ii] += actualBinWidth * (ii - 0.5);
+                }
+                values[values.length - 1] = max;
+
+                points
+                  .filter((p) => p >= min && p <= max)
+                  .forEach((p) => {
+                    bins[Math.floor((p - min) / actualBinWidth) + 1] += 1;
+                  });
+
+                const binData: BinData[] = values.map((v: number, index) => ({
+                  value: v,
+                  count: bins[index],
+                }));
+
+                const width = 30;
+                const height = 20;
+                const yScale = scaleLinear({
+                  range: [height, 0],
+                  domain: [min, max],
+                });
+
+                return (
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <svg width={30} height={20}>
+                      <ViolinPlot
+                        data={binData}
+                        width={30}
+                        height={20}
+                        fill="#48BB78"
+                        valueScale={yScale}
+                        orientation="vertical"
+                      />
+                    </svg>
+                  </Box>
+                );
+              }
               return hp.formatting(cell.getValue(cell.column.accessorKey));
             }
             default: {
