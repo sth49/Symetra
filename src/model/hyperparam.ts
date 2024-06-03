@@ -25,13 +25,8 @@ export class Metric {
 }
 
 export class Hyperparam {
-  getColor(arg0: string): string | undefined {
-    throw new Error("Method not implemented.");
-  }
-  formatting(arg0: any): any {
-    throw new Error("Method not implemented.");
-  }
   public type!: HyperparamTypes;
+  public shapValues: number[] = [];
   constructor(
     public name: string,
     public displayName: string,
@@ -39,7 +34,7 @@ export class Hyperparam {
     public valueType: string
   ) {}
 
-  static fromJson(json: HyperparamJson) {
+  static fromJson(json: HyperparamJson, shapValueJson) {
     let hparam: Hyperparam;
     if (json.type === "numerical") {
       hparam = new NumericalHyperparam(json);
@@ -52,7 +47,25 @@ export class Hyperparam {
     } else {
       throw new Error("Invalid hyperparam type");
     }
+    shapValueJson.map((value) => {
+      hparam.shapValues.push(value[hparam.name]);
+    });
+    // hparam.shapValues = shapValue;
     return hparam;
+  }
+  getColor(arg0: string): string | undefined {
+    throw new Error("Method not implemented.");
+  }
+  formatting(arg0: any): any {
+    throw new Error("Method not implemented.");
+  }
+  getEffect(): number {
+    // shapValues 배열의 절대값의 합 계산
+    const effect = this.shapValues.reduce(
+      (acc, currentValue) => acc + Math.abs(currentValue),
+      0
+    );
+    return effect;
   }
 }
 

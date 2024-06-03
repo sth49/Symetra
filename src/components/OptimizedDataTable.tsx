@@ -310,135 +310,128 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
   });
 
   return (
-    <div className="app">
-      ({data?.length ?? 0} rows X {columns.length} columns)
-      <div
-        className="container"
-        ref={tableContainerRef}
-        style={{
-          overflow: "auto", //our scrollable table container
-          position: "relative", //needed for sticky header
-          height: "800px", //should be a fixed height
-        }}
-      >
-        <table style={{ display: "grid" }}>
-          <thead
-            style={{
-              display: "grid",
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-              backgroundColor: "white",
-              borderBottom: "0.5px solid gray",
-              padding: "2px",
-            }}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr
-                key={headerGroup.id}
-                style={{ display: "flex", width: "100%" }}
-              >
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <th
-                      key={header.id}
-                      style={{
-                        width: header.getSize(),
+    <div
+      className="container"
+      ref={tableContainerRef}
+      style={{
+        overflow: "auto", //our scrollable table container
+        position: "relative", //needed for sticky header
+        height: "800px", //should be a fixed height
+        width: "80%",
+      }}
+    >
+      <table style={{ display: "grid" }}>
+        <thead
+          style={{
+            display: "grid",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            backgroundColor: "white",
+            borderBottom: "0.5px solid gray",
+            padding: "2px",
+          }}
+        >
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id} style={{ display: "flex", width: "100%" }}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <th
+                    key={header.id}
+                    style={{
+                      width: header.getSize(),
+                    }}
+                  >
+                    <div
+                      {...{
+                        className: header.column.getCanSort()
+                          ? "cursor-pointer select-none"
+                          : "",
                       }}
                     >
-                      <div
-                        {...{
-                          className: header.column.getCanSort()
-                            ? "cursor-pointer select-none"
-                            : "",
-                        }}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {{
+                        asc: <ArrowUpIcon />,
+                        desc: <ArrowDownIcon />,
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Button
+                        size={"small"}
+                        onClick={header.column.getToggleSortingHandler()}
+                        colorScheme="yellow"
+                        p={1}
                       >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {{
-                          asc: <ArrowUpIcon />,
-                          desc: <ArrowDownIcon />,
-                        }[header.column.getIsSorted() as string] ?? null}
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
+                        S
+                      </Button>
+                      {header.column.getCanGroup() && (
                         <Button
                           size={"small"}
-                          onClick={header.column.getToggleSortingHandler()}
-                          colorScheme="yellow"
+                          onClick={header.column.getToggleGroupingHandler()}
                           p={1}
+                          colorScheme="blue"
                         >
-                          S
+                          {header.column.getGroupedIndex() !== -1 ? "UG" : "G"}
                         </Button>
-                        {header.column.getCanGroup() && (
-                          <Button
-                            size={"small"}
-                            onClick={header.column.getToggleGroupingHandler()}
-                            p={1}
-                            colorScheme="blue"
-                          >
-                            {header.column.getGroupedIndex() !== -1
-                              ? "UG"
-                              : "G"}
-                          </Button>
-                        )}
-                      </div>
-                    </th>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
+        </thead>
+        <tbody
+          style={{
+            display: "grid",
+            height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+            position: "relative", //needed for absolute positioning of rows
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = rows[virtualRow.index] as Row<any>;
+            return (
+              <tr
+                data-index={virtualRow.index} //needed for dynamic row height measurement
+                ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                key={row.id}
+                style={{
+                  display: "flex",
+                  position: "absolute",
+                  transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                  width: "100%",
+                }}
+              >
+                {row.getVisibleCells().map((cell) => {
+                  return (
+                    <td
+                      key={cell.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        width: cell.column.getSize(),
+                      }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
                   );
                 })}
               </tr>
-            ))}
-          </thead>
-          <tbody
-            style={{
-              display: "grid",
-              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-              position: "relative", //needed for absolute positioning of rows
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index] as Row<any>;
-              return (
-                <tr
-                  data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                  key={row.id}
-                  style={{
-                    display: "flex",
-                    position: "absolute",
-                    transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                    width: "100%",
-                  }}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <td
-                        key={cell.id}
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          width: cell.column.getSize(),
-                        }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 };

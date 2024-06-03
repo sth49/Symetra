@@ -1,12 +1,11 @@
-import DataTable from "./components/DataTable";
 import Header from "./components/Header";
 import React, { useState, useEffect, ReactNode } from "react";
 import trialData from "./data/ParaSuit";
 import configData from "./data/config";
-import { HyperparamTypes } from "./model/hyperparam";
+import shapValues from "./data/shap_values";
 import { Experiment } from "./model/experiment";
 import "./App.css";
-import { Button } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import OptimizedDataTable from "./components/OptimizedDataTable";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
@@ -15,7 +14,11 @@ function App() {
     async function loadExperiment() {
       try {
         // 가정: Experiment.fromJson은 비동기 함수로 데이터를 처리한다.
-        const experiment = await Experiment.fromJson(configData, trialData);
+        const experiment = await Experiment.fromJson(
+          configData,
+          trialData,
+          shapValues
+        );
         setExp(experiment);
 
         // 여기서 추가적인 비동기 로직 처리 가능
@@ -111,8 +114,10 @@ function App() {
   return (
     <>
       <Header />
-      {/* {exp ? <DataTable data={exp} /> : <div>Loading...</div>} */}
-      {exp ? <OptimizedDataTable data={exp} /> : <div>Loading...</div>}
+      <Box display={"flex"}>
+        <Box width={"20%"}>Hyperparameter Effects</Box>
+        {exp ? <OptimizedDataTable data={exp} /> : <div>Loading...</div>}
+      </Box>
     </>
   );
 }
