@@ -70,7 +70,6 @@ const DataTable = (props: TableProps) => {
       </Th>
     );
   }
-  let boolCount = 0;
   return (
     <Box p={2}>
       <TableContainer>

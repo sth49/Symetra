@@ -7,6 +7,7 @@ import { Experiment } from "./model/experiment";
 import "./App.css";
 import { Box, Button } from "@chakra-ui/react";
 import OptimizedDataTable from "./components/OptimizedDataTable";
+import EffectColumn from "./components/EffectColumn";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
 
@@ -115,7 +116,7 @@ function App() {
     <>
       <Header />
       <Box display={"flex"}>
-        <Box width={"20%"}>Hyperparameter Effects</Box>
+        {exp ? <EffectColumn data={exp} /> : <div>Loading...</div>}
         {exp ? <OptimizedDataTable data={exp} /> : <div>Loading...</div>}
       </Box>
     </>

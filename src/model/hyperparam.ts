@@ -27,6 +27,7 @@ export class Metric {
 export class Hyperparam {
   public type!: HyperparamTypes;
   public shapValues: number[] = [];
+  public values: any[] = [];
   constructor(
     public name: string,
     public displayName: string,
@@ -34,7 +35,7 @@ export class Hyperparam {
     public valueType: string
   ) {}
 
-  static fromJson(json: HyperparamJson, shapValueJson) {
+  static fromJson(json: HyperparamJson, trialJson, shapValueJson) {
     let hparam: Hyperparam;
     if (json.type === "numerical") {
       hparam = new NumericalHyperparam(json);
@@ -47,6 +48,12 @@ export class Hyperparam {
     } else {
       throw new Error("Invalid hyperparam type");
     }
+    console.log("trialJson", trialJson);
+
+    trialJson.map((trial) => {
+      hparam.values.push(trial.config[hparam.name]);
+    });
+
     shapValueJson.map((value) => {
       hparam.shapValues.push(value[hparam.name]);
     });

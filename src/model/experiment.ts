@@ -22,7 +22,7 @@ export class Experiment {
   ) {
     const hyperparams = [] as Hyperparam[];
     configJson["hyperparameters"].map((column: HyperparamJson) => {
-      hyperparams.push(Hyperparam.fromJson(column, shapValueJson));
+      hyperparams.push(Hyperparam.fromJson(column, trialJson, shapValueJson));
     });
     const trials = [] as Trial[];
 
