@@ -318,6 +318,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         position: "relative", //needed for sticky header
         height: "800px", //should be a fixed height
         width: "80%",
+        backgroundColor: "white",
       }}
     >
       <table style={{ display: "grid" }}>
@@ -398,6 +399,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index] as Row<any>;
+
             return (
               <tr
                 data-index={virtualRow.index} //needed for dynamic row height measurement

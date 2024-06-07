@@ -1,11 +1,12 @@
-import Header from "./components/Header";
 import React, { useState, useEffect, ReactNode } from "react";
 import trialData from "./data/ParaSuit";
 import configData from "./data/config";
 import shapValues from "./data/shap_values";
 import { Experiment } from "./model/experiment";
+import { Icon } from "@chakra-ui/react";
+import { AiFillRocket } from "react-icons/ai";
 import "./App.css";
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Heading } from "@chakra-ui/react";
 import OptimizedDataTable from "./components/OptimizedDataTable";
 import EffectColumn from "./components/EffectColumn";
 function App() {
@@ -113,13 +114,16 @@ function App() {
   // }, []);
 
   return (
-    <>
-      <Header />
+    <Box bg="gray.200">
+      <Heading p={3} color="gray.600">
+        <Icon as={AiFillRocket} color="gray.600" />
+        VisCover
+      </Heading>
       <Box display={"flex"}>
         {exp ? <EffectColumn data={exp} /> : <div>Loading...</div>}
         {exp ? <OptimizedDataTable data={exp} /> : <div>Loading...</div>}
       </Box>
-    </>
+    </Box>
   );
 }
 

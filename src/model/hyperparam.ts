@@ -48,8 +48,6 @@ export class Hyperparam {
     } else {
       throw new Error("Invalid hyperparam type");
     }
-    console.log("trialJson", trialJson);
-
     trialJson.map((trial) => {
       hparam.values.push(trial.config[hparam.name]);
     });
@@ -72,6 +70,9 @@ export class Hyperparam {
       (acc, currentValue) => acc + Math.abs(currentValue),
       0
     );
+    if (isNaN(effect)) {
+      return 0;
+    }
     return effect;
   }
 }
