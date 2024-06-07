@@ -7,6 +7,20 @@ import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 import { ViolinPlot, BoxPlot } from "@visx/stats";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Group } from "@visx/group";
+import { HiDotsVertical } from "react-icons/hi";
+import {
+  Center,
+  Icon,
+  Popover,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverFooter,
+  PopoverHeader,
+  PopoverTrigger,
+  Portal,
+  Text,
+} from "@chakra-ui/react";
 import {
   ColumnDef,
   flexRender,
@@ -15,6 +29,7 @@ import {
   Row,
   useReactTable,
   getGroupedRowModel,
+  getExpandedRowModel,
 } from "@tanstack/react-table";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -285,6 +300,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     debugTable: true,
     initialState: {
       columnPinning: {
@@ -308,9 +324,10 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         : undefined,
     overscan: 5,
   });
+  const initRef = React.useRef();
 
   return (
-    <div
+    <Box
       className="container"
       ref={tableContainerRef}
       style={{
@@ -350,16 +367,69 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                           : "",
                       }}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: <ArrowUpIcon />,
-                        desc: <ArrowDownIcon />,
-                      }[header.column.getIsSorted() as string] ?? null}
+                      <Box
+                        display={"flex"}
+                        justifyContent={"space-around"}
+                        alignItems={"center"}
+                        p={2}
+                      >
+                        <Icon as={HiDotsVertical} visibility={"hidden"} />
+                        <Text
+                          fontSize="md"
+                          fontWeight="bold"
+                          color="gray.600"
+                          textAlign="center"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </Text>
+
+                        {{
+                          asc: <ArrowUpIcon />,
+                          desc: <ArrowDownIcon />,
+                        }[header.column.getIsSorted() as string] ?? " "}
+                        <Popover initialFocusRef={initRef}>
+                          {({ isOpen, onClose }) => (
+                            <>
+                              <PopoverTrigger>
+                                <Button size={"small"}>
+                                  <Icon as={HiDotsVertical} />
+                                </Button>
+                              </PopoverTrigger>
+                              <Portal>
+                                <PopoverContent>
+                                  <PopoverBody>
+                                    <Button
+                                      size={"small"}
+                                      onClick={header.column.getToggleSortingHandler()}
+                                      colorScheme="yellow"
+                                      p={1}
+                                    >
+                                      Sorting
+                                    </Button>
+                                    {header.column.getCanGroup() && (
+                                      <Button
+                                        size={"small"}
+                                        onClick={header.column.getToggleGroupingHandler()}
+                                        p={1}
+                                        colorScheme="blue"
+                                      >
+                                        {header.column.getGroupedIndex() !== -1
+                                          ? "Ungrouping"
+                                          : "Grouping"}
+                                      </Button>
+                                    )}
+                                  </PopoverBody>
+                                </PopoverContent>
+                              </Portal>
+                            </>
+                          )}
+                        </Popover>
+                      </Box>
                     </div>
-                    <div
+                    {/* <div
                       style={{
                         display: "flex",
                         justifyContent: "center",
@@ -383,7 +453,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                           {header.column.getGroupedIndex() !== -1 ? "UG" : "G"}
                         </Button>
                       )}
-                    </div>
+                    </div> */}
                   </th>
                 );
               })}
@@ -410,6 +480,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                   position: "absolute",
                   transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
                   width: "100%",
+                  padding: "2px",
                 }}
               >
                 {row.getVisibleCells().map((cell) => {
@@ -422,9 +493,42 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                         width: cell.column.getSize(),
                       }}
                     >
-                      {flexRender(
+                      {/* {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
+                      )} */}
+                      {cell.getIsGrouped() ? (
+                        <>
+                          <button
+                            {...{
+                              onClick: row.getToggleExpandedHandler(),
+                              style: {
+                                cursor: row.getCanExpand()
+                                  ? "pointer"
+                                  : "normal",
+                              },
+                            }}
+                          >
+                            {row.getIsExpanded() ? "V" : ">"}{" "}
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}{" "}
+                            ({row.subRows.length})
+                          </button>
+                        </>
+                      ) : cell.getIsAggregated() ? (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
+                      ) : cell.getIsPlaceholder() ? (
+                        <>-</>
+                      ) : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
                       )}
                     </td>
                   );
@@ -434,7 +538,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
           })}
         </tbody>
       </table>
-    </div>
+    </Box>
   );
 };
 export default OptimizedDataTable;
