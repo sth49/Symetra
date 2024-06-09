@@ -3,26 +3,15 @@
 import React, { useMemo, useState } from "react";
 import { Experiment } from "../model/experiment";
 import { Hyperparam, HyperparamTypes } from "../model/hyperparam";
-import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 import { ViolinPlot, BoxPlot } from "@visx/stats";
 import { scaleBand, scaleLinear } from "@visx/scale";
-import { Group } from "@visx/group";
+import { FaLayerGroup } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
+import { FaSort } from "react-icons/fa6";
+import { FaSortUp } from "react-icons/fa6";
+import { FaSortDown } from "react-icons/fa6";
+import { Icon, Text } from "@chakra-ui/react";
 import {
-  Center,
-  Icon,
-  Popover,
-  PopoverBody,
-  PopoverCloseButton,
-  PopoverContent,
-  PopoverFooter,
-  PopoverHeader,
-  PopoverTrigger,
-  Portal,
-  Text,
-} from "@chakra-ui/react";
-import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -324,7 +313,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         : undefined,
     overscan: 5,
   });
-  const initRef = React.useRef();
 
   return (
     <Box
@@ -351,7 +339,10 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
           }}
         >
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} style={{ display: "flex", width: "100%" }}>
+            <tr
+              key={headerGroup.id}
+              style={{ display: "flex", width: "100%", paddingBottom: "6px" }}
+            >
               {headerGroup.headers.map((header) => {
                 return (
                   <th
@@ -373,7 +364,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                         alignItems={"center"}
                         p={2}
                       >
-                        <Icon as={HiDotsVertical} visibility={"hidden"} />
                         <Text
                           fontSize="md"
                           fontWeight="bold"
@@ -386,50 +376,13 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                           )}
                         </Text>
 
-                        {{
+                        {/* {{
                           asc: <ArrowUpIcon />,
                           desc: <ArrowDownIcon />,
-                        }[header.column.getIsSorted() as string] ?? " "}
-                        <Popover initialFocusRef={initRef}>
-                          {({ isOpen, onClose }) => (
-                            <>
-                              <PopoverTrigger>
-                                <Button size={"small"}>
-                                  <Icon as={HiDotsVertical} />
-                                </Button>
-                              </PopoverTrigger>
-                              <Portal>
-                                <PopoverContent>
-                                  <PopoverBody>
-                                    <Button
-                                      size={"small"}
-                                      onClick={header.column.getToggleSortingHandler()}
-                                      colorScheme="yellow"
-                                      p={1}
-                                    >
-                                      Sorting
-                                    </Button>
-                                    {header.column.getCanGroup() && (
-                                      <Button
-                                        size={"small"}
-                                        onClick={header.column.getToggleGroupingHandler()}
-                                        p={1}
-                                        colorScheme="blue"
-                                      >
-                                        {header.column.getGroupedIndex() !== -1
-                                          ? "Ungrouping"
-                                          : "Grouping"}
-                                      </Button>
-                                    )}
-                                  </PopoverBody>
-                                </PopoverContent>
-                              </Portal>
-                            </>
-                          )}
-                        </Popover>
+                        }[header.column.getIsSorted() as string] ?? " "} */}
                       </Box>
                     </div>
-                    {/* <div
+                    <div
                       style={{
                         display: "flex",
                         justifyContent: "center",
@@ -438,22 +391,32 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                       <Button
                         size={"small"}
                         onClick={header.column.getToggleSortingHandler()}
-                        colorScheme="yellow"
                         p={1}
                       >
-                        S
+                        {{
+                          asc: <Icon as={FaSortUp} color={"gray.500"} />,
+                          desc: <Icon as={FaSortDown} color={"gray.500"} />,
+                        }[header.column.getIsSorted() as string] ?? (
+                          <Icon as={FaSort} color={"gray.400"} />
+                        )}
                       </Button>
                       {header.column.getCanGroup() && (
                         <Button
                           size={"small"}
                           onClick={header.column.getToggleGroupingHandler()}
                           p={1}
-                          colorScheme="blue"
                         >
-                          {header.column.getGroupedIndex() !== -1 ? "UG" : "G"}
+                          <Icon
+                            as={FaLayerGroup}
+                            color={
+                              header.column.getGroupedIndex() !== -1
+                                ? "gray.600"
+                                : "gray.400"
+                            }
+                          />
                         </Button>
                       )}
-                    </div> */}
+                    </div>
                   </th>
                 );
               })}
@@ -481,6 +444,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                   transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
                   width: "100%",
                   padding: "2px",
+                  borderBottom: "0.5px solid gray",
                 }}
               >
                 {row.getVisibleCells().map((cell) => {
