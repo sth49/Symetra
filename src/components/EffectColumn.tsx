@@ -88,8 +88,6 @@ const EffectColumn = (props: { data: Experiment | null }) => {
               count: bins[index],
             }));
 
-            console.log("binData", binData);
-
             const height = 80;
             const width = 80;
             const yScale = d3

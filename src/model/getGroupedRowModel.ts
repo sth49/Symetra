@@ -61,7 +61,11 @@ export function getGroupedRowModel<TData extends RowData>(): (
           const columnId: string = existingGrouping[depth]!;
 
           // Group the rows together for this level
-          const rowGroupsMap = groupBy(rows, columnId);
+          const rowGroupsMap = groupBy(
+            rows,
+            columnId,
+            table.getColumn(columnId)!
+          );
 
           // Peform aggregations for each group
           const aggregatedGroupedRows = Array.from(rowGroupsMap.entries()).map(
@@ -175,8 +179,72 @@ export function getGroupedRowModel<TData extends RowData>(): (
     );
 }
 
-function groupBy<TData extends RowData>(rows: Row<TData>[], columnId: string) {
-  const groupMap = new Map<any, Row<TData>[]>();
+// function groupBy<TData extends RowData>(rows: Row<TData>[], columnId: string) {
+//   const groupMap = new Map<any, Row<TData>[]>();
+
+//   return rows.reduce((map, row) => {
+//     const resKey = `${row.getGroupingValue(columnId)}`;
+//     const previous = map.get(resKey);
+//     if (!previous) {
+//       map.set(resKey, [row]);
+//     } else {
+//       previous.push(row);
+//     }
+//     return map;
+//   }, groupMap);
+// }
+function groupBy<TData extends RowData>(
+  rows: Row<TData>[],
+  columnId: string,
+  column: Column<TData, unknown>
+) {
+  const groupMap = new Map<string, Row<TData>[]>();
+
+  if (column.columnDef.type === "number") {
+    const values = rows.map((row) => row.getValue(columnId) as number);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const isInteger = values.every(Number.isInteger);
+    const interval = (max - min) / 5;
+
+    const ranges = [
+      [min, min + interval],
+      [min + interval, min + 2 * interval],
+      [min + 2 * interval, min + 3 * interval],
+      [min + 3 * interval, min + 4 * interval],
+      [min + 4 * interval, max],
+    ];
+
+    rows.forEach((row) => {
+      const value = row.getValue(columnId) as number;
+      const rangeIndex = ranges.findIndex(
+        ([start, end]) => value >= start && value <= end
+      );
+      const [start, end] = ranges[rangeIndex];
+
+      let resKey = "";
+      if (isInteger) {
+        resKey = `${Math.floor(start)} ~ ${Math.floor(end)}`;
+      } else {
+        resKey = `${start.toFixed(2)} ~ ${end.toFixed(2)}`;
+      }
+
+      const previous = groupMap.get(resKey);
+      if (!previous) {
+        groupMap.set(resKey, [row]);
+      } else {
+        previous.push(row);
+      }
+    });
+
+    return new Map(
+      [...groupMap.entries()].sort((a, b) => {
+        const [minA] = a[0].split(" ~ ").map(parseFloat);
+        const [minB] = b[0].split(" ~ ").map(parseFloat);
+        return minA - minB;
+      })
+    );
+  }
 
   return rows.reduce((map, row) => {
     const resKey = `${row.getGroupingValue(columnId)}`;

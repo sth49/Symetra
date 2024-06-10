@@ -51,6 +51,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         enableGrouping: false,
         cell: ({ cell }) => cell.getValue(cell.column.accessorKey).toFixed(0),
         aggregationFn: "count",
+        type: "string",
       },
       {
         accessorKey: "metric",
@@ -58,7 +59,13 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         size: 80,
         enableGrouping: true,
         aggregationFn: "numericalAggregationFn",
+        type: "number",
         cell: ({ cell }) => {
+          if (cell.getIsGrouped()) {
+            const name =
+              cell.row.id.split(":")[cell.row.id.split(":").length - 1];
+            return name;
+          }
           if (cell.getIsAggregated()) {
             // return violin plot
             const points = cell.getValue(cell.column.accessorKey);
@@ -96,7 +103,14 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
             : hp.type === HyperparamTypes.Numerical
             ? "numericalAggregationFn"
             : "mean",
-
+        type:
+          hp.type === HyperparamTypes.Boolean
+            ? "boolean"
+            : hp.type === HyperparamTypes.Categorical
+            ? "string"
+            : hp.type === HyperparamTypes.Numerical
+            ? "number"
+            : "string",
         cell: ({ cell, row, column }) => {
           switch (hp.type) {
             case HyperparamTypes.Boolean: {
@@ -205,6 +219,11 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               );
             }
             case HyperparamTypes.Numerical: {
+              if (cell.getIsGrouped()) {
+                const name =
+                  cell.row.id.split(":")[cell.row.id.split(":").length - 1];
+                return name;
+              }
               if (cell.getIsAggregated()) {
                 // return violin plot
                 const points = cell.getValue(cell.column.accessorKey);
