@@ -117,7 +117,7 @@ function App() {
     <Box bg="gray.200">
       <Heading p={3} color="gray.600">
         <Icon as={AiFillRocket} color="gray.600" />
-        VisCover
+        VisCovery
       </Heading>
       <Box display={"flex"}>
         {exp ? <EffectColumn data={exp} /> : <div>Loading...</div>}

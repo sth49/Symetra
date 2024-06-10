@@ -4,9 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Experiment } from "../model/experiment";
 import { Hyperparam, HyperparamTypes } from "../model/hyperparam";
 import { ViolinPlot, BoxPlot } from "@visx/stats";
-import { scaleBand, scaleLinear } from "@visx/scale";
 import { FaLayerGroup } from "react-icons/fa6";
-import { HiDotsVertical } from "react-icons/hi";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
@@ -17,12 +15,13 @@ import {
   getSortedRowModel,
   Row,
   useReactTable,
-  getGroupedRowModel,
   getExpandedRowModel,
 } from "@tanstack/react-table";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, Button } from "@chakra-ui/react";
+import { generateBinnedData } from "../model/utils";
+import { getGroupedRowModel } from "../model/getGroupedRowModel";
 interface OptimizedDataTableProps {
   data: Experiment | null;
 }
@@ -40,30 +39,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
       ...trial.params,
     }))
   );
-  const booleanAggregationFn = (columnId, leafRows, childRows) => {
-    const total = leafRows.length;
-    const trueCount = leafRows.filter(
-      (row) => row.original[columnId] === true
-    ).length;
-
-    return { trueCount, total };
-  };
-
-  const categoricalAggregationFn = (columnId, leafRows, childRows) => {
-    const total = leafRows.length;
-    const counts = leafRows.reduce((acc, row) => {
-      const value = row.original[columnId];
-      acc[value] = (acc[value] || 0) + 1;
-      return acc;
-    }, {});
-    return { counts, total };
-  };
-
-  const numericalAggregationFn = (columnId, leafRows, childRows) => {
-    // for violin plot
-    const values = leafRows.map((row) => row.original[columnId]);
-    return values;
-  };
 
   const exp = props.data;
 
@@ -82,8 +57,30 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         header: "Metric",
         size: 80,
         enableGrouping: true,
-        cell: ({ cell }) => cell.getValue(cell.column.accessorKey).toFixed(2),
-        aggregationFn: "mean",
+        aggregationFn: "numericalAggregationFn",
+        cell: ({ cell }) => {
+          if (cell.getIsAggregated()) {
+            // return violin plot
+            const points = cell.getValue(cell.column.accessorKey);
+            const { binData, yScale } = generateBinnedData(points, 30, 20, "y");
+
+            return (
+              <Box display="flex" justifyContent="center" alignItems="center">
+                <svg width={30} height={20}>
+                  <ViolinPlot
+                    data={binData}
+                    width={30}
+                    height={20}
+                    fill="#48BB78"
+                    valueScale={yScale}
+                    orientation="vertical"
+                  />
+                </svg>
+              </Box>
+            );
+          }
+          return cell.getValue(cell.column.accessorKey);
+        },
       },
       ...(exp?.hyperparams.map((hp: Hyperparam) => ({
         accessorKey: hp.name,
@@ -93,11 +90,11 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         enableGrouping: true,
         aggregationFn:
           hp.type === HyperparamTypes.Boolean
-            ? booleanAggregationFn
+            ? "booleanAggregationFn"
             : hp.type === HyperparamTypes.Categorical
-            ? categoricalAggregationFn
+            ? "categoricalAggregationFn"
             : hp.type === HyperparamTypes.Numerical
-            ? numericalAggregationFn
+            ? "numericalAggregationFn"
             : "mean",
 
         cell: ({ cell, row, column }) => {
@@ -211,48 +208,12 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               if (cell.getIsAggregated()) {
                 // return violin plot
                 const points = cell.getValue(cell.column.accessorKey);
-                points.sort((a, b) => a - b);
-                const sampleSize = points.length;
-                const firstQuartile = points[Math.floor(sampleSize / 4)];
-                const thirdQuartile = points[Math.floor((sampleSize * 3) / 4)];
-                const IQR = thirdQuartile - firstQuartile;
-                let min = Math.min(...points);
-                let max = Math.max(...points);
-
-                const outliers = points.filter((p) => p < min || p > max);
-                if (outliers.length === 0) {
-                  min = Math.min(...points);
-                  max = Math.max(...points);
-                }
-                const binWidth =
-                  2 * IQR * (sampleSize - outliers.length) ** (-1 / 3) || 1;
-                const binNum = Math.round((max - min) / binWidth);
-                const actualBinWidth = (max - min) / binNum;
-                const bins: number[] = new Array(binNum + 2).fill(0);
-                const values: number[] = new Array(binNum + 2).fill(min);
-                for (let ii = 1; ii <= binNum; ii += 1) {
-                  values[ii] += actualBinWidth * (ii - 0.5);
-                }
-                values[values.length - 1] = max;
-
-                points
-                  .filter((p) => p >= min && p <= max)
-                  .forEach((p) => {
-                    bins[Math.floor((p - min) / actualBinWidth) + 1] += 1;
-                  });
-
-                const binData: BinData[] = values.map((v: number, index) => ({
-                  value: v,
-                  count: bins[index],
-                }));
-
-                const width = 30;
-                const height = 20;
-                const yScale = scaleLinear({
-                  range: [height, 0],
-                  domain: [min, max],
-                });
-
+                const { binData, yScale } = generateBinnedData(
+                  points,
+                  30,
+                  20,
+                  "y"
+                );
                 return (
                   <Box
                     display="flex"
@@ -286,10 +247,35 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
   const table = useReactTable({
     data: data || [], // Provide a default value for data
     columns,
+    aggregationFns: {
+      booleanAggregationFn: (columnId, leafRows, childRows) => {
+        const total = leafRows.length;
+        const trueCount = leafRows.filter(
+          (row) => row.original[columnId] === true
+        ).length;
+
+        return { trueCount, total };
+      },
+      categoricalAggregationFn: (columnId, leafRows, childRows) => {
+        const total = leafRows.length;
+        const counts = leafRows.reduce((acc, row) => {
+          const value = row.original[columnId];
+          acc[value] = (acc[value] || 0) + 1;
+          return acc;
+        }, {});
+        return { counts, total };
+      },
+      numericalAggregationFn: (columnId, leafRows, childRows) => {
+        const values = leafRows.map((row) => row.original[columnId]);
+        return values;
+      },
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
+    // getGroupedRowModel: manualGroupedRowModel,/
     getExpandedRowModel: getExpandedRowModel(),
+
     debugTable: true,
     initialState: {
       columnPinning: {
@@ -473,12 +459,12 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                               },
                             }}
                           >
-                            {row.getIsExpanded() ? "V" : ">"}{" "}
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
                             )}{" "}
                             ({row.subRows.length})
+                            {row.getIsExpanded() ? "V" : ">"}{" "}
                           </button>
                         </>
                       ) : cell.getIsAggregated() ? (
