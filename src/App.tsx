@@ -8,7 +8,7 @@ import { AiFillRocket } from "react-icons/ai";
 import "./App.css";
 import { Box, Button, Heading } from "@chakra-ui/react";
 import OptimizedDataTable from "./components/OptimizedDataTable";
-import EffectColumn from "./components/EffectColumn";
+import EffectTable from "./components/EffectTable";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
 
@@ -120,8 +120,14 @@ function App() {
         VisCovery
       </Heading>
       <Box display={"flex"}>
-        {exp ? <EffectColumn data={exp} /> : <div>Loading...</div>}
-        {exp ? <OptimizedDataTable data={exp} /> : <div>Loading...</div>}
+        {exp ? (
+          <>
+            <EffectTable data={exp} />
+            <OptimizedDataTable data={exp} />
+          </>
+        ) : (
+          <div>Loading...</div>
+        )}
       </Box>
     </Box>
   );

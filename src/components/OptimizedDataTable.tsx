@@ -17,11 +17,15 @@ import {
   useReactTable,
   getExpandedRowModel,
 } from "@tanstack/react-table";
-
+import { AxisBottom } from "@visx/axis";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, Button } from "@chakra-ui/react";
 import { generateBinnedData } from "../model/utils";
 import { getGroupedRowModel } from "../model/getGroupedRowModel";
+import { Bar } from "@visx/shape";
+import { AxisLeft } from "@visx/axis";
+import { Tooltip } from "@chakra-ui/react";
+import { scaleLinear } from "@visx/scale";
 interface OptimizedDataTableProps {
   data: Experiment | null;
 }
@@ -60,28 +64,110 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         enableGrouping: true,
         aggregationFn: "numericalAggregationFn",
         type: "number",
-        cell: ({ cell }) => {
+        cell: ({ cell, row, column }) => {
           if (cell.getIsGrouped()) {
             const name =
               cell.row.id.split(":")[cell.row.id.split(":").length - 1];
-            return name;
-          }
-          if (cell.getIsAggregated()) {
-            // return violin plot
-            const points = cell.getValue(cell.column.accessorKey);
-            const { binData, yScale } = generateBinnedData(points, 30, 20, "y");
+            console.log("column", column);
+            console.log(
+              "exp",
+              exp?.trials.map((trial) => trial.metric)
+            );
+            const points = exp?.trials.map((trial) => trial.metric);
+            const width = 50;
+            const height = 40;
+            const margin = { top: 2, right: 2, bottom: 4, left: 4 };
+            const binSize = 500;
+            const xMin = Math.min(...points);
+            const xMax = Math.max(...points);
+            const xRange = xMax - xMin;
+            const binCount = Math.ceil(xRange / binSize);
+            const xScale = scaleLinear({
+              domain: [xMin, xMax],
+              range: [margin.left, width - margin.right],
+            });
 
+            const bins = Array.from({ length: binCount }, (_, i) => ({
+              x0: xMin + i * binSize,
+              x1: xMin + (i + 1) * binSize,
+              count: 0,
+            }));
+
+            points.forEach((d) => {
+              const binIndex = Math.floor((d - xMin) / binSize);
+              if (binIndex >= 0 && binIndex < binCount) {
+                bins[binIndex].count++;
+              }
+            });
+
+            const yScale = scaleLinear({
+              domain: [0, Math.max(...bins.map((bin) => bin.count))],
+              range: [height - margin.bottom, margin.top],
+            });
             return (
               <Box display="flex" justifyContent="center" alignItems="center">
-                <svg width={30} height={20}>
-                  <ViolinPlot
-                    data={binData}
-                    width={30}
-                    height={20}
-                    fill="#48BB78"
-                    valueScale={yScale}
-                    orientation="vertical"
-                  />
+                <svg width={width} height={height}>
+                  {bins.map((bin, i) => (
+                    <Bar
+                      key={i}
+                      x={xScale(bin.x0)}
+                      y={yScale(bin.count)}
+                      width={xScale(bin.x1) - xScale(bin.x0) - 1}
+                      height={height - margin.bottom - yScale(bin.count)}
+                      fill="#48BB78"
+                    />
+                  ))}
+                </svg>
+              </Box>
+            );
+
+            // return name;
+          }
+          if (cell.getIsAggregated()) {
+            const points = cell.getValue(cell.column.accessorKey);
+            const width = 50;
+            const height = 40;
+            const margin = { top: 2, right: 2, bottom: 4, left: 4 };
+            const binSize = 500;
+            const xMin = Math.min(...points);
+            const xMax = Math.max(...points);
+            const xRange = xMax - xMin;
+            const binCount = Math.ceil(xRange / binSize);
+            const xScale = scaleLinear({
+              domain: [xMin, xMax],
+              range: [margin.left, width - margin.right],
+            });
+
+            const bins = Array.from({ length: binCount }, (_, i) => ({
+              x0: xMin + i * binSize,
+              x1: xMin + (i + 1) * binSize,
+              count: 0,
+            }));
+
+            points.forEach((d) => {
+              const binIndex = Math.floor((d - xMin) / binSize);
+              if (binIndex >= 0 && binIndex < binCount) {
+                bins[binIndex].count++;
+              }
+            });
+
+            const yScale = scaleLinear({
+              domain: [0, Math.max(...bins.map((bin) => bin.count))],
+              range: [height - margin.bottom, margin.top],
+            });
+            return (
+              <Box display="flex" justifyContent="center" alignItems="center">
+                <svg width={width} height={height}>
+                  {bins.map((bin, i) => (
+                    <Bar
+                      key={i}
+                      x={xScale(bin.x0)}
+                      y={yScale(bin.count)}
+                      width={xScale(bin.x1) - xScale(bin.x0) - 1}
+                      height={height - margin.bottom - yScale(bin.count)}
+                      fill="#48BB78"
+                    />
+                  ))}
                 </svg>
               </Box>
             );

@@ -22,6 +22,7 @@
     "@visx/axis": "^3.10.1",
     "@visx/group": "^3.3.0",
     "@visx/scale": "^3.5.0",
+    "@visx/shape": "^3.5.0",
     "@visx/stats": "^3.5.0",
     "@visx/visx": "^3.10.4",
     "d3": "^7.9.0",
@@ -31,7 +32,11 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.2.1",
+    "react-vega": "^7.6.0",
+    "react-vega-lite": "^6.1.0",
     "react-window": "^1.8.10",
+    "vega-lib": "^4.4.0",
+    "vega-lite": "^5.18.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
