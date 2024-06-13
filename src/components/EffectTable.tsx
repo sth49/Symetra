@@ -32,12 +32,12 @@ const EffectTable = (props: { data: Experiment | null }) => {
   }, []);
 
   return (
-    <Box width={"20%"} height="800px" margin={1} bg={"white"} p={2}>
+    <Box height="600px" margin={1} bg={"white"} p={2}>
       <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
         Hyperparameter Effect
       </Heading>
 
-      <Box overflow={"auto"} height="95%">
+      <Box overflow={"auto"} height="90%" mt={3}>
         {exp.hyperparams
           .sort((a, b) => b.getEffect() - a.getEffect())
           .map((hp) => {
@@ -80,8 +80,6 @@ const EffectTable = (props: { data: Experiment | null }) => {
                 bins[binIndex].count++;
               }
             });
-
-            console.log(bins);
 
             const yScale = scaleLinear({
               domain: [0, Math.max(...bins.map((bin) => bin.count))],

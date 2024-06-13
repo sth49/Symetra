@@ -9,6 +9,7 @@ import "./App.css";
 import { Box, Button, Heading } from "@chakra-ui/react";
 import OptimizedDataTable from "./components/OptimizedDataTable";
 import EffectTable from "./components/EffectTable";
+import Overview from "./components/Overview";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
 
@@ -122,7 +123,10 @@ function App() {
       <Box display={"flex"}>
         {exp ? (
           <>
-            <EffectTable data={exp} />
+            <Box display={"flex"} flexDir={"column"} width="20%">
+              <Overview data={exp} />
+              <EffectTable data={exp} />
+            </Box>
             <OptimizedDataTable data={exp} />
           </>
         ) : (

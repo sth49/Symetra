@@ -17,15 +17,14 @@ import {
   useReactTable,
   getExpandedRowModel,
 } from "@tanstack/react-table";
-import { AxisBottom } from "@visx/axis";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, Button } from "@chakra-ui/react";
-import { generateBinnedData } from "../model/utils";
 import { getGroupedRowModel } from "../model/getGroupedRowModel";
-import { Bar } from "@visx/shape";
-import { AxisLeft } from "@visx/axis";
 import { Tooltip } from "@chakra-ui/react";
 import { scaleLinear } from "@visx/scale";
+import { FaAngleRight } from "react-icons/fa6";
+import { FaAngleDown } from "react-icons/fa6";
+import CustomBoxPlot from "./CustomBoxPlot";
 interface OptimizedDataTableProps {
   data: Experiment | null;
 }
@@ -53,8 +52,12 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         header: "ID",
         size: 40,
         enableGrouping: false,
-        cell: ({ cell }) => cell.getValue(cell.column.accessorKey).toFixed(0),
-        aggregationFn: "count",
+        cell: ({ cell }) => {
+          if (cell.getIsAggregated()) {
+            return "-";
+          }
+          return cell.getValue(cell.column.accessorKey);
+        },
         type: "string",
       },
       {
@@ -64,123 +67,44 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         enableGrouping: true,
         aggregationFn: "numericalAggregationFn",
         type: "number",
+        binCount: 5,
         cell: ({ cell, row, column }) => {
-          if (cell.getIsGrouped()) {
-            const name =
-              cell.row.id.split(":")[cell.row.id.split(":").length - 1];
-            console.log("column", column);
-            console.log(
-              "exp",
-              exp?.trials.map((trial) => trial.metric)
-            );
-            const points = exp?.trials.map((trial) => trial.metric);
-            const width = 50;
-            const height = 40;
-            const margin = { top: 2, right: 2, bottom: 4, left: 4 };
-            const binSize = 500;
-            const xMin = Math.min(...points);
-            const xMax = Math.max(...points);
-            const xRange = xMax - xMin;
-            const binCount = Math.ceil(xRange / binSize);
-            const xScale = scaleLinear({
-              domain: [xMin, xMax],
-              range: [margin.left, width - margin.right],
-            });
-
-            const bins = Array.from({ length: binCount }, (_, i) => ({
-              x0: xMin + i * binSize,
-              x1: xMin + (i + 1) * binSize,
-              count: 0,
-            }));
-
-            points.forEach((d) => {
-              const binIndex = Math.floor((d - xMin) / binSize);
-              if (binIndex >= 0 && binIndex < binCount) {
-                bins[binIndex].count++;
-              }
-            });
-
-            const yScale = scaleLinear({
-              domain: [0, Math.max(...bins.map((bin) => bin.count))],
-              range: [height - margin.bottom, margin.top],
-            });
+          if (
+            (cell.getIsPlaceholder() && row.leafRows) ||
+            cell.getIsGrouped() ||
+            cell.getIsAggregated()
+          ) {
+            const name = cell.getIsGrouped()
+              ? cell.row.id.split(":")[cell.row.id.split(":").length - 1]
+              : "all";
+            const points = cell.getIsPlaceholder()
+              ? row.leafRows.map((row) => row.original.metric)
+              : cell.getIsGrouped() && row.getParentRows().length > 0
+              ? row.getParentRow().leafRows.map((row) => row.original.metric)
+              : cell.getIsAggregated()
+              ? cell.getValue(cell.column.accessorKey)
+              : exp?.trials.map((trial) => trial.metric);
+            const binCount = column.columnDef.binCount;
             return (
-              <Box display="flex" justifyContent="center" alignItems="center">
-                <svg width={width} height={height}>
-                  {bins.map((bin, i) => (
-                    <Bar
-                      key={i}
-                      x={xScale(bin.x0)}
-                      y={yScale(bin.count)}
-                      width={xScale(bin.x1) - xScale(bin.x0) - 1}
-                      height={height - margin.bottom - yScale(bin.count)}
-                      fill="#48BB78"
-                    />
-                  ))}
-                </svg>
-              </Box>
+              <CustomBoxPlot
+                data={points}
+                name={name}
+                type="numerical"
+                count={points.length}
+                binCount={binCount}
+              />
             );
-
-            // return name;
+          } else {
+            return cell.getValue(cell.column.accessorKey);
           }
-          if (cell.getIsAggregated()) {
-            const points = cell.getValue(cell.column.accessorKey);
-            const width = 50;
-            const height = 40;
-            const margin = { top: 2, right: 2, bottom: 4, left: 4 };
-            const binSize = 500;
-            const xMin = Math.min(...points);
-            const xMax = Math.max(...points);
-            const xRange = xMax - xMin;
-            const binCount = Math.ceil(xRange / binSize);
-            const xScale = scaleLinear({
-              domain: [xMin, xMax],
-              range: [margin.left, width - margin.right],
-            });
-
-            const bins = Array.from({ length: binCount }, (_, i) => ({
-              x0: xMin + i * binSize,
-              x1: xMin + (i + 1) * binSize,
-              count: 0,
-            }));
-
-            points.forEach((d) => {
-              const binIndex = Math.floor((d - xMin) / binSize);
-              if (binIndex >= 0 && binIndex < binCount) {
-                bins[binIndex].count++;
-              }
-            });
-
-            const yScale = scaleLinear({
-              domain: [0, Math.max(...bins.map((bin) => bin.count))],
-              range: [height - margin.bottom, margin.top],
-            });
-            return (
-              <Box display="flex" justifyContent="center" alignItems="center">
-                <svg width={width} height={height}>
-                  {bins.map((bin, i) => (
-                    <Bar
-                      key={i}
-                      x={xScale(bin.x0)}
-                      y={yScale(bin.count)}
-                      width={xScale(bin.x1) - xScale(bin.x0) - 1}
-                      height={height - margin.bottom - yScale(bin.count)}
-                      fill="#48BB78"
-                    />
-                  ))}
-                </svg>
-              </Box>
-            );
-          }
-          return cell.getValue(cell.column.accessorKey);
         },
       },
       ...(exp?.hyperparams.map((hp: Hyperparam) => ({
         accessorKey: hp.name,
         header: hp.displayName,
         size: hp.displayName.length * 20 + 20,
-
         enableGrouping: true,
+        binCount: 5,
         aggregationFn:
           hp.type === HyperparamTypes.Boolean
             ? "booleanAggregationFn"
@@ -197,39 +121,74 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
             : hp.type === HyperparamTypes.Numerical
             ? "number"
             : "string",
+
         cell: ({ cell, row, column }) => {
           switch (hp.type) {
             case HyperparamTypes.Boolean: {
-              if (cell.getIsAggregated()) {
-                const { trueCount, total } = cell.getValue(
-                  cell.column.accessorKey
-                );
-                const percentage = (trueCount / total) * 100;
+              if (
+                (cell.getIsPlaceholder() && row.leafRows) ||
+                cell.getIsGrouped() ||
+                cell.getIsAggregated()
+              ) {
+                const name = cell.getIsGrouped()
+                  ? cell.row.id
+                      .split(":")
+                      [cell.row.id.split(":").length - 1].toString()
+                  : "all";
+                const points = cell.getIsPlaceholder()
+                  ? row.leafRows.map((row) => (row.original[hp.name] ? 1 : 0))
+                  : cell.getIsGrouped() && row.getParentRows().length > 0
+                  ? row
+                      .getParentRow()
+                      .leafRows.map((row) => (row.original[hp.name] ? 1 : 0))
+                  : cell.getIsAggregated()
+                  ? cell.getValue(cell.column.accessorKey)
+                  : exp?.trials.map((trial) => (trial.params[hp.name] ? 1 : 0));
 
+                const bins = Array.from({ length: 2 }, (_, i) => ({
+                  x0: i,
+                  x1: i + 1,
+                  count: 0,
+                }));
+                exp.trials.map((trial) => {
+                  trial.params[hp.name] ? bins[1].count++ : bins[0].count++;
+                });
+                const maxCount = Math.max(...bins.map((bin) => bin.count));
+
+                const binCount = 2;
+                return (
+                  <CustomBoxPlot
+                    data={points}
+                    name={name}
+                    type="boolean"
+                    count={points.length}
+                    binCount={binCount}
+                    maxCount={maxCount}
+                  />
+                );
+              } else {
                 return (
                   <Box
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
                   >
-                    <svg height="20" width="20">
+                    <svg width={12} height={12}>
                       <circle
-                        r="9"
-                        cx="10"
-                        cy="10"
-                        fill="white"
-                        stroke="gray"
-                      />
-                      <circle
+                        cx="6"
+                        cy="6"
                         r="5"
-                        cx="10"
-                        cy="10"
-                        fill="transparent"
-                        stroke="gray"
-                        strokeWidth="10"
-                        strokeDasharray={`${(percentage * 31.4) / 100} 31.4`}
-                        transform="rotate(-90) translate(-20)"
-                      />
+                        stroke={
+                          cell.getValue(cell.column.accessorKey)
+                            ? "white"
+                            : "gray"
+                        }
+                        fill={
+                          cell.getValue(cell.column.accessorKey)
+                            ? "gray"
+                            : "white"
+                        }
+                      ></circle>
                     </svg>
                   </Box>
                 );
@@ -305,40 +264,38 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               );
             }
             case HyperparamTypes.Numerical: {
-              if (cell.getIsGrouped()) {
-                const name =
-                  cell.row.id.split(":")[cell.row.id.split(":").length - 1];
-                return name;
-              }
-              if (cell.getIsAggregated()) {
-                // return violin plot
-                const points = cell.getValue(cell.column.accessorKey);
-                const { binData, yScale } = generateBinnedData(
-                  points,
-                  30,
-                  20,
-                  "y"
-                );
+              if (
+                (cell.getIsPlaceholder() && row.leafRows) ||
+                cell.getIsGrouped() ||
+                cell.getIsAggregated()
+              ) {
+                const name = cell.getIsGrouped()
+                  ? cell.row.id.split(":")[cell.row.id.split(":").length - 1]
+                  : "all";
+                const points = cell.getIsPlaceholder()
+                  ? row.leafRows.map((row) => row.original[hp.name])
+                  : cell.getIsGrouped() && row.getParentRows().length > 0
+                  ? row
+                      .getParentRow()
+                      .leafRows.map((row) => row.original[hp.name])
+                  : cell.getIsAggregated()
+                  ? cell.getValue(cell.column.accessorKey)
+                  : exp?.trials.map((trial) => trial.params[hp.name]);
+                const binCount = column.columnDef.binCount;
                 return (
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <svg width={30} height={20}>
-                      <ViolinPlot
-                        data={binData}
-                        width={30}
-                        height={20}
-                        fill="#48BB78"
-                        valueScale={yScale}
-                        orientation="vertical"
-                      />
-                    </svg>
-                  </Box>
+                  <>
+                    <CustomBoxPlot
+                      data={points}
+                      name={name}
+                      type="numerical"
+                      count={points.length}
+                      binCount={binCount}
+                    />
+                  </>
                 );
+              } else {
+                return hp.formatting(cell.getValue(cell.column.accessorKey));
               }
-              return hp.formatting(cell.getValue(cell.column.accessorKey));
             }
             default: {
               return "U";
@@ -354,12 +311,11 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     columns,
     aggregationFns: {
       booleanAggregationFn: (columnId, leafRows, childRows) => {
-        const total = leafRows.length;
-        const trueCount = leafRows.filter(
-          (row) => row.original[columnId] === true
-        ).length;
+        const values = leafRows.map((row) =>
+          row.original[columnId] === true ? 1 : 0
+        );
 
-        return { trueCount, total };
+        return values;
       },
       categoricalAggregationFn: (columnId, leafRows, childRows) => {
         const total = leafRows.length;
@@ -548,10 +504,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                         width: cell.column.getSize(),
                       }}
                     >
-                      {/* {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )} */}
                       {cell.getIsGrouped() ? (
                         <>
                           <button
@@ -567,18 +519,14 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
-                            )}{" "}
-                            ({row.subRows.length})
-                            {row.getIsExpanded() ? "V" : ">"}{" "}
+                            )}
+                            {row.getIsExpanded() ? (
+                              <Icon as={FaAngleDown} color={"gray.500"} />
+                            ) : (
+                              <Icon as={FaAngleRight} color={"gray.500"} />
+                            )}
                           </button>
                         </>
-                      ) : cell.getIsAggregated() ? (
-                        flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )
-                      ) : cell.getIsPlaceholder() ? (
-                        <>-</>
                       ) : (
                         flexRender(
                           cell.column.columnDef.cell,
