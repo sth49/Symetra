@@ -32,7 +32,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
   }, []);
 
   return (
-    <Box height="600px" margin={1} bg={"white"} p={2}>
+    <Box height="585px" margin={1} bg={"white"} p={2}>
       <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
         Hyperparameter Effect
       </Heading>

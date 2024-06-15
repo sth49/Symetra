@@ -20,10 +20,8 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, Button } from "@chakra-ui/react";
 import { getGroupedRowModel } from "../model/getGroupedRowModel";
-import { Tooltip } from "@chakra-ui/react";
-import { scaleLinear } from "@visx/scale";
-import { FaAngleRight } from "react-icons/fa6";
-import { FaAngleDown } from "react-icons/fa6";
+import { FaCaretRight } from "react-icons/fa6";
+import { FaCaretDown } from "react-icons/fa6";
 import CustomBoxPlot from "./CustomBoxPlot";
 interface OptimizedDataTableProps {
   data: Experiment | null;
@@ -85,10 +83,12 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               ? cell.getValue(cell.column.accessorKey)
               : exp?.trials.map((trial) => trial.metric);
             const binCount = column.columnDef.binCount;
+
             return (
               <CustomBoxPlot
                 data={points}
                 name={name}
+                hpName="metric"
                 type="numerical"
                 count={points.length}
                 binCount={binCount}
@@ -145,25 +145,15 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                   ? cell.getValue(cell.column.accessorKey)
                   : exp?.trials.map((trial) => (trial.params[hp.name] ? 1 : 0));
 
-                const bins = Array.from({ length: 2 }, (_, i) => ({
-                  x0: i,
-                  x1: i + 1,
-                  count: 0,
-                }));
-                exp.trials.map((trial) => {
-                  trial.params[hp.name] ? bins[1].count++ : bins[0].count++;
-                });
-                const maxCount = Math.max(...bins.map((bin) => bin.count));
-
                 const binCount = 2;
                 return (
                   <CustomBoxPlot
                     data={points}
                     name={name}
+                    hpName={hp.name}
                     type="boolean"
                     count={points.length}
                     binCount={binCount}
-                    maxCount={maxCount}
                   />
                 );
               } else {
@@ -216,37 +206,38 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
               );
             }
             case HyperparamTypes.Categorical: {
-              if (cell.getIsAggregated()) {
-                const { counts, total } = cell.getValue(
-                  cell.column.accessorKey
-                );
-                const categories = Object.keys(counts);
-                const barWidth = 30 / categories.length; // 바의 넓이를 균등하게 분배
+              if (
+                (cell.getIsPlaceholder() && row.leafRows) ||
+                cell.getIsGrouped() ||
+                cell.getIsAggregated()
+              ) {
+                const name = cell.getIsGrouped()
+                  ? cell.row.id
+                      .split(":")
+                      [cell.row.id.split(":").length - 1].toString()
+                  : "all";
 
+                const points = cell.getIsPlaceholder()
+                  ? row.leafRows.map((row) => row.original[hp.name])
+                  : cell.getIsGrouped() && row.getParentRows().length > 0
+                  ? row
+                      .getParentRow()
+                      .leafRows.map((row) => row.original[hp.name])
+                  : cell.getIsAggregated()
+                  ? cell.getValue(cell.column.accessorKey)
+                  : exp?.trials.map((trial) => trial.params[hp.name]);
+                const keys = Array.from(
+                  new Set(exp.trials.map((trial) => trial.params[hp.name]))
+                ).sort();
                 return (
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <svg width={30} height={20}>
-                      {categories.map((category, index) => {
-                        const barHeight = (counts[category] / total) * 20; // 바의 높이는 최대 50
-                        return (
-                          <rect
-                            key={category}
-                            x={index * barWidth}
-                            y={20 - barHeight}
-                            width={barWidth}
-                            height={barHeight}
-                            fill={hp.getColor(category)}
-                            stroke="black"
-                            strokeWidth="1"
-                          />
-                        );
-                      })}
-                    </svg>
-                  </Box>
+                  <CustomBoxPlot
+                    data={points}
+                    name={name}
+                    keys={keys}
+                    type="categorical"
+                    count={points.length}
+                    binCount={points.length}
+                  ></CustomBoxPlot>
                 );
               }
               return (
@@ -287,6 +278,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                     <CustomBoxPlot
                       data={points}
                       name={name}
+                      hpName={hp.name}
                       type="numerical"
                       count={points.length}
                       binCount={binCount}
@@ -318,13 +310,8 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         return values;
       },
       categoricalAggregationFn: (columnId, leafRows, childRows) => {
-        const total = leafRows.length;
-        const counts = leafRows.reduce((acc, row) => {
-          const value = row.original[columnId];
-          acc[value] = (acc[value] || 0) + 1;
-          return acc;
-        }, {});
-        return { counts, total };
+        const values = leafRows.map((row) => row.original[columnId]);
+        return values;
       },
       numericalAggregationFn: (columnId, leafRows, childRows) => {
         const values = leafRows.map((row) => row.original[columnId]);
@@ -334,7 +321,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
-    // getGroupedRowModel: manualGroupedRowModel,/
     getExpandedRowModel: getExpandedRowModel(),
 
     debugTable: true,
@@ -372,8 +358,9 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
         width: "80%",
         backgroundColor: "white",
       }}
+      m={1}
     >
-      <table style={{ display: "grid" }}>
+      <table style={{ display: "grid", padding: "2px" }}>
         <thead
           style={{
             display: "grid",
@@ -441,8 +428,8 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                         p={1}
                       >
                         {{
-                          asc: <Icon as={FaSortUp} color={"gray.500"} />,
-                          desc: <Icon as={FaSortDown} color={"gray.500"} />,
+                          asc: <Icon as={FaSortUp} color={"gray.600"} />,
+                          desc: <Icon as={FaSortDown} color={"gray.600"} />,
                         }[header.column.getIsSorted() as string] ?? (
                           <Icon as={FaSort} color={"gray.400"} />
                         )}
@@ -521,9 +508,9 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                               cell.getContext()
                             )}
                             {row.getIsExpanded() ? (
-                              <Icon as={FaAngleDown} color={"gray.500"} />
+                              <Icon as={FaCaretDown} color={"gray.600"} />
                             ) : (
-                              <Icon as={FaAngleRight} color={"gray.500"} />
+                              <Icon as={FaCaretRight} color={"gray.400"} />
                             )}
                           </button>
                         </>

@@ -7,15 +7,19 @@ import {
   TagLabel,
   Text,
 } from "@chakra-ui/react";
+import { HyperparamTypes } from "../model/hyperparam";
 
 interface OverviewProps {
   data: any;
 }
 
 const Overview = (data: OverviewProps) => {
-  console.log(data);
+  console.log(
+    data.data.hyperparams.filter((hp) => hp.type === HyperparamTypes.Boolean)
+      .length
+  );
   return (
-    <Box height="200px" margin={1} bg={"white"} p={2}>
+    <Box margin={1} bg={"white"} p={2}>
       <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
         Overview
       </Heading>
@@ -49,6 +53,48 @@ const Overview = (data: OverviewProps) => {
         </Box>
         <Box>
           <Text fontSize="sm">{data.data.hyperparams.length}</Text>
+        </Box>
+      </Box>
+      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+        <Box pr={2}>
+          <Text fontSize="sm">- Boolean:</Text>
+        </Box>
+        <Box>
+          <Text fontSize="sm">
+            {
+              data.data.hyperparams.filter(
+                (hp) => hp.type === HyperparamTypes.Boolean
+              ).length
+            }
+          </Text>
+        </Box>
+      </Box>
+      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+        <Box pr={2}>
+          <Text fontSize="sm">- Numerical:</Text>
+        </Box>
+        <Box>
+          <Text fontSize="sm">
+            {
+              data.data.hyperparams.filter(
+                (hp) => hp.type === HyperparamTypes.Numerical
+              ).length
+            }
+          </Text>
+        </Box>
+      </Box>
+      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+        <Box pr={2}>
+          <Text fontSize="sm">- Categorical:</Text>
+        </Box>
+        <Box>
+          <Text fontSize="sm">
+            {
+              data.data.hyperparams.filter(
+                (hp) => hp.type === HyperparamTypes.Categorical
+              ).length
+            }
+          </Text>
         </Box>
       </Box>
     </Box>
