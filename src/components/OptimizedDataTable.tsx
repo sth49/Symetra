@@ -278,7 +278,6 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                     <CustomBoxPlot
                       data={points}
                       name={name}
-                      hpName={hp.name}
                       type="numerical"
                       count={points.length}
                       binCount={binCount}

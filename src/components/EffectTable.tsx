@@ -1,4 +1,11 @@
-import { Box, Heading, Spinner, Tooltip } from "@chakra-ui/react";
+import {
+  Box,
+  FormControl,
+  FormLabel,
+  Heading,
+  Spinner,
+  Tooltip,
+} from "@chakra-ui/react";
 import { Experiment } from "../model/experiment";
 import { useState, useEffect, useMemo } from "react";
 import * as d3 from "d3";
@@ -9,8 +16,30 @@ import { generateBinnedData } from "../model/utils";
 import { Bar } from "@visx/shape";
 import { AxisLeft } from "@visx/axis";
 import { scaleLinear } from "@visx/scale";
+import { Switch } from "@chakra-ui/react";
+import CustomBoxPlot from "./CustomBoxPlot";
+import { BooleanHyperparam, NumericalHyperparam } from "../model/hyperparam";
 const EffectTable = (props: { data: Experiment | null }) => {
   const exp = props.data;
+  const [showChartMap, setShowChartMap] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+  useEffect(() => {
+    if (exp) {
+      const initialShowChartMap = exp.hyperparams.reduce((map, hp) => {
+        map[hp.name] = false;
+        return map;
+      }, {});
+      setShowChartMap(initialShowChartMap);
+    }
+  }, [exp]);
+
+  const toggleShowChart = (hpName: string) => {
+    setShowChartMap((prevMap) => ({
+      ...prevMap,
+      [hpName]: !prevMap[hpName],
+    }));
+  };
 
   const colorScale = useMemo(() => {
     if (!exp) {
@@ -98,36 +127,80 @@ const EffectTable = (props: { data: Experiment | null }) => {
                   label={<Box>Effect: {hp.getEffect().toFixed(2)}</Box>}
                   placement="right-end"
                 >
-                  <Box>{hp.name}</Box>
+                  <Box
+                    display={"flex"}
+                    flexDir={"row"}
+                    justifyContent={"space-between"}
+                    alignItems={"center"}
+                  >
+                    <Box>{hp.name}</Box>
+                    <Switch
+                      id="email-alerts"
+                      size={"sm"}
+                      isChecked={showChartMap[hp.name]}
+                      onChange={() => toggleShowChart(hp.name)}
+                    />
+                  </Box>
                 </Tooltip>
 
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  background={"white"}
-                  p={2}
-                >
-                  <svg width={width} height={height}>
-                    {bins.map((bin, i) => (
-                      <Bar
-                        key={i}
-                        x={xScale(bin.x0)}
-                        y={yScale(bin.count)}
-                        width={xScale(bin.x1) - xScale(bin.x0) - 1}
-                        height={height - margin.bottom - yScale(bin.count)}
-                        fill="#48BB78"
-                      />
-                    ))}
-                    <AxisLeft scale={yScale} left={margin.left} />
-                    <AxisBottom
-                      scale={xScale}
-                      top={height - margin.bottom}
-                      left={margin.left}
-                      numTicks={binCount}
+                {showChartMap[hp.name] ? (
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    background={"white"}
+                    p={2}
+                  >
+                    <CustomBoxPlot
+                      data={exp?.trials.map((trial) => trial.params[hp.name])}
+                      width={width}
+                      name={"all"}
+                      height={height}
+                      margin={margin}
+                      type={
+                        hp instanceof BooleanHyperparam
+                          ? "boolean"
+                          : hp instanceof NumericalHyperparam
+                          ? "numerical"
+                          : "categorical"
+                      }
+                      count={
+                        exp?.trials.map((trial) => trial.params[hp.name]).length
+                      }
+                      keys={Array.from(
+                        new Set(
+                          exp?.trials.map((trial) => trial.params[hp.name])
+                        )
+                      ).sort()}
+                      binCount={
+                        hp instanceof BooleanHyperparam
+                          ? 2
+                          : hp instanceof NumericalHyperparam
+                          ? 5
+                          : 3
+                      }
                     />
-                  </svg>
-                </Box>
+                  </Box>
+                ) : (
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    background={"white"}
+                    p={2}
+                  >
+                    <CustomBoxPlot
+                      data={points}
+                      name={"all"}
+                      width={width}
+                      height={height}
+                      margin={margin}
+                      type="numerical"
+                      count={points.length}
+                      binCount={binCount}
+                    />
+                  </Box>
+                )}
               </Box>
             );
           })}
