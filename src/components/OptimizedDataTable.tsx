@@ -8,7 +8,7 @@ import { FaLayerGroup } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
-import { Icon, Text } from "@chakra-ui/react";
+import { Heading, Icon, Text } from "@chakra-ui/react";
 import {
   flexRender,
   getCoreRowModel,
@@ -371,10 +371,17 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
             padding: "2px",
           }}
         >
+          <Heading as="h5" size="sm" color={"gray.600"} padding={2} m={2}>
+            Trial Details
+          </Heading>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              style={{ display: "flex", width: "100%", paddingBottom: "6px" }}
+              style={{
+                display: "flex",
+                width: "100%",
+                paddingBottom: "6px",
+              }}
             >
               {headerGroup.headers.map((header) => {
                 return (
@@ -400,7 +407,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                         <Text
                           fontSize="md"
                           fontWeight="bold"
-                          color="gray.600"
+                          color="gray.500"
                           textAlign="center"
                         >
                           {flexRender(
