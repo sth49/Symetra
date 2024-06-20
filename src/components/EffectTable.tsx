@@ -66,146 +66,119 @@ const EffectTable = (props: { data: Experiment | null }) => {
         Hyperparameter Effects
       </Heading>
 
-      <Box overflow={"auto"} height="90%" mt={3}>
-        {exp.hyperparams
-          .sort((a, b) => b.getEffect() - a.getEffect())
-          .map((hp) => {
-            const backgroundColor = colorScale
-              ? colorScale(hp.getEffect())
-              : "white";
-            if (
-              hp.name === "silent-klee-assume" ||
-              hp.name === "sym-arg" ||
-              hp.name === "sym-flies"
-            ) {
-              return <>{hp.name}</>;
+      {/* <Box overflow={"auto"} height="90%" mt={3}> */}
+      {exp.hyperparams
+        .sort((a, b) => b.getEffect() - a.getEffect())
+        .map((hp) => {
+          const backgroundColor = colorScale
+            ? colorScale(hp.getEffect())
+            : "white";
+          if (
+            hp.name === "silent-klee-assume" ||
+            hp.name === "sym-arg" ||
+            hp.name === "sym-flies"
+          ) {
+            return <>{hp.name}</>;
+          }
+
+          const points = hp.shapValues;
+
+          const width = 20;
+          const height = 20;
+          const margin = { top: 1, right: 1, bottom: 1, left: 1 };
+          const binSize = 0.05;
+
+          const xMin = Math.min(...points);
+          const xMax = Math.max(...points);
+          const xRange = xMax - xMin;
+          const binCount = Math.ceil(xRange / binSize);
+          const xScale = scaleLinear({
+            domain: [xMin, xMax],
+            range: [margin.left, width - margin.right],
+          });
+
+          const bins = Array.from({ length: binCount }, (_, i) => ({
+            x0: xMin + i * binSize,
+            x1: xMin + (i + 1) * binSize,
+            count: 0,
+          }));
+
+          points.forEach((d) => {
+            const binIndex = Math.floor((d - xMin) / binSize);
+            if (binIndex >= 0 && binIndex < binCount) {
+              bins[binIndex].count++;
             }
+          });
 
-            const points = hp.shapValues;
+          const yScale = scaleLinear({
+            domain: [0, Math.max(...bins.map((bin) => bin.count))],
+            range: [height - margin.bottom, margin.top],
+          });
 
-            const width = 150;
-            const height = 60;
-            const margin = { top: 2, right: 2, bottom: 4, left: 4 };
-            const binSize = 0.05;
+          return (
+            <Box
+              key={hp.name}
+              border={"1px solid white"}
+              padding={1}
+              background={backgroundColor}
+              color={textScale(hp.getEffect()) < 0.5 ? "black" : "white"}
+              display={"flex"}
+            >
+              {/* <Tooltip
+                label={<Box>Effect: {hp.getEffect().toFixed(2)}</Box>}
+                placement="right-end"
+              > */}
 
-            const xMin = Math.min(...points);
-            const xMax = Math.max(...points);
-            const xRange = xMax - xMin;
-            const binCount = Math.ceil(xRange / binSize);
-            const xScale = scaleLinear({
-              domain: [xMin, xMax],
-              range: [margin.left, width - margin.right],
-            });
+              {/* </Tooltip> */}
 
-            const bins = Array.from({ length: binCount }, (_, i) => ({
-              x0: xMin + i * binSize,
-              x1: xMin + (i + 1) * binSize,
-              count: 0,
-            }));
-
-            points.forEach((d) => {
-              const binIndex = Math.floor((d - xMin) / binSize);
-              if (binIndex >= 0 && binIndex < binCount) {
-                bins[binIndex].count++;
-              }
-            });
-
-            const yScale = scaleLinear({
-              domain: [0, Math.max(...bins.map((bin) => bin.count))],
-              range: [height - margin.bottom, margin.top],
-            });
-
-            return (
               <Box
-                key={hp.name}
-                border={"1px solid white"}
-                padding={1}
-                background={backgroundColor}
-                color={textScale(hp.getEffect()) < 0.5 ? "black" : "white"}
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                background={"white"}
+                p={2}
               >
-                <Tooltip
-                  label={<Box>Effect: {hp.getEffect().toFixed(2)}</Box>}
-                  placement="right-end"
-                >
-                  <Box
-                    display={"flex"}
-                    flexDir={"row"}
-                    justifyContent={"space-between"}
-                    alignItems={"center"}
-                  >
-                    <Box>{hp.name}</Box>
-                    <Switch
-                      id="email-alerts"
-                      size={"sm"}
-                      isChecked={showChartMap[hp.name]}
-                      onChange={() => toggleShowChart(hp.name)}
-                    />
-                  </Box>
-                </Tooltip>
-
-                {showChartMap[hp.name] ? (
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    background={"white"}
-                    p={2}
-                  >
-                    <CustomBoxPlot
-                      data={exp?.trials.map((trial) => trial.params[hp.name])}
-                      width={width}
-                      name={"all"}
-                      height={height}
-                      margin={margin}
-                      type={
-                        hp instanceof BooleanHyperparam
-                          ? "boolean"
-                          : hp instanceof NumericalHyperparam
-                          ? "numerical"
-                          : "categorical"
-                      }
-                      count={
-                        exp?.trials.map((trial) => trial.params[hp.name]).length
-                      }
-                      keys={Array.from(
-                        new Set(
-                          exp?.trials.map((trial) => trial.params[hp.name])
-                        )
-                      ).sort()}
-                      binCount={
-                        hp instanceof BooleanHyperparam
-                          ? 2
-                          : hp instanceof NumericalHyperparam
-                          ? 5
-                          : 3
-                      }
-                    />
-                  </Box>
-                ) : (
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    background={"white"}
-                    p={2}
-                  >
-                    <CustomBoxPlot
-                      data={points}
-                      name={"all"}
-                      width={width}
-                      height={height}
-                      margin={margin}
-                      type="numerical"
-                      count={points.length}
-                      binCount={binCount}
-                    />
-                  </Box>
-                )}
+                <CustomBoxPlot
+                  data={exp?.trials.map((trial) => trial.params[hp.name])}
+                  width={width}
+                  name={"all"}
+                  height={height}
+                  margin={margin}
+                  type={
+                    hp instanceof BooleanHyperparam
+                      ? "boolean"
+                      : hp instanceof NumericalHyperparam
+                      ? "numerical"
+                      : "categorical"
+                  }
+                  count={
+                    exp?.trials.map((trial) => trial.params[hp.name]).length
+                  }
+                  keys={Array.from(
+                    new Set(exp?.trials.map((trial) => trial.params[hp.name]))
+                  ).sort()}
+                  binCount={
+                    hp instanceof BooleanHyperparam
+                      ? 2
+                      : hp instanceof NumericalHyperparam
+                      ? 5
+                      : 3
+                  }
+                />
               </Box>
-            );
-          })}
-      </Box>
+              <Box
+                display={"flex"}
+                flexDir={"row"}
+                justifyContent={"space-between"}
+                alignItems={"center"}
+              >
+                <Box>{hp.displayName}</Box>
+              </Box>
+            </Box>
+          );
+        })}
     </Box>
+    // </Box>
   );
 };
 

@@ -123,7 +123,7 @@ function App() {
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box display={"flex"} flexDir={"column"} width="20%">
+            <Box display={"flex"} flexDir={"column"} width="30%">
               <Overview data={exp} />
               <EffectTable data={exp} />
             </Box>
