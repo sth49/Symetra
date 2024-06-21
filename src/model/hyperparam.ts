@@ -75,6 +75,9 @@ export class Hyperparam {
     }
     return effect;
   }
+  getEffectByValue() {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export class NumericalHyperparam extends Hyperparam {
@@ -106,6 +109,17 @@ export class CategoricalHyperparam extends Hyperparam {
   getColor(value: string) {
     return this.scale(value);
   }
+  getEffectByValue() {
+    let effectByValue: { [key: string]: number } = {};
+
+    this.values.map((value) => {
+      const index = this.value.indexOf(value);
+      const shapValue = this.shapValues[index];
+      // mean of shap values
+      effectByValue[value] = shapValue / this.shapValues.length;
+    });
+    return effectByValue;
+  }
 }
 
 export class BooleanHyperparam extends Hyperparam {
@@ -113,6 +127,17 @@ export class BooleanHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     const value = json.value as boolean[];
     super(json.name, json.displayName, value, json.valueType);
+  }
+  getEffectByValue() {
+    let effectByValue: { [key: string]: number } = {};
+
+    this.values.map((value) => {
+      const index = this.value.indexOf(value);
+      const shapValue = this.shapValues[index];
+      // mean of shap values
+      effectByValue[value] = shapValue / this.shapValues.length;
+    });
+    return effectByValue;
   }
 }
 export class ListHyperparam extends Hyperparam {
