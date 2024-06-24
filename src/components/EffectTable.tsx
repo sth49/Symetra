@@ -10,15 +10,7 @@ import {
 import { Experiment } from "../model/experiment";
 import { useState, useEffect, useMemo } from "react";
 import * as d3 from "d3";
-import { BinData } from "./OptimizedDataTable";
-import { ViolinPlot } from "@visx/stats";
-import { AxisBottom } from "@visx/axis";
-import { generateBinnedData } from "../model/utils";
-import { Bar } from "@visx/shape";
-import { AxisLeft } from "@visx/axis";
-import { scaleLinear } from "@visx/scale";
-import { Switch } from "@chakra-ui/react";
-import CustomBoxPlot from "./CustomBoxPlot";
+
 import React from "react";
 import { Badge } from "@chakra-ui/react";
 import {
@@ -30,7 +22,8 @@ import {
   getExpandedRowModel,
   getGroupedRowModel,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import CustomBoxPlot from "./CustomBoxPlot";
+import { BooleanHyperparam, CategoricalHyperparam } from "../model/hyperparam";
 const EffectTable = (props: { data: Experiment | null }) => {
   const exp = props.data;
   const [showChartMap, setShowChartMap] = useState<{ [key: string]: boolean }>(
@@ -43,11 +36,65 @@ const EffectTable = (props: { data: Experiment | null }) => {
         name: hp.displayName,
         effect: hp.getEffect(),
         shapValues: hp.getEffectByValue(),
+        dist:
+          hp instanceof BooleanHyperparam
+            ? {
+                points: exp?.trials.map((trial) =>
+                  trial.params[hp.name] ? 1 : 0
+                ),
+                type: "boolean",
+                binCount: 2,
+                keys: 0,
+              }
+            : hp instanceof CategoricalHyperparam
+            ? {
+                points: exp?.trials.map((trial) => trial.params[hp.name]),
+                type: "categorical",
+                binCount: Array.from(
+                  new Set(exp?.trials.map((trial) => trial.params[hp.name]))
+                ).length,
+                keys: Array.from(
+                  new Set(exp?.trials.map((trial) => trial.params[hp.name]))
+                ).sort(),
+              }
+            : {
+                points: exp?.trials.map((trial) => trial.params[hp.name]),
+                type: "numerical",
+                binCount: 5,
+                keys: 0,
+              },
       }))
   );
   console.log("effect by value", exp?.hyperparams[3].getEffectByValue());
   const columns = React.useMemo(
     () => [
+      {
+        accessorKey: "dist",
+        header: "Dist.",
+        size: 40,
+        cell: (cell) => {
+          const data = cell.getValue(cell.column.accessorKey);
+          const points = data.points;
+          const type = data.type;
+          const binCount = data.binCount;
+          const keys = data.keys;
+          let name = "all";
+          // let binCount = cell.row
+          console.log("cell", cell);
+          return (
+            <CustomBoxPlot
+              data={points}
+              name={name}
+              width={40}
+              height={40}
+              type={type}
+              count={points.length}
+              binCount={binCount}
+              keys={keys}
+            />
+          );
+        },
+      },
       {
         accessorKey: "name",
         header: "Name",
@@ -332,8 +379,6 @@ const EffectTable = (props: { data: Experiment | null }) => {
               display={"flex"}
             >
               
-
-
               <Box
                 display="flex"
                 justifyContent="center"
