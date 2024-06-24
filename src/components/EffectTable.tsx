@@ -19,13 +19,8 @@ import { AxisLeft } from "@visx/axis";
 import { scaleLinear } from "@visx/scale";
 import { Switch } from "@chakra-ui/react";
 import CustomBoxPlot from "./CustomBoxPlot";
-import {
-  BooleanHyperparam,
-  Hyperparam,
-  NumericalHyperparam,
-} from "../model/hyperparam";
 import React from "react";
-
+import { Badge } from "@chakra-ui/react";
 import {
   flexRender,
   getCoreRowModel,
@@ -42,20 +37,21 @@ const EffectTable = (props: { data: Experiment | null }) => {
     {}
   );
   const [data, setData] = useState(
-    exp?.hyperparams.map((hp) => ({
-      name: hp.displayName,
-      effect: hp.getEffect(),
-      shapValues:
-        hp.shapValues.reduce((acc, currentValue) => acc + currentValue, 0) /
-        hp.shapValues.length,
-    }))
+    exp?.hyperparams
+      .sort((a, b) => Math.abs(b.getEffect()) - Math.abs(a.getEffect()))
+      .map((hp) => ({
+        name: hp.displayName,
+        effect: hp.getEffect(),
+        shapValues: hp.getEffectByValue(),
+      }))
   );
-  console.log("data", data);
+  console.log("effect by value", exp?.hyperparams[3].getEffectByValue());
   const columns = React.useMemo(
     () => [
       {
         accessorKey: "name",
         header: "Name",
+        size: 80,
         cell: (cell) => {
           return cell.getValue(cell.column.accessorKey);
         },
@@ -64,10 +60,63 @@ const EffectTable = (props: { data: Experiment | null }) => {
       {
         accessorKey: "effect",
         header: "Effect",
+        size: 90,
+        cell: (cell) => {
+          return cell.getValue(cell.column.accessorKey).toFixed(2);
+        },
       },
       {
         accessorKey: "shapValues",
         header: "SHAP Values",
+        size: 220,
+        cell: (cell) => {
+          const value = cell.getValue(cell.column.accessorKey);
+
+          return (
+            <Box
+              display={"flex"}
+              alignItems={"center"}
+              justifyContent={"space-between"}
+              whiteSpace={"nowrap"}
+              overflowX={"auto"}
+              textOverflow={"ellipsis"}
+              maxWidth={"220px"}
+            >
+              {Object.keys(value).map((key) => (
+                <Badge
+                  key={key}
+                  m={2}
+                  background={shapleyColorScale(value[key])}
+                  color={Math.abs(value[key]) < 0.5 ? "black" : "white"}
+                >
+                  {key}: {value[key].toFixed(3)}
+                </Badge>
+              ))}
+            </Box>
+          );
+        },
+        // cell: (cell) => {
+        //   console.log("cell", cell.getValue(cell.column.accessorKey));
+        //   const value = cell.getValue(cell.column.accessorKey);
+        //   // if (Object.keys(value).length === 3) {
+        //   //   return <></>;
+        //   // }
+        //   return (
+        //     <Box
+        //       display={"flex"}
+        //       justifyContent={"space-between"}
+        //       overflowX={"auto"}
+        //     >
+        //       {Object.keys(value).map((key) => {
+        //         return (
+        //           <Text>
+        //             {key}: {value[key].toFixed(3)}
+        //           </Text>
+        //         );
+        //       })}
+        //     </Box>
+        //   );
+        // },
       },
     ],
     []
@@ -82,6 +131,10 @@ const EffectTable = (props: { data: Experiment | null }) => {
       setShowChartMap(initialShowChartMap);
     }
   }, [exp]);
+
+  const shapleyColorScale = d3
+    .scaleSequential(d3.interpolateRdBu)
+    .domain([-1, 1]);
 
   const colorScale = useMemo(() => {
     if (!exp) {
@@ -126,10 +179,10 @@ const EffectTable = (props: { data: Experiment | null }) => {
             zIndex: 1,
             backgroundColor: "white",
             borderBottom: "0.5px solid gray",
-            padding: "2px",
+            padding: "8px",
           }}
         >
-          <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
+          <Heading as="h5" size="sm" color={"gray.600"} p={2} pb={6}>
             Hyperparameter Effects
           </Heading>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -197,11 +250,18 @@ const EffectTable = (props: { data: Experiment | null }) => {
         </tbody> */}
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
+            <tr
+              key={row.id}
+              style={{
+                display: "flex",
+              }}
+            >
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
                   style={{
+                    display: "flex",
+                    justifyContent: "center",
                     width: cell.column.getSize(),
                   }}
                 >

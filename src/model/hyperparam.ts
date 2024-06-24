@@ -93,6 +93,44 @@ export class NumericalHyperparam extends Hyperparam {
       return value.toFixed(2);
     }
   }
+  getEffectByValue() {
+    let bins = 3; // 구간 수
+    let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
+    const isInt = this.valueType === "int";
+
+    // 값들의 최소/최대값 계산
+    let min = Math.min(...this.values);
+    let max = Math.max(...this.values);
+
+    // 구간 범위 계산
+    let step = (max - min) / bins;
+    let range = Array.from({ length: bins }, (_, i) => min + i * step);
+    range.push(max);
+
+    // 각 구간별 영향력 평균 계산
+    for (let i = 0; i < bins; i++) {
+      let start = range[i];
+      let end = range[i + 1];
+      let effectSum = 0;
+      let count = 0;
+
+      this.shapValues.forEach((val, index) => {
+        let value = this.values[index];
+        if (value >= start && value < end) {
+          effectSum += val;
+          count++;
+        }
+      });
+
+      let effectAvg = count > 0 ? effectSum / count : 0;
+      let val = isInt
+        ? Math.round(start) + " ~ " + Math.round(end)
+        : start.toFixed(2) + " ~ " + end.toFixed(2);
+      effectByValue[val] = effectAvg;
+    }
+
+    return effectByValue;
+  }
 }
 
 export class CategoricalHyperparam extends Hyperparam {
@@ -111,12 +149,16 @@ export class CategoricalHyperparam extends Hyperparam {
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};
-
     this.values.map((value) => {
-      const index = this.value.indexOf(value);
-      const shapValue = this.shapValues[index];
-      // mean of shap values
-      effectByValue[value] = shapValue / this.shapValues.length;
+      effectByValue[value] = 0;
+      let count = 0;
+      this.shapValues.map((val, index) => {
+        if (this.values[index] === value) {
+          effectByValue[value] += val;
+          count++;
+        }
+      });
+      effectByValue[value] /= count;
     });
     return effectByValue;
   }
@@ -130,13 +172,20 @@ export class BooleanHyperparam extends Hyperparam {
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};
+    console.log("values", this.values);
 
-    this.values.map((value) => {
-      const index = this.value.indexOf(value);
-      const shapValue = this.shapValues[index];
-      // mean of shap values
-      effectByValue[value] = shapValue / this.shapValues.length;
+    this.value.map((value) => {
+      effectByValue[value] = 0;
+      let count = 0;
+      this.values.map((val, index) => {
+        if (val === value) {
+          effectByValue[value] += this.shapValues[index];
+          count++;
+        }
+      });
+      effectByValue[value] /= count;
     });
+
     return effectByValue;
   }
 }
