@@ -129,16 +129,18 @@ const EffectTable = (props: { data: Experiment | null }) => {
               textOverflow={"ellipsis"}
               maxWidth={"220px"}
             >
-              {Object.keys(value).map((key) => (
-                <Badge
-                  key={key}
-                  m={2}
-                  background={shapleyColorScale(value[key])}
-                  color={Math.abs(value[key]) < 0.5 ? "black" : "white"}
-                >
-                  {key}: {value[key].toFixed(3)}
-                </Badge>
-              ))}
+              {Object.keys(value)
+                .sort()
+                .map((key) => (
+                  <Badge
+                    key={key}
+                    m={2}
+                    background={shapleyColorScale(value[key])}
+                    color={Math.abs(value[key]) < 0.5 ? "black" : "white"}
+                  >
+                    {key}: {value[key].toFixed(3)}
+                  </Badge>
+                ))}
             </Box>
           );
         },

@@ -1,401 +1,631 @@
 {
-  "name": "ParaSuit",
-  "hyperparameters": [
-    {
-      "name": "max-memory-inhibit",
-      "value": [true, false],
-      "displayName": "MMI",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "watchdog",
-      "value": [true, false],
-      "displayName": "W",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "const-array-opt",
-      "value": [true, false],
-      "displayName": "CAO",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "zero-seed-extension",
-      "value": [true, false],
-      "displayName": "ZSE",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "warnings-only-to-file",
-      "value": [true, false],
-      "displayName": "WOTF",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "smtlib-human-readable",
-      "value": [true, false],
-      "displayName": "SHR",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "warn-all-external-symbols",
-      "value": [true, false],
-      "displayName": "WAES",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-iterative-deepening-time-search",
-      "value": [true, false],
-      "displayName": "UIDTS",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "cex-cache-exp",
-      "value": [true, false],
-      "displayName": "CCE",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "all-external-warnings",
-      "value": [true, false],
-      "displayName": "AEW",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "readable-posix-inputs",
-      "value": [true, false],
-      "displayName": "RPI",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "klee-call-optimisation",
-      "value": [true, false],
-      "displayName": "KCO",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-construct-hash-stp",
-      "value": [true, false],
-      "displayName": "UCHS",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-visitor-hash",
-      "value": [true, false],
-      "displayName": "UVH",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "return-null-on-zero-malloc",
-      "value": [true, false],
-      "displayName": "RNOZM",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "emit-all-errors",
-      "value": [true, false],
-      "displayName": "EAE",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "disable-inlining",
-      "value": [true, false],
-      "displayName": "DI",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "solver-optimize-divides",
-      "value": [true, false],
-      "displayName": "SOD",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "equality-substitution",
-      "value": [true, false],
-      "displayName": "ES",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "cex-cache-try-all",
-      "value": [true, false],
-      "displayName": "CCTA",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "simplify-sym-indices",
-      "value": [true, false],
-      "displayName": "SSI",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "check-overshift",
-      "value": [true, false],
-      "displayName": "CO",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "check-div-zero",
-      "value": [true, false],
-      "displayName": "CDZ",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "named-seed-matching",
-      "value": [true, false],
-      "displayName": "NSM",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "disable-verify",
-      "value": [true, false],
-      "displayName": "DV",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-branch-cache",
-      "value": [true, false],
-      "displayName": "UBC",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-independent-solver",
-      "value": [true, false],
-      "displayName": "UIS",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "track-instruction-time",
-      "value": [true, false],
-      "displayName": "TIT",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-call-paths",
-      "value": [true, false],
-      "displayName": "UCP",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "silent-klee-assume",
-      "value": [true, false],
-      "displayName": "SKA",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-cex-cache",
-      "value": [true, false],
-      "displayName": "UCC",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "suppress-external-warnings",
-      "value": [true, false],
-      "displayName": "SEW",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-forked-solver",
-      "value": [true, false],
-      "displayName": "UFS",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "cex-cache-superset",
-      "value": [true, false],
-      "displayName": "CCS",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "verify-each",
-      "value": [true, false],
-      "displayName": "VE",
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "switch-type",
-      "value": ["internal", "llvm", "simple"],
-      "displayName": "ST",
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "smtlib-display-constants",
-      "value": ["bin", "dec", "hex"],
-      "displayName": "SDC",
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "smtlib-abbreviation-mode",
-      "value": ["named", "none", "let"],
-      "displayName": "SAM",
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "max-sym-array-size",
-      "value": [37, 6067],
-      "displayName": "MSAS",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-depth",
-      "value": [64, 2189],
-      "displayName": "MD",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-static-fork-pct",
-      "value": [0.001630814, 0.996351828],
-      "displayName": "MSFP",
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "redzone-size",
-      "value": [3, 127],
-      "displayName": "RS",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "batch-instructions",
-      "value": [370, 13155],
-      "displayName": "BI",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "array-value-ratio",
-      "value": [0.005026351, 0.993154524],
-      "displayName": "AVR",
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "max-forks",
-      "value": [7, 23699],
-      "displayName": "MF",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-stack-frames",
-      "value": [612, 11810],
-      "displayName": "MSF",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "seed-time",
-      "value": [1.0, 355.0],
-      "displayName": "ST",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "uncovered-update-interval",
-      "value": [1.0, 333.0],
-      "displayName": "UUI",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-solver-time",
-      "value": [1.0, 179.0],
-      "displayName": "MST",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-memory",
-      "value": [46, 2324],
-      "displayName": "MM",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "batch-time",
-      "value": [3.0, 249.0],
-      "displayName": "BT",
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-static-solve-pct",
-      "value": [0.003567478, 0.990832414],
-      "displayName": "MSSP",
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "max-static-cpfork-pct",
-      "value": [0.00056597, 0.988207142],
-      "displayName": "MSCP",
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "max-static-cpsolve-pct",
-      "value": [0.004447999, 0.999508088],
-      "displayName": "MSCP",
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "array-value-symb-ratio",
-      "value": [0.004880948, 0.993913729],
-      "displayName": "AVSR",
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "sym-stdin",
-      "value": [2, 45],
-      "displayName": "SS",
-      "type": "numerical",
-      "valueType": "int"
+    "name": "ParaSuit",
+    "hyperparameters": [
+        {
+            "name": "disable-inlining",
+            "displayName": "DI",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "max-memory-inhibit",
+            "displayName": "MMI",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "klee-call-optimisation",
+            "displayName": "KCO",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-construct-hash-stp",
+            "displayName": "UCHS",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-visitor-hash",
+            "displayName": "UVH",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "equality-substitution",
+            "displayName": "ES",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "check-overshift",
+            "displayName": "CO",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "check-div-zero",
+            "displayName": "CDZ",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-branch-cache",
+            "displayName": "UBC",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-independent-solver",
+            "displayName": "UIS",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-call-paths",
+            "displayName": "UCP",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-cex-cache",
+            "displayName": "UCC",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-forked-solver",
+            "displayName": "UFS",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "watchdog",
+            "displayName": "W",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "const-array-opt",
+            "displayName": "CAO",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "zero-seed-extension",
+            "displayName": "ZSE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "warnings-only-to-file",
+            "displayName": "WOTF",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "smtlib-human-readable",
+            "displayName": "SHR",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "warn-all-external-symbols",
+            "displayName": "WAES",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "use-iterative-deepening-time-search",
+            "displayName": "UIDTS",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "cex-cache-exp",
+            "displayName": "CCE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "all-external-warnings",
+            "displayName": "AEW",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "readable-posix-inputs",
+            "displayName": "RPI",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "return-null-on-zero-malloc",
+            "displayName": "RNOZM",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "emit-all-errors",
+            "displayName": "EAE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "solver-optimize-divides",
+            "displayName": "SOD",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "cex-cache-try-all",
+            "displayName": "CCTA",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "simplify-sym-indices",
+            "displayName": "SSI",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "named-seed-matching",
+            "displayName": "NSM",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "disable-verify",
+            "displayName": "DV",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "track-instruction-time",
+            "displayName": "TIT",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "silent-klee-assume",
+            "displayName": "SKA",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "suppress-external-warnings",
+            "displayName": "SEW",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "cex-cache-superset",
+            "displayName": "CCS",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "verify-each",
+            "displayName": "VE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean"
+        },
+        {
+            "name": "max-memory",
+            "displayName": "MM",
+            "value": [
+                3,
+                4041
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "max-stack-frames",
+            "displayName": "MSF",
+            "value": [
+                10,
+                31098
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "max-forks",
+            "displayName": "MF",
+            "value": [
+                6,
+                30806
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "max-sym-array-size",
+            "displayName": "MSAS",
+            "value": [
+                1,
+                18362
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "max-depth",
+            "displayName": "MD",
+            "value": [
+                6,
+                16899
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "batch-instructions",
+            "displayName": "BI",
+            "value": [
+                3,
+                24253
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "redzone-size",
+            "displayName": "RS",
+            "value": [
+                1,
+                184
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "seed-time",
+            "displayName": "ST",
+            "value": [
+                1,
+                661
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "max-solver-time",
+            "displayName": "MST",
+            "value": [
+                1,
+                1298
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "batch-time",
+            "displayName": "BT",
+            "value": [
+                1,
+                464
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "uncovered-update-interval",
+            "displayName": "UUI",
+            "value": [
+                1,
+                315
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "max-static-fork-pct",
+            "displayName": "MSFP",
+            "value": [
+                0.004099668421,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float"
+        },
+        {
+            "name": "max-static-solve-pct",
+            "displayName": "MSSP",
+            "value": [
+                0.0003851008533,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float"
+        },
+        {
+            "name": "max-static-cpfork-pct",
+            "displayName": "MSCP",
+            "value": [
+                0.002553549676,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float"
+        },
+        {
+            "name": "max-static-cpsolve-pct",
+            "displayName": "MSCP",
+            "value": [
+                0.0006470565786,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float"
+        },
+        {
+            "name": "array-value-symb-ratio",
+            "displayName": "AVSR",
+            "value": [
+                0.003474433712,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float"
+        },
+        {
+            "name": "array-value-ratio",
+            "displayName": "AVR",
+            "value": [
+                0.004525735757,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float"
+        },
+        {
+            "name": "search",
+            "displayName": "S",
+            "value": [
+                "random-path",
+                "nurs:cpicnt",
+                "random-state",
+                "nurs:qc",
+                "nurs:depth",
+                "bfs",
+                "nurs:covnew",
+                "nurs:icnt",
+                "nurs:rp",
+                "dfs",
+                "nurs:md2u"
+            ],
+            "type": "categorical",
+            "valueType": "string"
+        },
+        {
+            "name": "switch-type",
+            "displayName": "ST",
+            "value": [
+                "internal",
+                "simple",
+                "llvm"
+            ],
+            "type": "categorical",
+            "valueType": "string"
+        },
+        {
+            "name": "smtlib-display-constants",
+            "displayName": "SDC",
+            "value": [
+                "dec",
+                "bin",
+                "hex"
+            ],
+            "type": "categorical",
+            "valueType": "string"
+        },
+        {
+            "name": "smtlib-abbreviation-mode",
+            "displayName": "SAM",
+            "value": [
+                "let",
+                "none",
+                "named"
+            ],
+            "type": "categorical",
+            "valueType": "string"
+        },
+        {
+            "name": "seed-file",
+            "displayName": "SF",
+            "value": [
+                1,
+                10
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "sym-arg",
+            "displayName": "SA",
+            "value": [
+                3,
+                192
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "sym-stdin",
+            "displayName": "SS",
+            "value": [
+                1,
+                255
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "sym-files-1",
+            "displayName": "SF1",
+            "value": [
+                1,
+                2
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        },
+        {
+            "name": "sym-files-2",
+            "displayName": "SF2",
+            "value": [
+                1,
+                30
+            ],
+            "type": "numerical",
+            "valueType": "int"
+        }
+    ],
+    "metric": {
+        "name": "Coverage",
+        "displayName": "CVRG"
     }
-  ],
-  "metric": {
-    "name": "Coverage",
-    "displayName": "cvrg"
-  }
 }

@@ -94,7 +94,7 @@ export class NumericalHyperparam extends Hyperparam {
     }
   }
   getEffectByValue() {
-    let bins = 3; // 구간 수
+    let bins = 5; // 구간 수
     let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
     const isInt = this.valueType === "int";
 
