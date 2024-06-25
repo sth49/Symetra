@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from "react";
 import { Experiment } from "../model/experiment";
 import { Hyperparam, HyperparamTypes } from "../model/hyperparam";
-import { ViolinPlot, BoxPlot } from "@visx/stats";
 import { FaLayerGroup } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
@@ -347,18 +346,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
   });
 
   return (
-    <Box
-      className="container"
-      ref={tableContainerRef}
-      style={{
-        overflow: "auto", //our scrollable table container
-        position: "relative", //needed for sticky header
-        height: "800px", //should be a fixed height
-        width: "80%",
-        backgroundColor: "white",
-      }}
-      m={1}
-    >
+    <Box className="container" ref={tableContainerRef}>
       <table style={{ display: "grid", padding: "2px" }}>
         <thead
           style={{
@@ -371,9 +359,9 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
             padding: "2px",
           }}
         >
-          <Heading as="h5" size="sm" color={"gray.600"} padding={2} m={2}>
+          {/* <Heading as="h5" size="sm" color={"gray.600"} padding={2} m={2}>
             Trial Details
-          </Heading>
+          </Heading> */}
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}

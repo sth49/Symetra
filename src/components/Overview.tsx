@@ -19,9 +19,15 @@ const Overview = (data: OverviewProps) => {
       .length
   );
   return (
-    <Box margin={1} bg={"white"} p={2}>
+    <Box
+      bg={"white"}
+      p={2}
+      display={"flex"}
+      justifyContent={"space-between"}
+      alignItems={"center"}
+    >
       <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
-        Overview
+        Dataset Information
       </Heading>
       <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
         <Box pr={2}>
@@ -41,7 +47,7 @@ const Overview = (data: OverviewProps) => {
       </Box>
       <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
         <Box pr={2}>
-          <Text fontSize="sm"># of Trials:</Text>
+          <Text fontSize="sm"># Trials:</Text>
         </Box>
         <Box>
           <Text fontSize="sm">{data.data.trials.length}</Text>
@@ -49,52 +55,54 @@ const Overview = (data: OverviewProps) => {
       </Box>
       <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
         <Box pr={2}>
-          <Text fontSize="sm"># of Attributes:</Text>
+          <Text fontSize="sm"># Attributes:</Text>
         </Box>
         <Box>
           <Text fontSize="sm">{data.data.hyperparams.length}</Text>
         </Box>
       </Box>
-      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
-        <Box pr={2}>
-          <Text fontSize="sm">- Boolean:</Text>
+      <Box display={"flex"} background={"gray.100"} p={"0px 4px"}>
+        <Box display={"flex"} flexDir={"row"} pt={1}>
+          <Box pr={2}>
+            <Text fontSize="sm">Boolean:</Text>
+          </Box>
+          <Box>
+            <Text fontSize="sm">
+              {
+                data.data.hyperparams.filter(
+                  (hp) => hp.type === HyperparamTypes.Boolean
+                ).length
+              }
+            </Text>
+          </Box>
         </Box>
-        <Box>
-          <Text fontSize="sm">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Boolean
-              ).length
-            }
-          </Text>
+        <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+          <Box pr={2}>
+            <Text fontSize="sm">Numerical:</Text>
+          </Box>
+          <Box>
+            <Text fontSize="sm">
+              {
+                data.data.hyperparams.filter(
+                  (hp) => hp.type === HyperparamTypes.Numerical
+                ).length
+              }
+            </Text>
+          </Box>
         </Box>
-      </Box>
-      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
-        <Box pr={2}>
-          <Text fontSize="sm">- Numerical:</Text>
-        </Box>
-        <Box>
-          <Text fontSize="sm">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Numerical
-              ).length
-            }
-          </Text>
-        </Box>
-      </Box>
-      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
-        <Box pr={2}>
-          <Text fontSize="sm">- Categorical:</Text>
-        </Box>
-        <Box>
-          <Text fontSize="sm">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Categorical
-              ).length
-            }
-          </Text>
+        <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+          <Box pr={2}>
+            <Text fontSize="sm">Categorical:</Text>
+          </Box>
+          <Box>
+            <Text fontSize="sm">
+              {
+                data.data.hyperparams.filter(
+                  (hp) => hp.type === HyperparamTypes.Categorical
+                ).length
+              }
+            </Text>
+          </Box>
         </Box>
       </Box>
     </Box>

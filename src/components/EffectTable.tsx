@@ -115,7 +115,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
       {
         accessorKey: "shapValues",
         header: "SHAP Values",
-        size: 220,
+        size: 130,
         cell: (cell) => {
           const value = cell.getValue(cell.column.accessorKey);
 
@@ -127,7 +127,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
               whiteSpace={"nowrap"}
               overflowX={"auto"}
               textOverflow={"ellipsis"}
-              maxWidth={"220px"}
+              maxWidth={"130px"}
             >
               {Object.keys(value).map((key) => (
                 <Badge
@@ -135,8 +135,13 @@ const EffectTable = (props: { data: Experiment | null }) => {
                   m={2}
                   background={shapleyColorScale(value[key])}
                   color={Math.abs(value[key]) < 0.5 ? "black" : "white"}
+                  display={"flex"}
+                  flexDir={"column"}
+                  alignItems={"center"}
                 >
-                  {key}: {value[key].toFixed(3)}
+                  <Box>{key}</Box>
+                  <Box>{value[key].toFixed(3)}</Box>
+                  {/* {key}: {value[key].toFixed(3)} */}
                 </Badge>
               ))}
             </Box>
@@ -216,7 +221,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
   console.log("rows", rows);
 
   return (
-    <Box height="585px" margin={1} bg={"white"} overflow={"auto"}>
+    <Box bg={"white"}>
       <table style={{ display: "grid", padding: "2px" }}>
         <thead
           style={{
@@ -229,9 +234,9 @@ const EffectTable = (props: { data: Experiment | null }) => {
             padding: "8px",
           }}
         >
-          <Heading as="h5" size="sm" color={"gray.600"} p={2} pb={6}>
+          {/* <Heading as="h5" size="sm" color={"gray.600"} p={2} pb={6}>
             Hyperparameter Effects
-          </Heading>
+          </Heading> */}
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -301,6 +306,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
               key={row.id}
               style={{
                 display: "flex",
+                borderBottom: "0.5px solid gray",
               }}
             >
               {row.getVisibleCells().map((cell) => (
@@ -310,6 +316,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
                     display: "flex",
                     justifyContent: "center",
                     width: cell.column.getSize(),
+                    alignItems: "center",
                   }}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

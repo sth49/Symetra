@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { useState, useEffect, ReactNode, useRef } from "react";
 import trialData from "./data/ParaSuit";
 import configData from "./data/config";
 import shapValues from "./data/shap_values";
@@ -12,7 +12,7 @@ import EffectTable from "./components/EffectTable";
 import Overview from "./components/Overview";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
-
+  const overviewContainerRef = useRef(null);
   useEffect(() => {
     async function loadExperiment() {
       try {
@@ -116,18 +116,81 @@ function App() {
 
   return (
     <Box bg="gray.200">
-      <Heading p={3} color="gray.600">
+      <Heading p={3} color="gray.600" height={"7vh"}>
         <Icon as={AiFillRocket} color="gray.600" />
         VisCovery
       </Heading>
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box display={"flex"} flexDir={"column"} width="30%">
-              <Overview data={exp} />
-              <EffectTable data={exp} />
+            <Box height={"92vh"} width="20%" display="flex" flexDir="column">
+              <Heading
+                as="h5"
+                size="sm"
+                color="gray.600"
+                bg={"white"}
+                m={1}
+                mb={0}
+                p={4}
+                flexShrink={0}
+              >
+                Hyperparameter Effects
+              </Heading>
+              <Box
+                overflow={"auto"}
+                bg={"white"}
+                m={1}
+                mt={0}
+                position={"relative"}
+                height={"100%"}
+                flexGrow={1}
+              >
+                <EffectTable data={exp} />
+              </Box>
             </Box>
-            <OptimizedDataTable data={exp} />
+            <Box display="flex" flexDir="column" width="80%" height="92vh">
+              <Box flexShrink={0} m={1}>
+                <Overview data={exp} />
+              </Box>
+              <Box display="flex" width="100%" flexGrow={1} overflow="hidden">
+                <Box width="50%" overflow="auto" position="relative">
+                  umap
+                </Box>
+                <Box width="50%" bg="white" m={1}>
+                  <Heading as="h5" size="sm" color="gray.600" p={4}>
+                    Trial Details
+                  </Heading>
+                  <Box overflow={"auto"} position="relative" height={"100%"}>
+                    <OptimizedDataTable data={exp} />
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+            {/* <Box
+              display={"flex"}
+              flexDir={"column"}
+              width="80%"
+              height={"92vh"}
+              m={1}
+            >
+              <Box pb={2} >
+                <Overview data={exp} />
+              </Box>
+
+              <Box display={"flex"} width={"100%"} >
+                <Box width="50%" overflow={"auto"} position={"relative"}>
+                  ㅁㄴㅇㄹ
+                </Box>
+                <Box
+                  width="50%"
+                  overflow={"auto"}
+                  position={"relative"}
+                  bg={"white"}
+                >
+                  <OptimizedDataTable data={exp} />
+                </Box>
+              </Box>
+            </Box> */}
           </>
         ) : (
           <div>Loading...</div>
