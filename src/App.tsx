@@ -160,7 +160,7 @@ function App() {
                   <Heading as="h5" size="sm" color="gray.600" p={4}>
                     Trial Details
                   </Heading>
-                  <Box overflow={"auto"} position="relative" height={"100%"}>
+                  <Box overflow={"auto"} position="relative" height={"95%"}>
                     <OptimizedDataTable data={exp} />
                   </Box>
                 </Box>
