@@ -14,10 +14,10 @@ interface OverviewProps {
 }
 
 const Overview = (data: OverviewProps) => {
-  console.log(
-    data.data.hyperparams.filter((hp) => hp.type === HyperparamTypes.Boolean)
-      .length
-  );
+  // console.log(
+  //   data.data.hyperparams.filter((hp) => hp.type === HyperparamTypes.Boolean)
+  //     .length
+  // );
   return (
     <Box
       bg={"white"}

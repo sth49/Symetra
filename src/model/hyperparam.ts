@@ -26,8 +26,8 @@ export class Metric {
 
 export class Hyperparam {
   public type!: HyperparamTypes;
-  public shapValues: number[] = [];
-  public values: any[] = [];
+  public shapValues: number[] = []; // 모든 trial의 해당 hp에 대한 shap value 저장
+  public values: any[] = []; // 모든 trial의 해당 hp에 대한 값 저장
   constructor(
     public name: string,
     public displayName: string,
@@ -35,7 +35,7 @@ export class Hyperparam {
     public valueType: string
   ) {}
 
-  static fromJson(json: HyperparamJson, trialJson, shapValueJson) {
+  static fromJson(json: HyperparamJson, trialJson) {
     let hparam: Hyperparam;
     if (json.type === "numerical") {
       hparam = new NumericalHyperparam(json);
@@ -52,8 +52,8 @@ export class Hyperparam {
       hparam.values.push(trial.config[hparam.name]);
     });
 
-    shapValueJson.map((value) => {
-      hparam.shapValues.push(value[hparam.name]);
+    trialJson.map((trial) => {
+      hparam.shapValues.push(trial.shap_values[hparam.name]);
     });
     // hparam.shapValues = shapValue;
     return hparam;
@@ -172,8 +172,6 @@ export class BooleanHyperparam extends Hyperparam {
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};
-    console.log("values", this.values);
-
     this.value.map((value) => {
       effectByValue[value] = 0;
       let count = 0;

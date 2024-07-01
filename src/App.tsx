@@ -1,7 +1,6 @@
 import React, { useState, useEffect, ReactNode, useRef } from "react";
 import trialData from "./data/ParaSuit";
 import configData from "./data/config";
-import shapValues from "./data/shap_values";
 import { Experiment } from "./model/experiment";
 import { Icon } from "@chakra-ui/react";
 import { AiFillRocket } from "react-icons/ai";
@@ -10,6 +9,7 @@ import { Box, Button, Heading } from "@chakra-ui/react";
 import OptimizedDataTable from "./components/OptimizedDataTable";
 import EffectTable from "./components/EffectTable";
 import Overview from "./components/Overview";
+import ScatterContourPlot from "./components/ScatterPlot";
 function App() {
   const [exp, setExp] = useState<Experiment | null>(null);
   const overviewContainerRef = useRef(null);
@@ -19,8 +19,8 @@ function App() {
         // 가정: Experiment.fromJson은 비동기 함수로 데이터를 처리한다.
         const experiment = await Experiment.fromJson(
           configData,
-          trialData,
-          shapValues
+          trialData
+          // shapValues
         );
         setExp(experiment);
 
@@ -153,8 +153,13 @@ function App() {
                 <Overview data={exp} />
               </Box>
               <Box display="flex" width="100%" flexGrow={1} overflow="hidden">
-                <Box width="50%" overflow="auto" position="relative">
-                  umap
+                <Box width="50%" bg="white" m={1}>
+                  <Heading as="h5" size="sm" color="gray.600" p={4}>
+                    Trial Details
+                  </Heading>
+                  <Box height={"95%"}>
+                    <ScatterContourPlot data={exp} />
+                  </Box>
                 </Box>
                 <Box width="50%" bg="white" m={1}>
                   <Heading as="h5" size="sm" color="gray.600" p={4}>

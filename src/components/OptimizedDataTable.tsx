@@ -346,7 +346,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
   });
 
   return (
-    <Box className="container" ref={tableContainerRef}>
+    <Box ref={tableContainerRef}>
       <table style={{ display: "grid", padding: "2px" }}>
         <thead
           style={{

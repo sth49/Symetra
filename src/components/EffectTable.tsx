@@ -65,7 +65,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
               },
       }))
   );
-  console.log("effect by value", exp?.hyperparams[3].getEffectByValue());
+  // console.log("effect by value", exp?.hyperparams[3].getEffectByValue());
   const columns = React.useMemo(
     () => [
       {
@@ -80,7 +80,6 @@ const EffectTable = (props: { data: Experiment | null }) => {
           const keys = data.keys;
           let name = "all";
           // let binCount = cell.row
-          console.log("cell", cell);
           return (
             <CustomBoxPlot
               data={points}
@@ -216,9 +215,9 @@ const EffectTable = (props: { data: Experiment | null }) => {
     getExpandedRowModel: getExpandedRowModel(),
   });
 
-  console.log(table);
+  // console.log(table);
   const { rows } = table.getRowModel();
-  console.log("rows", rows);
+  // console.log("rows", rows);
 
   return (
     <Box bg={"white"}>

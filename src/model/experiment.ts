@@ -15,20 +15,17 @@ export class Experiment {
     public metric: Metric // public featureOrder: string[]
   ) {}
 
-  static fromJson(
-    configJson: ConfigJson,
-    trialJson: TrialJson[],
-    shapValueJson: any[]
-  ) {
+  static fromJson(configJson: ConfigJson, trialJson: TrialJson[]) {
     const hyperparams = [] as Hyperparam[];
     configJson["hyperparameters"].map((column: HyperparamJson) => {
-      hyperparams.push(Hyperparam.fromJson(column, trialJson, shapValueJson));
+      hyperparams.push(Hyperparam.fromJson(column, trialJson));
     });
     const trials = [] as Trial[];
 
     trialJson.map((trial: TrialJson) => {
       trials.push(Trial.fromJson(trial));
     });
+    console.log("trials", trials);
 
     // column 이름 추출
     return new Experiment(
