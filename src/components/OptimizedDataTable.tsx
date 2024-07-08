@@ -32,13 +32,25 @@ export interface BinData {
 }
 
 const OptimizedDataTable = (props: OptimizedDataTableProps) => {
-  const [data, _setData] = useState(
-    props.data?.trials.map((trial) => ({
-      id: trial.id,
-      metric: trial.metric,
-      ...trial.params,
-    }))
+  // const [data, _setData] = useState(
+  //   props.data?.trials.map((trial) => ({
+  //     id: trial.id,
+  //     metric: trial.metric,
+  //     ...trial.params,
+  //   }))
+  // );
+
+  const processedData = useMemo(
+    () =>
+      props.data?.trials.map((trial) => ({
+        id: trial.id,
+        metric: trial.metric,
+        ...trial.params,
+      })),
+    [props.data]
   );
+
+  const [data, _setData] = useState(processedData);
 
   const exp = props.data;
 
@@ -245,9 +257,7 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
                     <rect
                       width={12}
                       height={12}
-                      fill={hp.getColor(
-                        cell.getValue(cell.column.accessorKey) as string
-                      )}
+                      fill={hp.getColor(cell.row.id)}
                     ></rect>
                   </svg>
                 </Box>

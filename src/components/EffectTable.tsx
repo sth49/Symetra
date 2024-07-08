@@ -1,14 +1,6 @@
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Heading,
-  Spinner,
-  Tooltip,
-  Text,
-} from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import { Experiment } from "../model/experiment";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import * as d3 from "d3";
 
 import React from "react";
@@ -17,55 +9,62 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  Row,
   useReactTable,
   getExpandedRowModel,
   getGroupedRowModel,
 } from "@tanstack/react-table";
 import CustomBoxPlot from "./CustomBoxPlot";
 import { BooleanHyperparam, CategoricalHyperparam } from "../model/hyperparam";
+import { useCustomStore } from "../store";
 const EffectTable = (props: { data: Experiment | null }) => {
   const exp = props.data;
   const [showChartMap, setShowChartMap] = useState<{ [key: string]: boolean }>(
     {}
   );
-  const [data, setData] = useState(
-    exp?.hyperparams
-      .sort((a, b) => Math.abs(b.getEffect()) - Math.abs(a.getEffect()))
-      .map((hp) => ({
-        name: hp.displayName,
-        effect: hp.getEffect(),
-        shapValues: hp.getEffectByValue(),
-        dist:
-          hp instanceof BooleanHyperparam
-            ? {
-                points: exp?.trials.map((trial) =>
-                  trial.params[hp.name] ? 1 : 0
-                ),
-                type: "boolean",
-                binCount: 2,
-                keys: 0,
-              }
-            : hp instanceof CategoricalHyperparam
-            ? {
-                points: exp?.trials.map((trial) => trial.params[hp.name]),
-                type: "categorical",
-                binCount: Array.from(
-                  new Set(exp?.trials.map((trial) => trial.params[hp.name]))
-                ).length,
-                keys: Array.from(
-                  new Set(exp?.trials.map((trial) => trial.params[hp.name]))
-                ).sort(),
-              }
-            : {
-                points: exp?.trials.map((trial) => trial.params[hp.name]),
-                type: "numerical",
-                binCount: 5,
-                keys: 0,
-              },
-      }))
+  const [hoveredRowId, setHoveredRowId] = useState(null);
+  const { clickedHparam, setClickedHparam } = useCustomStore();
+
+  const processedData = useMemo(
+    () =>
+      exp?.hyperparams
+        .sort((a, b) => Math.abs(b.getEffect()) - Math.abs(a.getEffect()))
+        .map((hp) => ({
+          name: hp.displayName,
+          effect: hp.getEffect(),
+          shapValues: hp.getEffectByValue(),
+          dist:
+            hp instanceof BooleanHyperparam
+              ? {
+                  points: exp?.trials.map((trial) =>
+                    trial.params[hp.name] ? 1 : 0
+                  ),
+                  type: "boolean",
+                  binCount: 2,
+                  keys: 0,
+                }
+              : hp instanceof CategoricalHyperparam
+              ? {
+                  points: exp?.trials.map((trial) => trial.params[hp.name]),
+                  type: "categorical",
+                  binCount: Array.from(
+                    new Set(exp?.trials.map((trial) => trial.params[hp.name]))
+                  ).length,
+                  keys: Array.from(
+                    new Set(exp?.trials.map((trial) => trial.params[hp.name]))
+                  ).sort(),
+                }
+              : {
+                  points: exp?.trials.map((trial) => trial.params[hp.name]),
+                  type: "numerical",
+                  binCount: 10,
+                  keys: 0,
+                },
+        })),
+
+    [exp]
   );
-  // console.log("effect by value", exp?.hyperparams[3].getEffectByValue());
+
+  const [data, setData] = useState(processedData);
   const columns = React.useMemo(
     () => [
       {
@@ -146,28 +145,6 @@ const EffectTable = (props: { data: Experiment | null }) => {
             </Box>
           );
         },
-        // cell: (cell) => {
-        //   console.log("cell", cell.getValue(cell.column.accessorKey));
-        //   const value = cell.getValue(cell.column.accessorKey);
-        //   // if (Object.keys(value).length === 3) {
-        //   //   return <></>;
-        //   // }
-        //   return (
-        //     <Box
-        //       display={"flex"}
-        //       justifyContent={"space-between"}
-        //       overflowX={"auto"}
-        //     >
-        //       {Object.keys(value).map((key) => {
-        //         return (
-        //           <Text>
-        //             {key}: {value[key].toFixed(3)}
-        //           </Text>
-        //         );
-        //       })}
-        //     </Box>
-        //   );
-        // },
       },
     ],
     []
@@ -183,27 +160,16 @@ const EffectTable = (props: { data: Experiment | null }) => {
     }
   }, [exp]);
 
-  const shapleyColorScale = d3
-    .scaleSequential(d3.interpolateRdBu)
-    .domain([-1, 1]);
-
-  const colorScale = useMemo(() => {
-    if (!exp) {
-      return null;
-    }
-    const maxEffect = Math.max(
-      ...exp.hyperparams.map((hp) => Math.abs(hp.getEffect()))
-    );
-    return d3.scaleSequential(d3.interpolateReds).domain([0, maxEffect]);
-  }, []);
-  const textScale = useMemo(() => {
-    if (!exp) {
-      return null;
-    }
-    const maxEffect = Math.max(
-      ...exp.hyperparams.map((hp) => Math.abs(hp.getEffect()))
-    );
-    return d3.scaleLinear().domain([0, maxEffect]).range([0, 1]);
+  const shapleyColorScale = useMemo(
+    () => d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]),
+    []
+  );
+  const handleRowClick = useCallback((rowId: string, hparamId: string) => {
+    console.log(`Row clicked: ${rowId}`);
+    console.log(`Hparam clicked: ${hparamId}`);
+    setHoveredRowId(rowId);
+    setClickedHparam(hparamId);
+    // 여기에 row 클릭 시 수행할 로직을 넣습니다.
   }, []);
 
   const table = useReactTable({
@@ -214,10 +180,36 @@ const EffectTable = (props: { data: Experiment | null }) => {
     getGroupedRowModel: getGroupedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
   });
-
-  // console.log(table);
-  const { rows } = table.getRowModel();
-  // console.log("rows", rows);
+  const TableRow = React.memo(({ row, onRowClick }) => {
+    return (
+      <tr
+        key={row.id}
+        style={{
+          display: "flex",
+          borderBottom: "0.5px solid gray",
+          backgroundColor: hoveredRowId === row.id ? "#f0f0f0" : "transparent",
+          boxShadow:
+            hoveredRowId === row.id ? "0 0 10px rgba(0,0,0,0.1)" : "none",
+        }}
+        onClick={() => onRowClick(row.id, row.original.name)}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <td
+            key={cell.id}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              width: cell.column.getSize(),
+              alignItems: "center",
+            }}
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </tr>
+    );
+  });
+  const rowModel = useMemo(() => table.getRowModel(), [table]);
 
   return (
     <Box bg={"white"}>
@@ -233,9 +225,6 @@ const EffectTable = (props: { data: Experiment | null }) => {
             padding: "8px",
           }}
         >
-          {/* <Heading as="h5" size="sm" color={"gray.600"} p={2} pb={6}>
-            Hyperparameter Effects
-          </Heading> */}
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -256,175 +245,13 @@ const EffectTable = (props: { data: Experiment | null }) => {
             </tr>
           ))}
         </thead>
-        {/* <tbody
-          style={{
-            display: "grid",
-            overflow: "auto",
-            width: "100%",
-          }}
-        >
-          {table.getRowModel().rows.map((row) => {
-            console.log("row", row);
-            return (
-              <tr
-                data-index={row.index} //needed for dynamic row height measurement
-                // ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                key={row.id}
-                style={{
-                  display: "flex",
-                  position: "absolute",
-                  width: "100%",
-                  padding: "2px",
-                  borderBottom: "0.5px solid gray",
-                }}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <td
-                      key={cell.id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        width: cell.column.getSize(),
-                      }}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody> */}
         <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              style={{
-                display: "flex",
-                borderBottom: "0.5px solid gray",
-              }}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    width: cell.column.getSize(),
-                    alignItems: "center",
-                  }}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
+          {rowModel.rows.map((row) => (
+            <TableRow key={row.id} row={row} onRowClick={handleRowClick} />
           ))}
         </tbody>
       </table>
-
-      {/* <Box overflow={"auto"} height="90%" mt={3}> */}
-      {/* {exp.hyperparams
-        .sort((a, b) => b.getEffect() - a.getEffect())
-        .map((hp) => {
-          const backgroundColor = colorScale
-            ? colorScale(hp.getEffect())
-            : "white";
-          if (
-            hp.name === "silent-klee-assume" ||
-            hp.name === "sym-arg" ||
-            hp.name === "sym-flies"
-          ) {
-            return <>{hp.name}</>;
-          }
-
-          const points = hp.shapValues;
-
-          const width = 30;
-          const height = 30;
-          const margin = { top: 1, right: 1, bottom: 1, left: 1 };
-          const binSize = 0.05;
-
-          const xMin = Math.min(...points);
-          const xMax = Math.max(...points);
-          const xRange = xMax - xMin;
-          const binCount = Math.ceil(xRange / binSize);
-          const xScale = scaleLinear({
-            domain: [xMin, xMax],
-            range: [margin.left, width - margin.right],
-          });
-
-          const bins = Array.from({ length: binCount }, (_, i) => ({
-            x0: xMin + i * binSize,
-            x1: xMin + (i + 1) * binSize,
-            count: 0,
-          }));
-
-          points.forEach((d) => {
-            const binIndex = Math.floor((d - xMin) / binSize);
-            if (binIndex >= 0 && binIndex < binCount) {
-              bins[binIndex].count++;
-            }
-          });
-
-          const yScale = scaleLinear({
-            domain: [0, Math.max(...bins.map((bin) => bin.count))],
-            range: [height - margin.bottom, margin.top],
-          });
-
-          return (
-            <Box
-              key={hp.name}
-              border={"1px solid white"}
-              padding={1}
-              // background={backgroundColor}
-              // color={textScale(hp.getEffect()) < 0.5 ? "black" : "white"}
-              display={"flex"}
-            >
-              
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                background={"white"}
-                p={0.5}
-              >
-                <CustomBoxPlot
-                  data={exp?.trials.map((trial) => trial.params[hp.name])}
-                  width={width}
-                  name={"all"}
-                  height={height}
-                  margin={margin}
-                  type={
-                    hp instanceof BooleanHyperparam
-                      ? "boolean"
-                      : hp instanceof NumericalHyperparam
-                      ? "numerical"
-                      : "categorical"
-                  }
-                  count={
-                    exp?.trials.map((trial) => trial.params[hp.name]).length
-                  }
-                  keys={Array.from(
-                    new Set(exp?.trials.map((trial) => trial.params[hp.name]))
-                  ).sort()}
-                  binCount={
-                    hp instanceof BooleanHyperparam
-                      ? 2
-                      : hp instanceof NumericalHyperparam
-                      ? 5
-                      : 3
-                  }
-                />
-              </Box>
-            </Box>
-          );
-        })} */}
     </Box>
-    // </Box>
   );
 };
 

@@ -155,7 +155,7 @@ function App() {
               <Box display="flex" width="100%" flexGrow={1} overflow="hidden">
                 <Box width="50%" bg="white" m={1}>
                   <Heading as="h5" size="sm" color="gray.600" p={4}>
-                    Trial Details
+                    Branch Coverage
                   </Heading>
                   <Box height={"95%"}>
                     <ScatterContourPlot data={exp} />

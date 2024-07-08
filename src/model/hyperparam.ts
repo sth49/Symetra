@@ -58,7 +58,7 @@ export class Hyperparam {
     // hparam.shapValues = shapValue;
     return hparam;
   }
-  getColor(arg0: string): string | undefined {
+  getColor(index: number): string | undefined {
     throw new Error("Method not implemented.");
   }
   formatting(arg0: any): any {
@@ -93,8 +93,12 @@ export class NumericalHyperparam extends Hyperparam {
       return value.toFixed(2);
     }
   }
+  getColor(index: number) {
+    // return d3.interpolateRdBu((this.value[index] + 1) / 2);
+    return "green";
+  }
   getEffectByValue() {
-    let bins = 5; // 구간 수
+    let bins = 10; // 구간 수
     let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
     const isInt = this.valueType === "int";
 
@@ -144,8 +148,9 @@ export class CategoricalHyperparam extends Hyperparam {
       .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
       .domain(value);
   }
-  getColor(value: string) {
-    return this.scale(value);
+  getColor(index: number) {
+    // return this.scale(value);
+    return this.scale(this.values[index]);
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};
@@ -169,6 +174,9 @@ export class BooleanHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     const value = json.value as boolean[];
     super(json.name, json.displayName, value, json.valueType);
+  }
+  getColor(index: number): string | undefined {
+    return this.values[index] ? "gray" : "white";
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};
