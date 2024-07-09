@@ -28,6 +28,7 @@ export class Hyperparam {
   public type!: HyperparamTypes;
   public shapValues: number[] = []; // 모든 trial의 해당 hp에 대한 shap value 저장
   public values: any[] = []; // 모든 trial의 해당 hp에 대한 값 저장
+  public visible = true;
   constructor(
     public name: string,
     public displayName: string,
@@ -78,13 +79,21 @@ export class Hyperparam {
   getEffectByValue() {
     throw new Error("Method not implemented.");
   }
+  toggleVisible() {
+    console.log("toggleVisible");
+    this.visible = !this.visible;
+  }
 }
 
 export class NumericalHyperparam extends Hyperparam {
   type = HyperparamTypes.Numerical;
+  public scale: d3.ScaleSequential<string>; // Add the missing type arguments
   constructor(json: HyperparamJson) {
     const value = json.value as number[];
     super(json.name, json.displayName, value, json.valueType);
+    this.scale = d3
+      .scaleSequential(d3.interpolateReds)
+      .domain([Math.min(...value), Math.max(...value)]);
   }
   formatting(value: number) {
     if (this.valueType === "int") {
@@ -95,7 +104,7 @@ export class NumericalHyperparam extends Hyperparam {
   }
   getColor(index: number) {
     // return d3.interpolateRdBu((this.value[index] + 1) / 2);
-    return "green";
+    return this.scale(this.values[index]);
   }
   getEffectByValue() {
     let bins = 10; // 구간 수

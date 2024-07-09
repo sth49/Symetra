@@ -1,8 +1,8 @@
-import { Box } from "@chakra-ui/react";
-import { Experiment } from "../model/experiment";
+import { Box, Button, Checkbox, Icon } from "@chakra-ui/react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import * as d3 from "d3";
-
+import { FaEye } from "react-icons/fa6";
+import { FaEyeSlash } from "react-icons/fa6";
 import React from "react";
 import { Badge } from "@chakra-ui/react";
 import {
@@ -16,13 +16,47 @@ import {
 import CustomBoxPlot from "./CustomBoxPlot";
 import { BooleanHyperparam, CategoricalHyperparam } from "../model/hyperparam";
 import { useCustomStore } from "../store";
-const EffectTable = (props: { data: Experiment | null }) => {
-  const exp = props.data;
-  const [showChartMap, setShowChartMap] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const [hoveredRowId, setHoveredRowId] = useState(null);
-  const { clickedHparam, setClickedHparam } = useCustomStore();
+const EffectTable = () => {
+  const { exp, hyperparams, setHyperparams } = useCustomStore();
+
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
+
+  const toggleRowSelection = (index, shiftKey) => {
+    if (shiftKey && lastSelectedIndex !== null) {
+      const start = Math.min(lastSelectedIndex, index);
+      const end = Math.max(lastSelectedIndex, index);
+      const newSelectedRows = new Set(selectedRows);
+      for (let i = start + 1; i <= end; i++) {
+        if (newSelectedRows.has(i)) {
+          newSelectedRows.delete(i);
+        } else {
+          newSelectedRows.add(i);
+        }
+      }
+      setSelectedRows(newSelectedRows);
+    } else {
+      const newSelectedRows = new Set(selectedRows);
+      if (newSelectedRows.has(index)) {
+        newSelectedRows.delete(index);
+      } else {
+        newSelectedRows.add(index);
+      }
+      setSelectedRows(newSelectedRows);
+    }
+    setLastSelectedIndex(index);
+  };
+
+  const toggleVisibilityForSelected = (visible) => {
+    const updatedHyperparams = hyperparams.map((hp, index) => {
+      if (selectedRows.has(index)) {
+        return { ...hp, visible };
+      }
+      return hp;
+    });
+    setHyperparams(updatedHyperparams);
+    setSelectedRows(new Set()); // 선택 초기화
+  };
 
   const processedData = useMemo(
     () =>
@@ -67,6 +101,48 @@ const EffectTable = (props: { data: Experiment | null }) => {
   const [data, setData] = useState(processedData);
   const columns = React.useMemo(
     () => [
+      {
+        id: "select",
+        size: 30,
+        cell: ({ row }) => (
+          <div className="px-1">
+            <Checkbox
+              isChecked={selectedRows.has(row.index)}
+              onChange={(e) =>
+                toggleRowSelection(row.index, e.nativeEvent.shiftKey)
+              }
+            />
+          </div>
+        ),
+      },
+      {
+        accessorKey: "visible",
+        header: "",
+        size: 60,
+        cell: (cell) => {
+          return (
+            <Icon
+              as={
+                hyperparams.find(
+                  (hp) => hp.displayName === cell.row.original.name
+                )?.visible
+                  ? FaEye
+                  : FaEyeSlash
+              }
+              onClick={() => {
+                const hp = hyperparams.find(
+                  (hp) => hp.displayName === cell.row.original.name
+                );
+                if (hp) {
+                  hp.visible = !hp.visible;
+                  setHyperparams([...hyperparams]);
+                }
+              }}
+              color={"gray"}
+            />
+          );
+        },
+      },
       {
         accessorKey: "dist",
         header: "Dist.",
@@ -139,7 +215,6 @@ const EffectTable = (props: { data: Experiment | null }) => {
                 >
                   <Box>{key}</Box>
                   <Box>{value[key].toFixed(3)}</Box>
-                  {/* {key}: {value[key].toFixed(3)} */}
                 </Badge>
               ))}
             </Box>
@@ -147,30 +222,13 @@ const EffectTable = (props: { data: Experiment | null }) => {
         },
       },
     ],
-    []
+    [selectedRows, toggleRowSelection]
   );
-
-  useEffect(() => {
-    if (exp) {
-      const initialShowChartMap = exp.hyperparams.reduce((map, hp) => {
-        map[hp.name] = false;
-        return map;
-      }, {});
-      setShowChartMap(initialShowChartMap);
-    }
-  }, [exp]);
 
   const shapleyColorScale = useMemo(
     () => d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]),
     []
   );
-  const handleRowClick = useCallback((rowId: string, hparamId: string) => {
-    console.log(`Row clicked: ${rowId}`);
-    console.log(`Hparam clicked: ${hparamId}`);
-    setHoveredRowId(rowId);
-    setClickedHparam(hparamId);
-    // 여기에 row 클릭 시 수행할 로직을 넣습니다.
-  }, []);
 
   const table = useReactTable({
     data: data || [],
@@ -180,18 +238,14 @@ const EffectTable = (props: { data: Experiment | null }) => {
     getGroupedRowModel: getGroupedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
   });
-  const TableRow = React.memo(({ row, onRowClick }) => {
+  const TableRow = React.memo(({ row }) => {
     return (
       <tr
         key={row.id}
         style={{
           display: "flex",
           borderBottom: "0.5px solid gray",
-          backgroundColor: hoveredRowId === row.id ? "#f0f0f0" : "transparent",
-          boxShadow:
-            hoveredRowId === row.id ? "0 0 10px rgba(0,0,0,0.1)" : "none",
         }}
-        onClick={() => onRowClick(row.id, row.original.name)}
       >
         {row.getVisibleCells().map((cell) => (
           <td
@@ -213,6 +267,13 @@ const EffectTable = (props: { data: Experiment | null }) => {
 
   return (
     <Box bg={"white"}>
+      <Box display={"flex"} p={2}>
+        <Button onClick={() => toggleVisibilityForSelected(true)} mr={2}>
+          Show
+        </Button>
+        <Button onClick={() => toggleVisibilityForSelected(false)}>Hide</Button>
+      </Box>
+
       <table style={{ display: "grid", padding: "2px" }}>
         <thead
           style={{
@@ -247,7 +308,7 @@ const EffectTable = (props: { data: Experiment | null }) => {
         </thead>
         <tbody>
           {rowModel.rows.map((row) => (
-            <TableRow key={row.id} row={row} onRowClick={handleRowClick} />
+            <TableRow key={row.id} row={row} />
           ))}
         </tbody>
       </table>

@@ -25,6 +25,8 @@ const Overview = (data: OverviewProps) => {
       display={"flex"}
       justifyContent={"space-between"}
       alignItems={"center"}
+      m={2}
+      width={"79%"}
     >
       <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
         Dataset Information
@@ -45,7 +47,7 @@ const Overview = (data: OverviewProps) => {
           </Tag>
         </Box>
       </Box>
-      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+      <Box display={"flex"} flexDir={"row"} pl={4} pt={1}>
         <Box pr={2}>
           <Text fontSize="sm"># Trials:</Text>
         </Box>
@@ -53,7 +55,7 @@ const Overview = (data: OverviewProps) => {
           <Text fontSize="sm">{data.data.trials.length}</Text>
         </Box>
       </Box>
-      <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+      <Box display={"flex"} flexDir={"row"} pl={4} pt={1}>
         <Box pr={2}>
           <Text fontSize="sm"># Attributes:</Text>
         </Box>
@@ -61,7 +63,7 @@ const Overview = (data: OverviewProps) => {
           <Text fontSize="sm">{data.data.hyperparams.length}</Text>
         </Box>
       </Box>
-      <Box display={"flex"} background={"gray.100"} p={"0px 4px"}>
+      <Box display={"flex"} p={"0px 4px"} pl={4}>
         <Box display={"flex"} flexDir={"row"} pt={1}>
           <Box pr={2}>
             <Text fontSize="sm">Boolean:</Text>
@@ -76,7 +78,7 @@ const Overview = (data: OverviewProps) => {
             </Text>
           </Box>
         </Box>
-        <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+        <Box display={"flex"} flexDir={"row"} pl={4} pt={1}>
           <Box pr={2}>
             <Text fontSize="sm">Numerical:</Text>
           </Box>
@@ -90,7 +92,7 @@ const Overview = (data: OverviewProps) => {
             </Text>
           </Box>
         </Box>
-        <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>
+        <Box display={"flex"} flexDir={"row"} pl={4} pt={1}>
           <Box pr={2}>
             <Text fontSize="sm">Categorical:</Text>
           </Box>

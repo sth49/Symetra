@@ -33,13 +33,15 @@ const CustomBoxPlot = ({
     const xMax =
       isInteger && isSame ? xMin + 10 : isSame ? xMin + 0.5 : Math.max(...data);
 
-    const xRange = xMax - xMin;
-    const binSize = xRange / binCount;
-
     const xScale = scaleLinear({
       domain: [xMin, xMax],
       range: [margin.left, width - margin.right],
+      nice: true,
     });
+
+    const [niceXMin, niceXMax] = xScale.domain();
+    const xRange = niceXMax - niceXMin;
+    const binSize = xRange / binCount;
 
     const bins = Array.from({ length: binCount }, (_, i) => ({
       x0: isInteger
