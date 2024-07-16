@@ -22,16 +22,17 @@ import { getGroupedRowModel } from "../model/getGroupedRowModel";
 import { FaCaretRight } from "react-icons/fa6";
 import { FaCaretDown } from "react-icons/fa6";
 import CustomBoxPlot from "./CustomBoxPlot";
-interface OptimizedDataTableProps {
-  data: Experiment | null;
-}
+import { useCustomStore } from "../store";
+// interface OptimizedDataTableProps {
+//   data: Experiment | null;
+// }
 
 export interface BinData {
   value: number;
   count: number;
 }
 
-const OptimizedDataTable = (props: OptimizedDataTableProps) => {
+const OptimizedDataTable = () => {
   // const [data, _setData] = useState(
   //   props.data?.trials.map((trial) => ({
   //     id: trial.id,
@@ -40,19 +41,19 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
   //   }))
   // );
 
+  const { exp } = useCustomStore();
+
   const processedData = useMemo(
     () =>
-      props.data?.trials.map((trial) => ({
+      exp?.trials.map((trial) => ({
         id: trial.id,
         metric: trial.metric,
         ...trial.params,
       })),
-    [props.data]
+    [exp]
   );
 
   const [data, _setData] = useState(processedData);
-
-  const exp = props.data;
 
   const columns = React.useMemo(() => {
     return [
@@ -345,14 +346,16 @@ const OptimizedDataTable = (props: OptimizedDataTableProps) => {
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
-    estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
+    estimateSize: (index) => {
+      return rows[index].getIsExpanded() ? 100 : 33;
+    },
     getScrollElement: () => tableContainerRef.current,
     measureElement:
       typeof window !== "undefined" &&
       navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
-    overscan: 5,
+    overscan: 10,
   });
 
   return (

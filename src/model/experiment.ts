@@ -23,10 +23,10 @@ export class Experiment {
     const trials = [] as Trial[];
 
     trialJson.map((trial: TrialJson) => {
-      console.log("trial", trial);
+      // console.log("trial", trial);
       trials.push(Trial.fromJson(trial));
     });
-    console.log("trials", trials);
+    // console.log("trials", trials);
 
     // column 이름 추출
     return new Experiment(

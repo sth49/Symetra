@@ -11,6 +11,9 @@ import EffectTable from "./components/EffectTable";
 import Overview from "./components/Overview";
 import ScatterContourPlot from "./components/ScatterPlot";
 import { useCustomStore } from "./store";
+import FastDataTable from "./components/FastDataTable";
+import GroupView from "./components/GroupView";
+import FastEffectTable from "./components/FastEffectTable";
 function App() {
   // const [exp, setExp] = useState<Experiment | null>(null);
   const { exp, setExp, setHyperparams } = useCustomStore();
@@ -46,42 +49,22 @@ function App() {
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box height={"92vh"} width="20%" display="flex" flexDir="column">
-              <Heading
-                as="h5"
-                size="sm"
-                color="gray.600"
-                bg={"white"}
-                m={1}
-                mb={0}
-                p={4}
-                flexShrink={0}
-              >
-                Hyperparameter Effects
-              </Heading>
-              <Box
-                overflow={"auto"}
-                bg={"white"}
-                m={1}
-                mt={0}
-                position={"relative"}
-                height={"100%"}
-                flexGrow={1}
-              >
-                <EffectTable />
+            <Box height="92vh" width="20%">
+              <Box height={"98.5%"} bg="white" m={1}>
+                <FastEffectTable />
               </Box>
             </Box>
             <Box display="flex" flexDir="column" width="80%" height="92vh">
               <Box display="flex" width="100%" flexGrow={1} overflow="hidden">
-                <Box width="50%" bg="white" m={1}>
+                <Box width="50%" height={"94%"} bg="white" m={1}>
                   <ScatterContourPlot data={exp} />
                 </Box>
-                <Box width="50%" bg="white" m={1}>
-                  <Heading as="h5" size="sm" color="gray.600" p={4}>
-                    Trial Details
-                  </Heading>
-                  <Box overflow={"auto"} position="relative" height={"95%"}>
-                    <OptimizedDataTable data={exp} />
+                <Box width="50%">
+                  <Box height={"49%"} bg="white" m={1}>
+                    <FastDataTable></FastDataTable>
+                  </Box>
+                  <Box height={"49%"} bg="white" m={1}>
+                    <GroupView></GroupView>
                   </Box>
                 </Box>
               </Box>

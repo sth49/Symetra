@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { scaleLinear } from "@visx/scale";
 import {
   Box,
+  Button,
   FormControl,
   FormLabel,
   Heading,
@@ -31,7 +32,16 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
     [exp, nNeighbors, minDist]
   );
 
-  console.log("data", data);
+  const [lassoPoints, setLassoPoints] = useState([]);
+  const [isLassoActive, setIsLassoActive] = useState(false);
+  const [selectedPoints, setSelectedPoints] = useState(new Set());
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [tempLassoPoints, setTempLassoPoints] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const svgRef = useRef(null);
+
+  // console.log("data", data);
 
   // const { clickedHparam } = useCustomStore();
 
@@ -107,7 +117,75 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
     return densityGenerator(data);
   }, [data, xScale, yScale, width, height, metricScale]);
 
-  console.log("densityData", densityData);
+  const handleMouseDown = useCallback(
+    (event) => {
+      if (!isLassoActive) return;
+      const svg = svgRef.current;
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+      setTempLassoPoints([{ x: svgPoint.x, y: svgPoint.y }]);
+      setSelectedPoints(new Set()); // 선택된 점들 초기화
+      setIsDrawing(true);
+    },
+    [isLassoActive]
+  );
+  const handleMouseMove = useCallback(
+    (event) => {
+      if (!isLassoActive || !isDrawing) return;
+      const svg = svgRef.current;
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+      const newTempLassoPoints = [
+        ...tempLassoPoints,
+        { x: svgPoint.x, y: svgPoint.y },
+      ];
+      setTempLassoPoints(newTempLassoPoints);
+      updateSelectedPoints(newTempLassoPoints);
+    },
+    [isLassoActive, isDrawing, tempLassoPoints]
+  );
+  const updateSelectedPoints = useCallback(
+    (lassoPoints) => {
+      if (lassoPoints.length < 3) return; // 최소 3개의 점이 필요합니다
+
+      const polygon = lassoPoints.map((p) => [p.x, p.y]);
+      const selected = new Set(
+        data
+          .filter((d) =>
+            d3.polygonContains(polygon, [xScale(d.x), yScale(d.y)])
+          )
+          .map((d) => d.id)
+      );
+      setSelectedPoints(selected);
+    },
+    [data, xScale, yScale]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (!isLassoActive || !isDrawing) return;
+    setIsDrawing(false);
+    setShowConfirm(true);
+  }, [isLassoActive, isDrawing]);
+
+  const confirmLasso = useCallback(() => {
+    setLassoPoints(tempLassoPoints);
+    setShowConfirm(false);
+    setIsLassoActive(false);
+    setIsDrawing(false);
+  }, [tempLassoPoints]);
+
+  const cancelLasso = useCallback(() => {
+    setTempLassoPoints([]);
+    setSelectedPoints(new Set());
+    setShowConfirm(false);
+    setIsLassoActive(false);
+    setIsDrawing(false);
+  }, []);
+  // console.log("densityData", densityData);
   return (
     <Box height={"100%"}>
       <Box display={"flex"} justifyContent={"space-between"}>
@@ -119,6 +197,7 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
             placeholder=""
             onChange={(e) => setSelected(e.target.value)}
             value={selected}
+            size={"sm"}
           >
             <option key={"none"} value={""}>
               None
@@ -138,14 +217,56 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
             </FormLabel>
             <Switch onChange={() => setVisible(!visible)} checked={visible} />
           </FormControl>
+
+          {isLassoActive ? (
+            <>
+              <Button
+                onClick={confirmLasso}
+                size={"sm"}
+                colorScheme="green"
+                width={"40%"}
+                ml={2}
+                isDisabled={tempLassoPoints.length < 3}
+              >
+                + Group
+              </Button>
+              <Button
+                onClick={cancelLasso}
+                size={"sm"}
+                colorScheme="red"
+                width={"40%"}
+                ml={2}
+                mr={2}
+              >
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => {
+                setIsLassoActive(true);
+                setSelectedPoints(new Set());
+              }}
+              size={"sm"}
+              colorScheme={isLassoActive ? "blue" : "gray"}
+              mr={2}
+              width={"40%"}
+            >
+              Lasso
+            </Button>
+          )}
         </Box>
       </Box>
       <Box display={"flex"} p={2} justifyContent={"space-around"}>
-        <Box display={"flex"}>
-          <Text fontSize={"small"}>N Neighbors:</Text>
+        <Box display={"flex"} width={"50%"} p={1} alignItems={"center"}>
+          <Text fontSize={"small"} width={"50%"} align={"center"}>
+            N Neighbors:
+          </Text>
           <Select
             onChange={(e) => setNNeighbors(Number(e.target.value))}
             value={nNeighbors}
+            size={"sm"}
+            width={"40%"}
           >
             {[
               ...new Set(
@@ -160,11 +281,15 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
               ))}
           </Select>
         </Box>
-        <Box display={"flex"}>
-          <Text fontSize={"small"}>Min Dist:</Text>
+        <Box display={"flex"} width={"50%"} p={1} alignItems={"center"}>
+          <Text fontSize={"small"} width={"50%"} align={"center"}>
+            Min Dist:
+          </Text>
           <Select
             onChange={(e) => setMinDist(Number(e.target.value))}
             value={minDist}
+            size={"sm"}
+            width={"40%"}
           >
             {[
               ...new Set(
@@ -180,12 +305,21 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
           </Select>
         </Box>
       </Box>
+
       <Box bg={"white"} p={2} height="calc(100% - 68px)">
         <svg
+          // width="100%"
+          // height="100%"
+          // viewBox={`0 0 ${width} ${height}`}
+          // preserveAspectRatio="xMidYMid meet"
+          ref={svgRef}
           width="100%"
           height="100%"
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="xMidYMid meet"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
         >
           <g transform={`translate(0, 0)`}>
             {visible && (
@@ -209,7 +343,9 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                 cy={yScale(d.y)}
                 r={3}
                 fill={
-                  selected === "metric"
+                  selectedPoints.has(d.id)
+                    ? "red"
+                    : selected === "metric"
                     ? colorScale(metricScale(d.metric))
                     : selected !== "" && exp?.hyperparams
                     ? exp?.hyperparams
@@ -218,9 +354,31 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                     : "gray"
                 }
                 stroke="black"
-                opacity={0.5}
+                opacity={selectedPoints.has(d.id) ? 1 : 0.5}
               />
             ))}
+
+            {/* {isLassoActive && lassoPoints.length > 0 && (
+              <path
+                d={`M ${lassoPoints.map((p) => `${p.x},${p.y}`).join(" L ")} Z`}
+                fill="none"
+                stroke="blue"
+                strokeWidth="2"
+                pointerEvents="none"
+              />
+            )}
+             */}
+            {isLassoActive && tempLassoPoints.length > 0 && (
+              <path
+                d={`M ${tempLassoPoints
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" L ")} Z`}
+                fill="none"
+                stroke="blue"
+                strokeWidth="2"
+                pointerEvents="none"
+              />
+            )}
           </g>
           {/* 레전드 */}
           {visible && (
