@@ -250,8 +250,8 @@ const FastEffectTable = () => {
     []
   );
   const toggleVisibilityForSelected = (visible) => {
-    console.log("clicked, visible:", visible);
-    console.log("selectedRows:", selectedRows);
+    // console.log("clicked, visible:", visible);
+    // console.log("selectedRows:", selectedRows);
     const newHyperparams = hyperparams.map((hp, index) => {
       if (selectedRows.has(index)) {
         hp.visible = visible;
@@ -259,6 +259,7 @@ const FastEffectTable = () => {
       return hp;
     });
     setHyperparams([...newHyperparams]);
+    setSelectedRows(new Set());
   };
 
   const handleScroll = () => {

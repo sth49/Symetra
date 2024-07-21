@@ -275,6 +275,9 @@ const FastDataTable = () => {
                 }}
               >
                 {columns.map((column) => {
+                  if (column.visibility === false) {
+                    return null;
+                  }
                   return (
                     <div
                       key={column.key}

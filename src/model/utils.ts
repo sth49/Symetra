@@ -53,3 +53,7 @@ export const generateBinnedData = (
     return { binData, yScale };
   }
 };
+
+export const formatting = (value: number, isInt: boolean) => {
+  return isInt ? Math.round(value) : value.toFixed(2);
+};

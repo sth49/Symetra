@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Experiment } from "./model/experiment";
 import { Hyperparam } from "./model/hyperparam";
+import { Group } from "./model/group";
 
 interface CustomStore {
   clickedHparam: string | null;
@@ -11,6 +12,12 @@ interface CustomStore {
 
   hyperparams: Hyperparam[];
   setHyperparams: (hyperparams: Hyperparam[]) => void;
+
+  groups: Group[];
+  setGroups: (groups: Group[]) => void;
+
+  groupSelected: Set<any>;
+  setGroupSelected: (groupSelected: Set<any>) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -22,4 +29,10 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   hyperparams: [],
   setHyperparams: (hyperparams) => set({ hyperparams }),
+
+  groups: [],
+  setGroups: (groups) => set({ groups }),
+
+  groupSelected: new Set(),
+  setGroupSelected: (groupSelected) => set({ groupSelected }),
 }));

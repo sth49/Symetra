@@ -11,6 +11,9 @@ import {
   Text,
 } from "@chakra-ui/react";
 import * as d3 from "d3";
+import { useCustomStore } from "../store";
+import { Group } from "../model/group";
+import { v4 as uuidv4 } from "uuid";
 
 const ScatterContourPlot = (props: { data: Experiment | null }) => {
   const exp = props.data;
@@ -32,18 +35,14 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
     [exp, nNeighbors, minDist]
   );
 
-  const [lassoPoints, setLassoPoints] = useState([]);
+  const { groups, setGroups, groupSelected } = useCustomStore();
+
   const [isLassoActive, setIsLassoActive] = useState(false);
   const [selectedPoints, setSelectedPoints] = useState(new Set());
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempLassoPoints, setTempLassoPoints] = useState([]);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const svgRef = useRef(null);
-
-  // console.log("data", data);
-
-  // const { clickedHparam } = useCustomStore();
 
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
@@ -168,93 +167,102 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
   const handleMouseUp = useCallback(() => {
     if (!isLassoActive || !isDrawing) return;
     setIsDrawing(false);
-    setShowConfirm(true);
   }, [isLassoActive, isDrawing]);
 
   const confirmLasso = useCallback(() => {
-    setLassoPoints(tempLassoPoints);
-    setShowConfirm(false);
+    setGroups([
+      ...groups,
+      new Group(
+        uuidv4(),
+        exp.trials.filter((trial) => selectedPoints.has(trial.id))
+      ),
+    ]);
     setIsLassoActive(false);
     setIsDrawing(false);
+    setSelectedPoints(new Set());
+    setTempLassoPoints([]);
   }, [tempLassoPoints]);
 
   const cancelLasso = useCallback(() => {
     setTempLassoPoints([]);
     setSelectedPoints(new Set());
-    setShowConfirm(false);
     setIsLassoActive(false);
     setIsDrawing(false);
   }, []);
   // console.log("densityData", densityData);
   return (
     <Box height={"100%"}>
-      <Box display={"flex"} justifyContent={"space-between"}>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
         <Heading as="h5" size="sm" color="gray.600" p={4}>
           Branch Coverage
         </Heading>
-        <Box display={"flex"} alignContent={"center"} alignItems={"center"}>
+
+        <Box display="flex" alignItems="center">
+          <Box mr={2}>
+            {/* 고정 너비를 사용하여 안정성 확보 */}
+            {isLassoActive ? (
+              <Box display="flex">
+                <Button
+                  onClick={confirmLasso}
+                  size="sm"
+                  colorScheme="blue"
+                  flex={1}
+                  mr={1}
+                  isDisabled={tempLassoPoints.length < 3}
+                >
+                  + Group
+                </Button>
+                <Button
+                  onClick={cancelLasso}
+                  size="sm"
+                  colorScheme="red"
+                  flex={1}
+                  ml={1}
+                >
+                  Cancel
+                </Button>
+              </Box>
+            ) : (
+              <Button
+                onClick={() => {
+                  setIsLassoActive(true);
+                  setSelectedPoints(new Set());
+                }}
+                size="sm"
+                colorScheme="green"
+                width="100%"
+              >
+                Lasso
+              </Button>
+            )}
+          </Box>
+
           <Select
             placeholder=""
             onChange={(e) => setSelected(e.target.value)}
             value={selected}
-            size={"sm"}
+            size="sm"
+            width="100px"
           >
-            <option key={"none"} value={""}>
-              None
-            </option>
-            <option key={"metric"} value={"metric"}>
-              METRIC
-            </option>
+            <option value="">None</option>
+            <option value="metric">METRIC</option>
             {exp.hyperparams.map((hp) => (
               <option key={hp.name} value={hp.name}>
                 {hp.displayName}
               </option>
             ))}
           </Select>
-          <FormControl display="flex" alignItems="center" p={4}>
-            <FormLabel mb={0}>
-              <Text fontSize={"sm"}>Metric</Text>
-            </FormLabel>
-            <Switch onChange={() => setVisible(!visible)} checked={visible} />
-          </FormControl>
 
-          {isLassoActive ? (
-            <>
-              <Button
-                onClick={confirmLasso}
-                size={"sm"}
-                colorScheme="green"
-                width={"40%"}
-                ml={2}
-                isDisabled={tempLassoPoints.length < 3}
-              >
-                + Group
-              </Button>
-              <Button
-                onClick={cancelLasso}
-                size={"sm"}
-                colorScheme="red"
-                width={"40%"}
-                ml={2}
-                mr={2}
-              >
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={() => {
-                setIsLassoActive(true);
-                setSelectedPoints(new Set());
-              }}
-              size={"sm"}
-              colorScheme={isLassoActive ? "blue" : "gray"}
-              mr={2}
-              width={"40%"}
-            >
-              Lasso
-            </Button>
-          )}
+          <FormControl display="flex" alignItems="center" ml={4} width="100px">
+            <FormLabel htmlFor="metric-switch" mb={0} mr={2}>
+              <Text fontSize="sm">Metric</Text>
+            </FormLabel>
+            <Switch
+              id="metric-switch"
+              onChange={() => setVisible(!visible)}
+              isChecked={visible}
+            />
+          </FormControl>
         </Box>
       </Box>
       <Box display={"flex"} p={2} justifyContent={"space-around"}>
@@ -344,9 +352,11 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                 r={3}
                 fill={
                   selectedPoints.has(d.id)
-                    ? "red"
+                    ? "#E53E3E"
                     : selected === "metric"
                     ? colorScale(metricScale(d.metric))
+                    : !isLassoActive && groupSelected.has(d.id)
+                    ? "#F6E05E"
                     : selected !== "" && exp?.hyperparams
                     ? exp?.hyperparams
                         .find((hp) => hp.name === selected)
@@ -354,7 +364,12 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                     : "gray"
                 }
                 stroke="black"
-                opacity={selectedPoints.has(d.id) ? 1 : 0.5}
+                opacity={
+                  selectedPoints.has(d.id) ||
+                  (!isLassoActive && groupSelected.has(d.id))
+                    ? 1
+                    : 0.5
+                }
               />
             ))}
 
@@ -374,7 +389,7 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                   .map((p) => `${p.x},${p.y}`)
                   .join(" L ")} Z`}
                 fill="none"
-                stroke="blue"
+                stroke="#2B6CB0"
                 strokeWidth="2"
                 pointerEvents="none"
               />
