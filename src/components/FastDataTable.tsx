@@ -21,6 +21,7 @@ const FastDataTable = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
   const scrollContainerRef = useRef(null);
   const headerRef = useRef(null);
 
@@ -118,6 +119,10 @@ const FastDataTable = () => {
         }
       }
       setSelectedRows(newSelectedRows);
+      setIsMultiSelect(true);
+    } else if (isMultiSelect) {
+      setSelectedRows(new Set());
+      setIsMultiSelect(false);
     } else {
       const newSelectedRows = new Set(selectedRows);
       if (newSelectedRows.has(index)) {
@@ -188,6 +193,7 @@ const FastDataTable = () => {
                       backgroundColor: item[column.key] ? "gray" : "white",
                       border: "1px solid gray",
                       display: "inline-block",
+                      userSelect: "none",
                     }}
                   />
                 ) : column.type === HyperparamTypes.Categorical ? (
@@ -197,12 +203,15 @@ const FastDataTable = () => {
                       height: "10px",
                       backgroundColor: column.hp.getColor(index),
                       display: "inline-block",
+                      userSelect: "none",
                     }}
                   />
                 ) : column.type === HyperparamTypes.Numerical ? (
-                  column.hp.formatting(item[column.key])
+                  <div style={{ userSelect: "none" }}>
+                    {column.hp.formatting(item[column.key])}
+                  </div>
                 ) : (
-                  item[column.key]
+                  <div style={{ userSelect: "none" }}>{item[column.key]}</div>
                 )}
               </div>
             );
@@ -232,11 +241,13 @@ const FastDataTable = () => {
         <Box
           width={"40%"}
           display={"flex"}
-          justifyContent={"space-between"}
+          justifyContent={"right"}
           p={2}
           alignItems="center"
         >
-          <Text fontSize={"sm"}>selected: {selectedRows.size}</Text>
+          <Text fontSize={"sm"} mr={2}>
+            Selected: {selectedRows.size} / {sortedData.length}
+          </Text>
           <Button
             size={"sm"}
             colorScheme={"blue"}

@@ -35,7 +35,7 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
     [exp, nNeighbors, minDist]
   );
 
-  const { groups, setGroups, groupSelected } = useCustomStore();
+  const { groups, setGroups, hoveredGroup } = useCustomStore();
 
   const [isLassoActive, setIsLassoActive] = useState(false);
   const [selectedPoints, setSelectedPoints] = useState(new Set());
@@ -201,7 +201,13 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
           <Box mr={2}>
             {/* 고정 너비를 사용하여 안정성 확보 */}
             {isLassoActive ? (
-              <Box display="flex">
+              <Box display="flex" alignItems={"center"}>
+                <Text fontSize={"sm"} mr={2}>
+                  Selected:{" "}
+                  {selectedPoints.size +
+                    (!isLassoActive ? hoveredGroup.size : 0)}{" "}
+                  / {data.length}
+                </Text>
                 <Button
                   onClick={confirmLasso}
                   size="sm"
@@ -229,7 +235,8 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                   setSelectedPoints(new Set());
                 }}
                 size="sm"
-                colorScheme="green"
+                colorScheme="blue"
+                variant={"outline"}
                 width="100%"
               >
                 Lasso
@@ -352,21 +359,37 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                 r={3}
                 fill={
                   selectedPoints.has(d.id)
-                    ? "#E53E3E"
+                    ? "#FC8181"
+                    : !isLassoActive && hoveredGroup.has(d.id)
+                    ? "#F6E05E"
+                    : !isLassoActive && hoveredGroup.size > 0
+                    ? "#CBD5E0"
                     : selected === "metric"
                     ? colorScale(metricScale(d.metric))
-                    : !isLassoActive && groupSelected.has(d.id)
-                    ? "#F6E05E"
                     : selected !== "" && exp?.hyperparams
                     ? exp?.hyperparams
                         .find((hp) => hp.name === selected)
                         ?.getColor(i)
-                    : "gray"
+                    : "#718096"
                 }
-                stroke="black"
+                stroke={
+                  selectedPoints.has(d.id)
+                    ? "#E53E3E"
+                    : !isLassoActive && hoveredGroup.has(d.id)
+                    ? "#D69E2E"
+                    : !isLassoActive && hoveredGroup.size > 0
+                    ? "#718096"
+                    : // : selected === "metric"
+                      // ? colorScale(metricScale(d.metric))
+                      // : selected !== "" && exp?.hyperparams
+                      // ? exp?.hyperparams
+                      //     .find((hp) => hp.name === selected)
+                      //     ?.getColor(i)
+                      "#2D3748"
+                }
                 opacity={
                   selectedPoints.has(d.id) ||
-                  (!isLassoActive && groupSelected.has(d.id))
+                  (!isLassoActive && hoveredGroup.has(d.id))
                     ? 1
                     : 0.5
                 }
@@ -418,9 +441,7 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                     textAnchor="start"
                     dominantBaseline="middle"
                   >
-                    {`${d3.format(".2f")(range[0])} - ${d3.format(".2f")(
-                      range[1]
-                    )}`}
+                    {`${range[0]} - ${range[1]}`}
                   </text>
                 </React.Fragment>
               ))}

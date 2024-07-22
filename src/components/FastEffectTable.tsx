@@ -16,6 +16,7 @@ const FastEffectTable = () => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
     null
   );
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
   const scrollContainerRef = useRef(null);
   const headerRef = useRef(null);
 
@@ -114,6 +115,11 @@ const FastEffectTable = () => {
         }
       }
       setSelectedRows(newSelectedRows);
+      setIsMultiSelect(true);
+    } else if (isMultiSelect) {
+      // we should clear the selection
+      setSelectedRows(new Set());
+      setIsMultiSelect(false);
     } else {
       const newSelectedRows = new Set(selectedRows);
       if (newSelectedRows.has(index)) {
@@ -201,9 +207,9 @@ const FastEffectTable = () => {
                   keys={item.dist.keys}
                 />
               ) : column.key === "name" ? (
-                <Text>{item[column.key]}</Text>
+                <Text userSelect={"none"}>{item[column.key]}</Text>
               ) : column.key === "effect" ? (
-                <Text>{item[column.key].toFixed(2)}</Text>
+                <Text userSelect={"none"}>{item[column.key].toFixed(2)}</Text>
               ) : column.key === "shapValues" ? (
                 (() => {
                   let value = item[column.key];
@@ -216,6 +222,7 @@ const FastEffectTable = () => {
                       overflowX={"auto"}
                       textOverflow={"ellipsis"}
                       maxWidth={"130px"}
+                      userSelect={"none"}
                     >
                       {Object.keys(value).map((key) => (
                         <Badge

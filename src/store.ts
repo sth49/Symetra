@@ -16,8 +16,11 @@ interface CustomStore {
   groups: Group[];
   setGroups: (groups: Group[]) => void;
 
-  groupSelected: Set<any>;
-  setGroupSelected: (groupSelected: Set<any>) => void;
+  hoveredGroup: Set<any>;
+  setHoveredGroup: (hoveredGroup: Set<any>) => void;
+
+  selectedGroup: Set<any>;
+  setSelectedGroup: (selectedGroup: Set<any>) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -33,6 +36,9 @@ export const useCustomStore = create<CustomStore>((set) => ({
   groups: [],
   setGroups: (groups) => set({ groups }),
 
-  groupSelected: new Set(),
-  setGroupSelected: (groupSelected) => set({ groupSelected }),
+  hoveredGroup: new Set(),
+  setHoveredGroup: (hoveredGroup) => set({ hoveredGroup }),
+
+  selectedGroup: new Set(),
+  setSelectedGroup: (selectedGroup) => set({ selectedGroup }),
 }));
