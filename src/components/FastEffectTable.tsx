@@ -69,6 +69,7 @@ const FastEffectTable = () => {
         label: (
           <input
             type="checkbox"
+            style={{ marginLeft: "8px" }}
             onChange={(e) => {
               if (e.target.checked) {
                 setSelectedRows(new Set(data.map((item) => item.id)));
@@ -80,19 +81,21 @@ const FastEffectTable = () => {
         ),
         width: 40,
       },
+      { key: "name", label: "Name", width: 50 },
+
+      {
+        key: "dist",
+        label: "Dist.",
+        width: 50,
+      },
+
+      { key: "effect", label: "Effect", width: 50 },
+      { key: "shapValues", label: "SHAP", width: 100 },
       {
         key: "visible",
         label: <Icon as={FaEye} color={"gray"} />,
         width: 40,
       },
-      {
-        key: "dist",
-        label: "Dist.",
-        width: 80,
-      },
-      { key: "name", label: "Name", width: 70 },
-      { key: "effect", label: "Effect", width: 70 },
-      { key: "shapValues", label: "SHAP Values", width: 130 },
     ],
     [exp]
   );
@@ -156,15 +159,18 @@ const FastEffectTable = () => {
               key={column.key}
               style={{
                 width: `${column.width}px`,
-                padding: "8px",
+                padding: "2px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
                 flexShrink: 0,
+                display: "flex",
+                justifyContent: "center",
               }}
             >
               {column.key === "checked" ? (
                 <input
+                  style={{ marginLeft: "8px" }}
                   type="checkbox"
                   checked={isSelected}
                   onChange={(e) =>
@@ -195,16 +201,20 @@ const FastEffectTable = () => {
                   data={item.dist.points}
                   name={"all"}
                   width={40}
-                  height={40}
+                  height={30}
                   type={item.dist.type}
                   count={item.dist.points.length}
                   binCount={item.dist.binCount}
                   keys={item.dist.keys}
                 />
               ) : column.key === "name" ? (
-                <Text userSelect={"none"}>{item[column.key]}</Text>
+                <Text userSelect={"none"} fontSize={"xs"}>
+                  {item[column.key]}
+                </Text>
               ) : column.key === "effect" ? (
-                <Text userSelect={"none"}>{item[column.key].toFixed(2)}</Text>
+                <Text userSelect={"none"} fontSize={"xs"}>
+                  {item[column.key].toFixed(2)}
+                </Text>
               ) : column.key === "shapValues" ? (
                 (() => {
                   let value = item[column.key];
@@ -220,18 +230,21 @@ const FastEffectTable = () => {
                       userSelect={"none"}
                     >
                       {Object.keys(value).map((key) => (
-                        <Badge
+                        <Box
                           key={key}
-                          m={2}
+                          p={0.5}
                           background={shapleyColorScale(value[key])}
                           color={Math.abs(value[key]) < 0.5 ? "black" : "white"}
                           display={"flex"}
                           flexDir={"column"}
                           alignItems={"center"}
+                          border={"1px solid #ffffff"}
                         >
-                          <Box>{key}</Box>
-                          <Box>{value[key].toFixed(3)}</Box>
-                        </Badge>
+                          <Text fontSize={"xs"} fontWeight={"bold"}>
+                            {key}
+                          </Text>
+                          <Text fontSize={"xs"}>{value[key].toFixed(3)}</Text>
+                        </Box>
                       ))}
                     </Box>
                   );
@@ -329,14 +342,16 @@ const FastEffectTable = () => {
                     key={column.key}
                     style={{
                       width: `${column.width}px`,
-                      padding: "8px",
+                      padding: "2px",
                       borderBottom: "2px solid #ddd",
                       cursor: "pointer",
                       flexShrink: 0,
-                      fontWeight: "bold",
+                      display: "flex",
+                      justifyContent: "center",
+                      // fontWeight: "bold",
                     }}
                   >
-                    {column.label}
+                    <Text fontSize={"sm"}>{column.label}</Text>
                   </div>
                 ))}
               </div>
@@ -349,7 +364,7 @@ const FastEffectTable = () => {
               <List
                 height={height - 100} // Subtracting header height
                 itemCount={data.length}
-                itemSize={55} // Adjust based on your row height
+                itemSize={40} // Adjust based on your row height
                 width={totalWidth}
                 itemData={data}
                 style={{ overflowX: "hidden" }}

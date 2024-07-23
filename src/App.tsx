@@ -49,15 +49,20 @@ function App() {
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box height="92vh" width="20%">
+            <Box width="340px">
               <Box height={"98.5%"} bg="white" m={1}>
                 <FastEffectTable />
               </Box>
             </Box>
-            <Box display="flex" flexDir="column" width="80%" height="92vh">
+            <Box
+              display="flex"
+              flexDir="column"
+              width="calc(100% - 340px)"
+              height="92vh"
+            >
               <Box display="flex" width="100%" flexGrow={1} overflow="hidden">
                 <Box width="50%" height={"94%"} bg="white" m={1}>
-                  <ScatterContourPlot data={exp} />
+                  <ScatterContourPlot />
                 </Box>
                 <Box width="50%">
                   <Box height={"49%"} bg="white" m={1}>

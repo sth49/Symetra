@@ -24,7 +24,7 @@ const CustomBoxPlot = ({
   type,
   width = 50,
   height = 40,
-  margin = { top: 2, right: 2, bottom: 10, left: 4 },
+  margin = { top: 2, right: 2, bottom: 2, left: 2 },
 }: BoxPlotProps) => {
   if (type === "numerical") {
     const isInteger = data.every(Number.isInteger);

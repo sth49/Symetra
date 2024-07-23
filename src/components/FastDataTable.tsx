@@ -8,7 +8,7 @@ import React, {
 import { useCustomStore } from "../store";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { Box, Button, Heading, Icon, Text } from "@chakra-ui/react";
+import { Box, Button, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { HyperparamTypes } from "../model/hyperparam";
 import { Group } from "../model/group";
@@ -70,7 +70,7 @@ const FastDataTable = () => {
       {
         key: "id",
         label: "ID",
-        width: 70,
+        width: 30,
         visibility: true,
         type: "string",
         canGroup: false,
@@ -79,7 +79,7 @@ const FastDataTable = () => {
       {
         key: "metric",
         label: "Metric",
-        width: 80,
+        width: 60,
         visibility: true,
         type: "numerical",
         canGroup: true,
@@ -88,7 +88,7 @@ const FastDataTable = () => {
       ...(exp?.hyperparams.map((hp) => ({
         key: hp.name,
         label: hp.displayName,
-        width: 70,
+        width: 50,
         visibility: hp.visible,
         type: hp.type,
         hp: hp,
@@ -272,11 +272,13 @@ const FastDataTable = () => {
                     }}
                   />
                 ) : column.type === HyperparamTypes.Numerical ? (
-                  <div style={{ userSelect: "none" }}>
+                  <Text fontSize={"xs"} userSelect="none">
                     {column.hp.formatting(item[column.key])}
-                  </div>
+                  </Text>
                 ) : (
-                  <div style={{ userSelect: "none" }}>{item[column.key]}</div>
+                  <Text fontSize={"xs"} userSelect="none">
+                    {item[column.key]}
+                  </Text>
                 )}
               </div>
             );
@@ -528,9 +530,8 @@ const FastDataTable = () => {
                         borderBottom: "2px solid #ddd",
                         cursor: "pointer",
                         flexShrink: 0,
-                        fontWeight: "bold",
                         justifyContent: "center",
-                        height: "70px",
+                        height: "60px",
                       }}
                     >
                       <Box
@@ -538,47 +539,67 @@ const FastDataTable = () => {
                         justifyContent={"center"}
                         height={column.key === "checked" ? "100%" : "50%"}
                       >
-                        {column.label}
+                        {column.key !== "checked" ? (
+                          <Text fontSize={"sm"} userSelect="none">
+                            {column.label}
+                          </Text>
+                        ) : (
+                          column.label
+                        )}
                       </Box>
                       {column.key !== "checked" && (
                         <Box display={"flex"} justifyContent={"center"}>
-                          <Button
-                            size={"sm"}
+                          <IconButton
+                            // fontSize={"10px"}
+                            size={"xs"}
+                            p={0}
                             variant={
-                              sortConfig.key === column.key
-                                ? "solid"
-                                : "outline"
+                              sortConfig.key === column.key ? "solid" : "ghost"
                             }
                             colorScheme="blue"
                             onClick={() => requestSort(column.key)}
-                          >
-                            <Icon
-                              as={
-                                sortConfig.key === column.key
-                                  ? sortConfig.direction === "ascending"
-                                    ? FaSortUp
-                                    : FaSortDown
-                                  : FaSort
-                              }
-                            ></Icon>
-                          </Button>
+                            icon={
+                              <Icon
+                                as={
+                                  sortConfig.key === column.key
+                                    ? sortConfig.direction === "ascending"
+                                      ? FaSortUp
+                                      : FaSortDown
+                                    : FaSort
+                                }
+                              ></Icon>
+                            }
+                          />
+
                           {column.canGroup && (
-                            <Button
-                              size={"sm"}
+                            <IconButton
+                              size={"xs"}
+                              p={0}
                               variant={
                                 columnGroup && columnGroup.key === column.key
                                   ? "solid"
-                                  : "outline"
+                                  : "ghost"
                               }
                               colorScheme="blue"
-                              onClick={() =>
-                                columnGroup?.columnKey === column.key
-                                  ? setColumnGroup(null)
-                                  : groupByColumn(column.key)
-                              }
-                            >
-                              <Icon as={FaLayerGroup} />
-                            </Button>
+                              onClick={() => groupByColumn(column.key)}
+                              icon={<Icon as={FaLayerGroup}></Icon>}
+                            />
+                            // <Button
+                            //   size={"sm"}
+                            //   variant={
+                            //     columnGroup && columnGroup.key === column.key
+                            //       ? "solid"
+                            //       : "outline"
+                            //   }
+                            //   colorScheme="blue"
+                            //   onClick={() =>
+                            //     columnGroup?.columnKey === column.key
+                            //       ? setColumnGroup(null)
+                            //       : groupByColumn(column.key)
+                            //   }
+                            // >
+                            //   <Icon as={FaLayerGroup} />
+                            // </Button>
                           )}
                         </Box>
                       )}
@@ -606,7 +627,7 @@ const FastDataTable = () => {
                   <List
                     height={height - 105} // Subtracting header height
                     itemCount={sortedData.length}
-                    itemSize={35} // Adjust based on your row height
+                    itemSize={15} // Adjust based on your row height
                     width={totalWidth}
                     itemData={sortedData}
                     style={{ overflowX: "hidden" }}

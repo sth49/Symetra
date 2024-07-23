@@ -242,6 +242,7 @@ const GroupView = () => {
 
         <Button
           m={2}
+          size={"sm"}
           isDisabled={selectedGroup.size === 0}
           colorScheme="blue"
           onClick={() => {
