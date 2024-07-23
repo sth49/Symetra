@@ -1,6 +1,12 @@
 import * as d3 from "d3";
 import { schemeCategory10 } from "d3";
 
+import {
+  scaleLinear,
+  scaleOrdinal,
+  scaleThreshold,
+  scaleQuantile,
+} from "@visx/scale";
 export enum HyperparamTypes {
   Numerical,
   Categorical,
@@ -29,6 +35,7 @@ export class Hyperparam {
   public shapValues: number[] = []; // 모든 trial의 해당 hp에 대한 shap value 저장
   public values: any[] = []; // 모든 trial의 해당 hp에 대한 값 저장
   public visible = true;
+  public scale: any;
   constructor(
     public name: string,
     public displayName: string,
@@ -87,13 +94,16 @@ export class Hyperparam {
 
 export class NumericalHyperparam extends Hyperparam {
   type = HyperparamTypes.Numerical;
-  public scale: d3.ScaleSequential<string>; // Add the missing type arguments
   constructor(json: HyperparamJson) {
     const value = json.value as number[];
     super(json.name, json.displayName, value, json.valueType);
     this.scale = d3
       .scaleSequential(d3.interpolateReds)
       .domain([Math.min(...value), Math.max(...value)]);
+    // this.scale = scaleLinear({
+    //   domain: [Math.min(...value), Math.max(...value)],
+    //   range: ["#f0f0f0", "#ff0000"],
+    // });
   }
   formatting(value: number) {
     if (this.valueType === "int") {
@@ -148,7 +158,7 @@ export class NumericalHyperparam extends Hyperparam {
 
 export class CategoricalHyperparam extends Hyperparam {
   type = HyperparamTypes.Categorical;
-  public scale: d3.ScaleOrdinal<string, string>; // Add the missing type arguments
+  scale: d3.ScaleOrdinal<string, string>; // Add the missing type arguments
 
   constructor(json: HyperparamJson) {
     const value = (json.value as string[]).sort();
@@ -183,9 +193,13 @@ export class BooleanHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     const value = json.value as boolean[];
     super(json.name, json.displayName, value, json.valueType);
+    this.scale = d3
+      .scaleOrdinal<string, string>(["gray", "white"]) // Add the missing type arguments
+      .domain([true, false]);
   }
   getColor(index: number): string | undefined {
-    return this.values[index] ? "gray" : "white";
+    // return this.values[index] ? "gray" : "white";
+    return this.scale(this.values[index]);
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};

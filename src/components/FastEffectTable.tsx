@@ -107,17 +107,12 @@ const FastEffectTable = () => {
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
       const newSelectedRows = new Set(selectedRows);
-      for (let i = start + 1; i <= end; i++) {
-        if (newSelectedRows.has(i)) {
-          newSelectedRows.delete(i);
-        } else {
-          newSelectedRows.add(i);
-        }
+      for (let i = start; i <= end; i++) {
+        newSelectedRows.add(i);
       }
       setSelectedRows(newSelectedRows);
       setIsMultiSelect(true);
     } else if (isMultiSelect) {
-      // we should clear the selection
       setSelectedRows(new Set());
       setIsMultiSelect(false);
     } else {

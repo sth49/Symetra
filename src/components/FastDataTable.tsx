@@ -8,20 +8,30 @@ import React, {
 import { useCustomStore } from "../store";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { Box, Button, Heading, Text } from "@chakra-ui/react";
+import { Box, Button, Heading, Icon, Text } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { HyperparamTypes } from "../model/hyperparam";
+import { Group } from "../model/group";
+import { v4 as uuidv4 } from "uuid";
+
+import { FaLayerGroup } from "react-icons/fa6";
+import { FaSort } from "react-icons/fa6";
+import { FaSortUp } from "react-icons/fa6";
+import { FaSortDown } from "react-icons/fa6";
+
 const FastDataTable = () => {
-  const { exp, hyperparams } = useCustomStore();
+  const { exp, hyperparams, setGroups, groups } = useCustomStore();
   const [sortedData, setSortedData] = useState([]);
   const [sortConfig, setSortConfig] = useState({
     key: null,
-    direction: "ascending",
+    direction: "none", // ascending or descending
   });
   const [hoveredRow, setHoveredRow] = useState(null);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   const [isMultiSelect, setIsMultiSelect] = useState(false);
+
+  const [columnGroup, setColumnGroup] = useState(null);
   const scrollContainerRef = useRef(null);
   const headerRef = useRef(null);
 
@@ -54,14 +64,26 @@ const FastDataTable = () => {
         width: 40,
         visibility: true,
         type: "checkbox",
+        canGroup: false,
+        isGroup: false,
       },
-      { key: "id", label: "ID", width: 60, visibility: true, type: "string" },
+      {
+        key: "id",
+        label: "ID",
+        width: 70,
+        visibility: true,
+        type: "string",
+        canGroup: false,
+        isGroup: false,
+      },
       {
         key: "metric",
         label: "Metric",
         width: 80,
         visibility: true,
         type: "numerical",
+        canGroup: true,
+        isGroup: false,
       },
       ...(exp?.hyperparams.map((hp) => ({
         key: hp.name,
@@ -70,6 +92,8 @@ const FastDataTable = () => {
         visibility: hp.visible,
         type: hp.type,
         hp: hp,
+        canGroup: true,
+        isGroup: false,
       })) || []),
     ],
     [exp, hyperparams]
@@ -98,7 +122,10 @@ const FastDataTable = () => {
 
   const requestSort = useCallback((key) => {
     setSortConfig((prevConfig) => ({
-      key,
+      key:
+        prevConfig.key === key && prevConfig.direction === "descending"
+          ? null
+          : key,
       direction:
         prevConfig.key === key && prevConfig.direction === "ascending"
           ? "descending"
@@ -106,17 +133,47 @@ const FastDataTable = () => {
     }));
   }, []);
 
+  const groupByColumn = (columnKey) => {
+    if (columnGroup && columnGroup.key === columnKey) {
+      setColumnGroup(null);
+      return;
+    }
+
+    if (columnKey === "metric") {
+      return;
+    }
+
+    const hp = hyperparams.find((hp) => hp.name === columnKey);
+
+    if (hp.type === HyperparamTypes.Numerical) {
+      return;
+    } else if (
+      hp.type === HyperparamTypes.Categorical ||
+      hp.type === HyperparamTypes.Boolean
+    ) {
+      const unqiueValues = hp.value;
+      console.log("unqiueValues", unqiueValues);
+
+      setColumnGroup({
+        key: columnKey,
+        values: unqiueValues,
+        groups: unqiueValues.map((value) => ({
+          key: value,
+          trials: data.filter((trial) => trial[columnKey] === value),
+        })),
+      });
+    }
+  };
+
   const toggleRowSelection = (index, shiftKey) => {
     if (shiftKey && lastSelectedIndex !== null) {
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
       const newSelectedRows = new Set(selectedRows);
-      for (let i = start + 1; i <= end; i++) {
-        if (newSelectedRows.has(i)) {
-          newSelectedRows.delete(i);
-        } else {
-          newSelectedRows.add(i);
-        }
+      for (let i = start; i <= end; i++) {
+        newSelectedRows.add(
+          sortedData[i].id // Use the actual trial ID
+        );
       }
       setSelectedRows(newSelectedRows);
       setIsMultiSelect(true);
@@ -125,10 +182,18 @@ const FastDataTable = () => {
       setIsMultiSelect(false);
     } else {
       const newSelectedRows = new Set(selectedRows);
-      if (newSelectedRows.has(index)) {
-        newSelectedRows.delete(index);
+      if (
+        newSelectedRows.has(
+          sortedData[index].id // Use the actual trial ID
+        )
+      ) {
+        newSelectedRows.delete(
+          sortedData[index].id // Use the actual trial ID
+        );
       } else {
-        newSelectedRows.add(index);
+        newSelectedRows.add(
+          sortedData[index].id // Use the actual trial ID
+        );
       }
       setSelectedRows(newSelectedRows);
     }
@@ -222,6 +287,163 @@ const FastDataTable = () => {
     [sortedData, columns, hoveredRow, totalWidth, selectedRows]
   );
 
+  const GroupRow = useCallback(
+    ({ index, style }) => {
+      const item = columnGroup?.groups[index];
+      const isHovered = hoveredRow === item.key.toString();
+      const isSelected = selectedRows.has(item.key.toString());
+
+      return (
+        <div
+          style={{
+            ...style,
+            display: "flex",
+            backgroundColor: isSelected
+              ? "#d0e0fc"
+              : isHovered
+              ? "#f0f0f0"
+              : "white",
+            transition: "background-color 0.3s",
+            width: totalWidth,
+          }}
+          onMouseEnter={() => setHoveredRow(item.key.toString())}
+          onMouseLeave={() => setHoveredRow(null)}
+          onClick={(e) => toggleRowSelection(index, e.shiftKey)}
+        >
+          {columns.map((column) => {
+            if (column.visibility === false) {
+              return null;
+            } else if (column.key === "id") {
+              return (
+                <div
+                  style={{
+                    width: `${column.width}px`,
+                    padding: "8px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  -
+                </div>
+              );
+            } else if (column.key === columnGroup.key) {
+              return (
+                <div
+                  key={column.key}
+                  style={{
+                    width: `${column.width}px`,
+                    padding: "8px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {column.key === "checked" ? (
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) =>
+                        toggleRowSelection(index, e.nativeEvent.shiftKey)
+                      }
+                    />
+                  ) : column.type === HyperparamTypes.Boolean ? (
+                    <div
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        backgroundColor: columnGroup?.values[index]
+                          ? "gray"
+                          : "white",
+                        border: "1px solid gray",
+                        display: "inline-block",
+                        userSelect: "none",
+                      }}
+                    />
+                  ) : column.type === HyperparamTypes.Categorical ? (
+                    <div
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        backgroundColor: column.hp.getColor(index),
+                        display: "inline-block",
+                        userSelect: "none",
+                      }}
+                    />
+                  ) : column.type === HyperparamTypes.Numerical ? (
+                    <div style={{ userSelect: "none" }}>"numerical"</div>
+                  ) : (
+                    <div style={{ userSelect: "none" }}>{"columns"}</div>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={column.key}
+                style={{
+                  width: `${column.width}px`,
+                  padding: "8px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {column.key === "checked" ? (
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) =>
+                      toggleRowSelection(index, e.nativeEvent.shiftKey)
+                    }
+                  />
+                ) : column.type === HyperparamTypes.Boolean ? (
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      backgroundColor: item[column.key] ? "gray" : "white",
+                      border: "1px solid gray",
+                      display: "inline-block",
+                      userSelect: "none",
+                    }}
+                  />
+                ) : column.type === HyperparamTypes.Categorical ? (
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      backgroundColor: column.hp.getColor(index),
+                      display: "inline-block",
+                      userSelect: "none",
+                    }}
+                  />
+                ) : column.type === HyperparamTypes.Numerical ? (
+                  <div style={{ userSelect: "none" }}>"numerical"</div>
+                ) : (
+                  <div style={{ userSelect: "none" }}>{"columns"}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    },
+    [columnGroup, columns, hoveredRow, totalWidth, selectedRows]
+  );
+
   const handleScroll = () => {
     if (scrollContainerRef.current && headerRef.current) {
       headerRef.current.scrollLeft = scrollContainerRef.current.scrollLeft;
@@ -255,7 +477,15 @@ const FastDataTable = () => {
             leftIcon={<AddIcon boxSize={3} />}
             isDisabled={selectedRows.size === 0}
             onClick={() => {
-              console.log("clicked");
+              setGroups([
+                ...groups,
+                new Group(
+                  uuidv4(),
+                  exp?.trials.filter((trial) => selectedRows.has(trial.id)) ??
+                    []
+                ),
+              ]);
+              setSelectedRows(new Set());
             }}
           >
             Group
@@ -299,18 +529,59 @@ const FastDataTable = () => {
                         cursor: "pointer",
                         flexShrink: 0,
                         fontWeight: "bold",
-                        display: "flex",
                         justifyContent: "center",
-                      }}
-                      onClick={() => {
-                        if (column.key !== "checked") {
-                          requestSort(column.key);
-                        }
+                        height: "70px",
                       }}
                     >
-                      {column.label}
-                      {sortConfig.key === column.key &&
-                        (sortConfig.direction === "ascending" ? " ▲" : " ▼")}
+                      <Box
+                        display={"flex"}
+                        justifyContent={"center"}
+                        height={column.key === "checked" ? "100%" : "50%"}
+                      >
+                        {column.label}
+                      </Box>
+                      {column.key !== "checked" && (
+                        <Box display={"flex"} justifyContent={"center"}>
+                          <Button
+                            size={"sm"}
+                            variant={
+                              sortConfig.key === column.key
+                                ? "solid"
+                                : "outline"
+                            }
+                            colorScheme="blue"
+                            onClick={() => requestSort(column.key)}
+                          >
+                            <Icon
+                              as={
+                                sortConfig.key === column.key
+                                  ? sortConfig.direction === "ascending"
+                                    ? FaSortUp
+                                    : FaSortDown
+                                  : FaSort
+                              }
+                            ></Icon>
+                          </Button>
+                          {column.canGroup && (
+                            <Button
+                              size={"sm"}
+                              variant={
+                                columnGroup && columnGroup.key === column.key
+                                  ? "solid"
+                                  : "outline"
+                              }
+                              colorScheme="blue"
+                              onClick={() =>
+                                columnGroup?.columnKey === column.key
+                                  ? setColumnGroup(null)
+                                  : groupByColumn(column.key)
+                              }
+                            >
+                              <Icon as={FaLayerGroup} />
+                            </Button>
+                          )}
+                        </Box>
+                      )}
                     </div>
                   );
                 })}
@@ -320,16 +591,29 @@ const FastDataTable = () => {
                   height: height - 105,
                 }}
               >
-                <List
-                  height={height - 105} // Subtracting header height
-                  itemCount={sortedData.length}
-                  itemSize={35} // Adjust based on your row height
-                  width={totalWidth}
-                  itemData={sortedData}
-                  style={{ overflowX: "hidden" }}
-                >
-                  {Row}
-                </List>
+                {columnGroup ? (
+                  <List
+                    height={height - 105} // Subtracting header height
+                    itemCount={columnGroup.groups.length}
+                    itemSize={35} // Adjust based on your row height
+                    width={totalWidth}
+                    itemData={columnGroup.groups}
+                    style={{ overflowX: "hidden" }}
+                  >
+                    {GroupRow}
+                  </List>
+                ) : (
+                  <List
+                    height={height - 105} // Subtracting header height
+                    itemCount={sortedData.length}
+                    itemSize={35} // Adjust based on your row height
+                    width={totalWidth}
+                    itemData={sortedData}
+                    style={{ overflowX: "hidden" }}
+                  >
+                    {Row}
+                  </List>
+                )}
               </div>
             </div>
           </div>

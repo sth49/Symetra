@@ -10,15 +10,33 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
+import {
+  Legend,
+  LegendLinear,
+  LegendQuantile,
+  LegendOrdinal,
+  LegendSize,
+  LegendThreshold,
+  LegendItem,
+  LegendLabel,
+} from "@visx/legend";
 import * as d3 from "d3";
 import { useCustomStore } from "../store";
 import { Group } from "../model/group";
 import { v4 as uuidv4 } from "uuid";
+import {
+  BooleanHyperparam,
+  CategoricalHyperparam,
+  NumericalHyperparam,
+} from "../model/hyperparam";
+import { format } from "@visx/vendor/d3-format";
 
-const ScatterContourPlot = (props: { data: Experiment | null }) => {
-  const exp = props.data;
+const ScatterContourPlot = () => {
+  const { exp, hyperparams, groups, setGroups, hoveredGroup } =
+    useCustomStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
+  const oneDecimalFormat = format(".1f");
   const data = useMemo(
     () =>
       exp?.trials.map((trial) => ({
@@ -35,8 +53,6 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
     [exp, nNeighbors, minDist]
   );
 
-  const { groups, setGroups, hoveredGroup } = useCustomStore();
-
   const [isLassoActive, setIsLassoActive] = useState(false);
   const [selectedPoints, setSelectedPoints] = useState(new Set());
   const [isDrawing, setIsDrawing] = useState(false);
@@ -52,7 +68,7 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
   const height = 800;
   const margin = { top: 20, right: 30, bottom: 40, left: 40 };
 
-  const legendWidth = 20;
+  const legendWidth = 100;
   const legendHeight = 100;
   const legendMargin = { top: 20, right: 20 };
 
@@ -419,32 +435,177 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
             )}
           </g>
           {/* 레전드 */}
-          {visible && (
+          {visible ||
+            (selected === "metric" && (
+              <g>
+                {thresholdRanges.map((range, i) => (
+                  <React.Fragment key={`legend-${i}`}>
+                    <rect
+                      x={10}
+                      y={i * (legendHeight / numThresholds) + legendMargin.top}
+                      width={legendWidth / 5}
+                      height={legendHeight / numThresholds}
+                      fill={colorScale(i)}
+                      opacity={0.3}
+                    />
+                    <text
+                      x={legendWidth / 5 + 15}
+                      y={
+                        (i + 0.5) * (legendHeight / numThresholds) +
+                        legendMargin.top
+                      }
+                      fontSize="12"
+                      textAnchor="start"
+                      dominantBaseline="middle"
+                    >
+                      {`${range[0]} - ${range[1]}`}
+                    </text>
+                  </React.Fragment>
+                ))}
+                <text
+                  x={10}
+                  y={10}
+                  fontSize="14"
+                  textAnchor="start"
+                  fontWeight="bold"
+                >
+                  Metric Range
+                </text>
+              </g>
+            ))}
+
+          {selected !== "metric" && selected !== "" && (
             <g>
-              {thresholdRanges.map((range, i) => (
-                <React.Fragment key={`legend-${i}`}>
-                  <rect
-                    x={10}
-                    y={i * (legendHeight / numThresholds) + legendMargin.top}
-                    width={legendWidth}
-                    height={legendHeight / numThresholds}
-                    fill={colorScale(i)}
-                    opacity={0.3}
-                  />
-                  <text
-                    x={legendWidth + 15}
-                    y={
-                      (i + 0.5) * (legendHeight / numThresholds) +
-                      legendMargin.top
-                    }
-                    fontSize="12"
-                    textAnchor="start"
-                    dominantBaseline="middle"
-                  >
-                    {`${range[0]} - ${range[1]}`}
-                  </text>
-                </React.Fragment>
-              ))}
+              {hyperparams
+                .find((hp) => hp.name === selected)
+                ?.scale.domain()
+                .map((val, i) => (
+                  <React.Fragment key={`legend-${i}`}>
+                    {hyperparams.find((hp) => hp.name === selected) instanceof
+                      CategoricalHyperparam ||
+                    hyperparams.find((hp) => hp.name === selected) instanceof
+                      BooleanHyperparam ? (
+                      <>
+                        <rect
+                          x={10}
+                          y={
+                            i *
+                              (legendHeight /
+                                hyperparams
+                                  .find((hp) => hp.name === selected)
+                                  ?.scale.domain().length) +
+                            legendMargin.top
+                          }
+                          width={legendWidth / 5}
+                          stroke={
+                            hyperparams.find(
+                              (hp) => hp.name === selected
+                            ) instanceof BooleanHyperparam && "gray"
+                          }
+                          height={
+                            legendHeight /
+                            hyperparams
+                              .find((hp) => hp.name === selected)
+                              ?.scale.domain().length
+                          }
+                          fill={hyperparams
+                            .find((hp) => hp.name === selected)
+                            ?.scale(val)}
+                          opacity={0.3}
+                        />
+                        <text
+                          x={legendWidth / 5 + 15}
+                          y={
+                            (i + 0.5) *
+                              (legendHeight /
+                                hyperparams
+                                  .find((hp) => hp.name === selected)
+                                  ?.scale.domain().length) +
+                            legendMargin.top
+                          }
+                          fontSize="12"
+                          textAnchor="start"
+                          dominantBaseline="middle"
+                        >
+                          {val === true
+                            ? "True"
+                            : val === false
+                            ? "False"
+                            : val}
+                        </text>
+                      </>
+                    ) : hyperparams.find(
+                        (hp) => hp.name === selected
+                      ) instanceof NumericalHyperparam ? (
+                      <g>
+                        {(() => {
+                          const hp = hyperparams.find(
+                            (hp) => hp.name === selected
+                          ) as NumericalHyperparam;
+                          const domain = hp.scale.domain();
+                          const linearScale = d3
+                            .scaleLinear()
+                            .domain(domain)
+                            .range([0, 1]);
+
+                          return (
+                            <>
+                              <defs>
+                                <linearGradient
+                                  id="numerical-gradient"
+                                  x1="0%"
+                                  y1="0%"
+                                  x2="100%"
+                                  y2="0%"
+                                >
+                                  <stop
+                                    offset="0%"
+                                    stopColor={hp.scale(domain[0])}
+                                  />
+                                  <stop
+                                    offset="100%"
+                                    stopColor={hp.scale(domain[1])}
+                                  />
+                                </linearGradient>
+                              </defs>
+                              <rect
+                                x={10}
+                                y={legendMargin.top}
+                                width={legendWidth}
+                                height={20}
+                                fill="url(#numerical-gradient)"
+                              />
+                              {[0, 0.5, 1].map((t, i) => {
+                                const value = linearScale.invert(t);
+                                return (
+                                  <g key={`legend-numerical-${i}`}>
+                                    <line
+                                      x1={10 + t * legendWidth}
+                                      y1={legendMargin.top + 20}
+                                      x2={10 + t * legendWidth}
+                                      y2={legendMargin.top + 25}
+                                      stroke="black"
+                                    />
+                                    <text
+                                      x={10 + t * legendWidth}
+                                      y={legendMargin.top + 40}
+                                      fontSize="12"
+                                      textAnchor="middle"
+                                    >
+                                      {oneDecimalFormat(value)}
+                                    </text>
+                                  </g>
+                                );
+                              })}
+                            </>
+                          );
+                        })()}
+                      </g>
+                    ) : (
+                      <>"asdf"</>
+                    )}
+                  </React.Fragment>
+                ))}
               <text
                 x={10}
                 y={10}
@@ -452,8 +613,9 @@ const ScatterContourPlot = (props: { data: Experiment | null }) => {
                 textAnchor="start"
                 fontWeight="bold"
               >
-                Metric Range
+                {selected}
               </text>
+              <g />
             </g>
           )}
         </svg>
