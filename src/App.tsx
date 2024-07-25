@@ -6,8 +6,6 @@ import { Icon } from "@chakra-ui/react";
 import { AiFillRocket } from "react-icons/ai";
 import "./App.css";
 import { Box, Button, Heading } from "@chakra-ui/react";
-import OptimizedDataTable from "./components/OptimizedDataTable";
-import EffectTable from "./components/EffectTable";
 import Overview from "./components/Overview";
 import ScatterContourPlot from "./components/ScatterPlot";
 import { useCustomStore } from "./store";
@@ -37,39 +35,57 @@ function App() {
   }, []);
 
   return (
-    <Box bg="gray.200">
+    <Box bg="gray.200" h={"100vh"} w={"100vw"}>
       <Box display={"flex"} justifyContent={"space-between"}>
-        <Heading p={3} color="gray.600" height={"7vh"}>
-          <Icon as={AiFillRocket} color="gray.600" />
-          VisCovery
-        </Heading>
-        {exp && <Overview data={exp} />}
+        <Box p={3} color="gray.600" height={"7vh"} width="350px">
+          <Heading m={1}>
+            <Icon as={AiFillRocket} color="gray.600" />
+            VisCovery
+          </Heading>
+        </Box>
+        <Box width="calc(100% - 350px)" height={"7vh"}>
+          {exp && (
+            <Box bg={"white"} m={1} height={"calc(7vh - 8px)"}>
+              <Overview data={exp} />
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box width="340px">
-              <Box height={"98.5%"} bg="white" m={1}>
+            <Box width="350px" height="calc(100vh - 7vh)">
+              <Box height="calc(100vh - 7vh - 8px)" bg="white" m={1}>
                 <FastEffectTable />
               </Box>
             </Box>
             <Box
               display="flex"
               flexDir="column"
-              width="calc(100% - 340px)"
-              height="92vh"
+              width="calc(100% - 350px)"
+              height="calc(100vh - 7vh)"
             >
-              <Box display="flex" width="100%" flexGrow={1} overflow="hidden">
-                <Box width="50%" height={"94%"} bg="white" m={1}>
+              <Box display="flex" width="100%">
+                <Box
+                  width="50%"
+                  bg="white"
+                  m={1}
+                  height="calc(100vh - 7vh - 8px)"
+                >
                   <ScatterContourPlot />
                 </Box>
-                <Box width="50%">
-                  <Box height={"49%"} bg="white" m={1}>
-                    <FastDataTable></FastDataTable>
+                <Box
+                  width="50%"
+                  height="calc(100vh - 7vh)"
+                  display="flex"
+                  flexDirection="column"
+                >
+                  <Box height={"50%"} flex="1" bg="white" m={1}>
+                    <FastDataTable />
                   </Box>
-                  <Box height={"49%"} bg="white" m={1}>
-                    <GroupView></GroupView>
+                  <Box height={"50%"} flex="1" bg="white" m={1}>
+                    <GroupView />
                   </Box>
                 </Box>
               </Box>

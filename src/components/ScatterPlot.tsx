@@ -10,20 +10,9 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
-import {
-  Legend,
-  LegendLinear,
-  LegendQuantile,
-  LegendOrdinal,
-  LegendSize,
-  LegendThreshold,
-  LegendItem,
-  LegendLabel,
-} from "@visx/legend";
+
 import * as d3 from "d3";
 import { useCustomStore } from "../store";
-import { Group } from "../model/group";
-import { v4 as uuidv4 } from "uuid";
 import {
   BooleanHyperparam,
   CategoricalHyperparam,
@@ -186,13 +175,19 @@ const ScatterContourPlot = () => {
   }, [isLassoActive, isDrawing]);
 
   const confirmLasso = useCallback(() => {
-    setGroups([
-      ...groups,
-      new Group(
-        uuidv4(),
-        exp.trials.filter((trial) => selectedPoints.has(trial.id))
-      ),
-    ]);
+    // setGroups([
+    //   ...groups,
+    //   new Group(
+    //     uuidv4(),
+    //     exp.trials.filter((trial) => selectedPoints.has(trial.id))
+    //   ),
+    // ]);
+    console.log("groups", groups);
+    groups.addGroup(exp.trials.filter((trial) => selectedPoints.has(trial.id)));
+
+    // console.log("newGroups", newGroups);
+
+    setGroups(groups);
     setIsLassoActive(false);
     setIsDrawing(false);
     setSelectedPoints(new Set());
@@ -214,7 +209,7 @@ const ScatterContourPlot = () => {
         </Heading>
 
         <Box display="flex" alignItems="center">
-          <Box mr={2}>
+          <Box>
             {/* 고정 너비를 사용하여 안정성 확보 */}
             {isLassoActive ? (
               <Box display="flex" alignItems={"center"}>
@@ -337,12 +332,8 @@ const ScatterContourPlot = () => {
         </Box>
       </Box>
 
-      <Box bg={"white"} p={2} height="calc(100% - 68px)">
+      <Box bg={"white"} p={2} height="calc(100% - 108px)">
         <svg
-          // width="100%"
-          // height="100%"
-          // viewBox={`0 0 ${width} ${height}`}
-          // preserveAspectRatio="xMidYMid meet"
           ref={svgRef}
           width="100%"
           height="100%"

@@ -188,36 +188,80 @@ export class CategoricalHyperparam extends Hyperparam {
   }
 }
 
+// export class BooleanHyperparam extends Hyperparam {
+//   type = HyperparamTypes.Boolean;
+//   constructor(json: HyperparamJson) {
+//     const value = json.value as boolean[];
+//     super(json.name, json.displayName, value, json.valueType);
+//     this.scale = d3
+//       .scaleOrdinal<string, string>(["gray", "white"]) // Add the missing type arguments
+//       .domain([true, false]);
+//   }
+//   getColor(index: number): string | undefined {
+//     // return this.values[index] ? "gray" : "white";
+//     return this.scale(this.values[index]);
+//   }
+//   getEffectByValue() {
+//     let effectByValue: { [key: string]: number } = {};
+//     this.value.map((value) => {
+//       effectByValue[value] = 0;
+//       let count = 0;
+//       this.values.map((val, index) => {
+//         if (val === value) {
+//           effectByValue[value] += this.shapValues[index];
+//           count++;
+//         }
+//       });
+//       effectByValue[value] /= count;
+//     });
+
+//     // sort effectByValue by key
+//     let ordered = {};
+//     Object.keys(effectByValue)
+//       .sort()
+//       .reverse()
+//       .forEach(function (key) {
+//         ordered[key] = effectByValue[key];
+//       });
+//     return ordered;
+//   }
+// }
+
+// import { scaleOrdinal } from "d3-scale";
+
 export class BooleanHyperparam extends Hyperparam {
-  type = HyperparamTypes.Boolean;
+  readonly type = HyperparamTypes.Boolean;
+  private static readonly scale = scaleOrdinal<boolean, string>()
+    .domain([true, false])
+    .range(["gray", "white"]);
+
   constructor(json: HyperparamJson) {
     const value = json.value as boolean[];
     super(json.name, json.displayName, value, json.valueType);
-    this.scale = d3
-      .scaleOrdinal<string, string>(["gray", "white"]) // Add the missing type arguments
-      .domain([true, false]);
   }
-  getColor(index: number): string | undefined {
-    // return this.values[index] ? "gray" : "white";
-    return this.scale(this.values[index]);
+
+  getColor(index: number): string {
+    return BooleanHyperparam.scale(this.values[index]);
   }
-  getEffectByValue() {
-    let effectByValue: { [key: string]: number } = {};
-    this.value.map((value) => {
-      effectByValue[value] = 0;
-      let count = 0;
-      this.values.map((val, index) => {
-        if (val === value) {
-          effectByValue[value] += this.shapValues[index];
-          count++;
-        }
-      });
-      effectByValue[value] /= count;
+
+  getEffectByValue(): Record<string, number> {
+    const effectSum: Record<boolean, number> = { true: 0, false: 0 };
+    const count: Record<boolean, number> = { true: 0, false: 0 };
+
+    this.values.forEach((val, index) => {
+      effectSum[val] += this.shapValues[index];
+      count[val]++;
     });
+
+    const effectByValue: Record<string, number> = {
+      true: effectSum[true] / (count[true] || 1),
+      false: effectSum[false] / (count[false] || 1),
+    };
 
     return effectByValue;
   }
 }
+
 export class ListHyperparam extends Hyperparam {
   type = HyperparamTypes.List;
   constructor(json: HyperparamJson) {

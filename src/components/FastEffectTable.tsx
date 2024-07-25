@@ -93,8 +93,8 @@ const FastEffectTable = () => {
       { key: "shapValues", label: "SHAP", width: 100 },
       {
         key: "visible",
-        label: <Icon as={FaEye} color={"gray"} />,
-        width: 40,
+        label: <Icon as={FaEye} ml={1.5} color={"gray"} />,
+        width: 50,
       },
     ],
     [exp]
@@ -165,7 +165,7 @@ const FastEffectTable = () => {
                 whiteSpace: "nowrap",
                 flexShrink: 0,
                 display: "flex",
-                justifyContent: "center",
+                justifyContent: "start",
               }}
             >
               {column.key === "checked" ? (
@@ -178,24 +178,27 @@ const FastEffectTable = () => {
                   }
                 />
               ) : column.key === "visible" ? (
-                <Icon
-                  as={
-                    hyperparams.find((hp) => hp.displayName === item.name)
-                      ?.visible
-                      ? FaEye
-                      : FaEyeSlash
-                  }
-                  onClick={() => {
-                    const hp = hyperparams.find(
-                      (hp) => hp.displayName === item.name
-                    );
-                    if (hp) {
-                      hp.visible = !hp.visible;
-                      setHyperparams([...hyperparams]);
+                <Text fontSize={"sm"}>
+                  <Icon
+                    as={
+                      hyperparams.find((hp) => hp.displayName === item.name)
+                        ?.visible
+                        ? FaEye
+                        : FaEyeSlash
                     }
-                  }}
-                  color={"gray"}
-                />
+                    ml={1.5}
+                    onClick={() => {
+                      const hp = hyperparams.find(
+                        (hp) => hp.displayName === item.name
+                      );
+                      if (hp) {
+                        hp.visible = !hp.visible;
+                        setHyperparams([...hyperparams]);
+                      }
+                    }}
+                    color={"gray"}
+                  />
+                </Text>
               ) : column.key === "dist" ? (
                 <CustomBoxPlot
                   data={item.dist.points}
@@ -289,6 +292,7 @@ const FastEffectTable = () => {
         display={"flex"}
         justifyContent={"space-between"}
         alignItems={"center"}
+        height={"70px"}
       >
         <Heading as="h5" size="sm" color="gray.600" p={4}>
           Hyperparameter Effects
@@ -318,7 +322,7 @@ const FastEffectTable = () => {
         {({ height, width }) => (
           <div
             style={{
-              height: height - 50,
+              height: height - 78,
               width,
               overflowX: "auto",
               overflowY: "hidden",
@@ -347,7 +351,7 @@ const FastEffectTable = () => {
                       cursor: "pointer",
                       flexShrink: 0,
                       display: "flex",
-                      justifyContent: "center",
+                      justifyContent: "start",
                       // fontWeight: "bold",
                     }}
                   >

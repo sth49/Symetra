@@ -479,14 +479,10 @@ const FastDataTable = () => {
             leftIcon={<AddIcon boxSize={3} />}
             isDisabled={selectedRows.size === 0}
             onClick={() => {
-              setGroups([
-                ...groups,
-                new Group(
-                  uuidv4(),
-                  exp?.trials.filter((trial) => selectedRows.has(trial.id)) ??
-                    []
-                ),
-              ]);
+              groups.addGroup(
+                exp?.trials.filter((trial) => selectedRows.has(trial.id)) ?? []
+              );
+              setGroups(groups);
               setSelectedRows(new Set());
             }}
           >
@@ -498,7 +494,7 @@ const FastDataTable = () => {
         {({ height, width }) => (
           <div
             style={{
-              height: height - 50, // Subtracting header height
+              height: height - 60, // Subtracting header height
               width,
               overflowX: "auto",
               overflowY: "hidden",
@@ -609,12 +605,12 @@ const FastDataTable = () => {
               </div>
               <div
                 style={{
-                  height: height - 105,
+                  height: height - 120,
                 }}
               >
                 {columnGroup ? (
                   <List
-                    height={height - 105} // Subtracting header height
+                    height={height - 120} // Subtracting header height
                     itemCount={columnGroup.groups.length}
                     itemSize={35} // Adjust based on your row height
                     width={totalWidth}
@@ -625,7 +621,7 @@ const FastDataTable = () => {
                   </List>
                 ) : (
                   <List
-                    height={height - 105} // Subtracting header height
+                    height={height - 120} // Subtracting header height
                     itemCount={sortedData.length}
                     itemSize={15} // Adjust based on your row height
                     width={totalWidth}

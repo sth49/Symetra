@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { Experiment } from "./model/experiment";
 import { Hyperparam } from "./model/hyperparam";
-import { Group } from "./model/group";
+import { Group, Groups } from "./model/group";
 
 interface CustomStore {
   clickedHparam: string | null;
@@ -13,8 +13,8 @@ interface CustomStore {
   hyperparams: Hyperparam[];
   setHyperparams: (hyperparams: Hyperparam[]) => void;
 
-  groups: Group[];
-  setGroups: (groups: Group[]) => void;
+  groups: Groups;
+  setGroups: (groups: Groups) => void;
 
   hoveredGroup: Set<any>;
   setHoveredGroup: (hoveredGroup: Set<any>) => void;
@@ -33,7 +33,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
   hyperparams: [],
   setHyperparams: (hyperparams) => set({ hyperparams }),
 
-  groups: [],
+  groups: new Groups(),
   setGroups: (groups) => set({ groups }),
 
   hoveredGroup: new Set(),

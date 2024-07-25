@@ -20,15 +20,13 @@ const Overview = (data: OverviewProps) => {
   // );
   return (
     <Box
-      bg={"white"}
-      p={2}
+      w={"100%"}
+      height={"100%"}
       display={"flex"}
       justifyContent={"space-between"}
       alignItems={"center"}
-      m={2}
-      width={"79%"}
     >
-      <Heading as="h5" size="sm" color={"gray.600"} padding={2}>
+      <Heading as="h5" size="sm" color={"gray.600"} padding={4}>
         Dataset Information
       </Heading>
       <Box display={"flex"} flexDir={"row"} pl={2} pt={1}>

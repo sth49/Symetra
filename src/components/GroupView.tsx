@@ -294,7 +294,7 @@ const GroupView = () => {
         </ModalContent>
       </Modal>
 
-      {groups.length > 0 ? (
+      {groups?.getLength() > 0 ? (
         <Box
           width={"100%"}
           overflowX={"auto"}
@@ -302,7 +302,7 @@ const GroupView = () => {
           p={2}
           display="flex"
         >
-          {groups.map((group, idx) => {
+          {groups?.groups.map((group, idx) => {
             console.log(group);
             const coverages = group.trials.map((trial) => trial.metric);
 
@@ -333,14 +333,14 @@ const GroupView = () => {
                     }}
                   ></input>
                   <Text fontSize="md">
-                    {group.id.slice(0, 3).toUpperCase()} ({group.trials.length})
+                    {group.id} ({group.trials.length})
                   </Text>
                   <CloseIcon
                     w={3}
                     h={3}
                     onClick={() => {
-                      const newGroups = groups.filter((g) => g.id !== group.id);
-                      setGroups(newGroups);
+                      groups.deleteGroup(group.id);
+                      setGroups(groups);
                     }}
                   />
                 </CardHeader>
