@@ -40,6 +40,7 @@
     "faker": "^6.6.6",
     "framer-motion": "^11.1.9",
     "genBins": "link:@types/visx/mock-data/lib/generators/genBins",
+    "jstat": "^1.9.6",
     "mathjs": "^13.0.3",
     "mock-data": "link:@visx/mock-data",
     "node-apriori": "^1.0.0",

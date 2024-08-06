@@ -39,4 +39,45 @@ export class Group {
     );
     return branches.map((branch) => branch.filter((b) => b !== null)).flat();
   }
+
+  getHyperparam(hyperparam: string) {
+    return this.trials.map((trial) => trial.params[hyperparam]);
+  }
+
+  getHparamMax(hyperparam: string) {
+    if (hyperparam === "Coverage") {
+      return Math.max(...this.trials.map((trial) => trial.metric));
+    }
+    return parseFloat(
+      Math.max(...this.trials.map((trial) => trial.params[hyperparam])).toFixed(
+        2
+      )
+    );
+  }
+  getHparamMin(hyperparam: string) {
+    if (hyperparam === "Coverage") {
+      return Math.min(...this.trials.map((trial) => trial.metric));
+    }
+    return parseFloat(
+      Math.min(...this.trials.map((trial) => trial.params[hyperparam])).toFixed(
+        2
+      )
+    );
+  }
+  getHparamMean(hyperparam: string) {
+    if (hyperparam === "Coverage") {
+      return parseFloat(
+        (
+          this.trials.reduce((acc, trial) => acc + trial.metric, 0) /
+          this.trials.length
+        ).toFixed(2)
+      );
+    }
+    return parseFloat(
+      (
+        this.trials.reduce((acc, trial) => acc + trial.params[hyperparam], 0) /
+        this.trials.length
+      ).toFixed(2)
+    );
+  }
 }
