@@ -174,7 +174,11 @@ const StatTest: React.FC<StatTestProps> = ({
                   </Td>
                 </Tr>
                 <Tr>
-                  <Td>{Array.from(selectedGroup)[0]}</Td>
+                  <Td>
+                    {selectedGroup.size === 2
+                      ? Array.from(selectedGroup)[1]
+                      : "others"}
+                  </Td>
                   <Td>{group2.getHparamMax(exp.metric.name)}</Td>
                   <Td>{group2.getHparamMean(exp.metric.name)}</Td>
                   <Td>{group2.getHparamMin(exp.metric.name)}</Td>

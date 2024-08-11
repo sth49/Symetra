@@ -5,8 +5,6 @@ import {
   CardBody,
   CardHeader,
   Heading,
-  Icon,
-  IconButton,
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -14,9 +12,6 @@ import { useCustomStore } from "../store";
 import { formatting, generateBinnedData } from "../model/utils";
 import { ViolinPlot } from "@visx/stats";
 import { CloseIcon } from "@chakra-ui/icons";
-import { useState } from "react";
-import { Trial } from "../model/trial";
-import { mean, standardDeviation as std, quantile } from "simple-statistics";
 import {
   Modal,
   ModalOverlay,
@@ -27,31 +22,159 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import StatTest from "./StatTest";
+import { useEffect, useMemo, useState } from "react";
+import { DefaultNode, Graph } from "@visx/network";
+import { performStatisticalTest } from "../model/statistic";
+import * as d3 from "d3";
+export type NetworkProps = {
+  width: number;
+  height: number;
+};
+
+interface CustomNode {
+  id: number;
+  x: number;
+  y: number;
+  color?: string;
+}
+
+interface CustomLink {
+  source: string;
+  target: string;
+  weight: number;
+}
+
+// const nodes: CustomNode[] = [
+//   { id: "node-0", x: 50, y: 30 },
+//   { id: "node-1", x: 100, y: 30 },
+//   { id: "node-2", x: 150, y: 30 },
+//   { id: "node-3", x: 200, y: 30 },
+// ];
+
+// const links: CustomLink[] = [
+//   { source: "node-0", target: "node-1", weight: 1 },
+//   { source: "node-1", target: "node-2", weight: 2 },
+//   { source: "node-2", target: "node-0", weight: 3 },
+//   { source: "node-3", target: "node-2", weight: 4 },
+//   { source: "node-3", target: "node-1", weight: 5 },
+//   { source: "node-3", target: "node-0", weight: 6 },
+// ];
+
+function createArcPath(
+  source: CustomNode,
+  target: CustomNode,
+  height: number
+): string {
+  const flag =
+    Math.abs(Number(source.id) - Number(target.id)) % 2 === 0 ? -1 : 1;
+  const sourceX = source.x * 2;
+  const sourceY = source.y * 2;
+  const targetX = target.x * 2;
+  const targetY = target.y * 2;
+  const midX = (sourceX + targetX) / 2;
+  const midY = targetY - height * 2 * flag;
+  return `M${sourceX},${sourceY} Q${midX},${midY} ${targetX},${targetY}`;
+}
 
 const GroupView = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     groups,
     setHoveredGroup,
-    setGroups,
-    setSelectedGroup,
     selectedGroup,
     hyperparams,
     exp,
+    setSelectedGroup,
   } = useCustomStore();
+
+  const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
+
+  // const [nodes, setNodes] = useState<CustomNode[]>([]);
+  // const [links, setLinks] = useState<CustomLink[]>([]);
+  // const [graph, setGraph] = useState({});
+
+  // useEffect(() => {
+  //   const nodes = groups.groups.map((group, i) => ({
+  //     id: group.id.toString(),
+  //     x: 10 + i * 30,
+  //     y: 30,
+  //   }));
+  //   for (let i = 0; i < nodes.length; i++) {
+  //     for (let j = i + 1; j < nodes.length; j++) {
+  //       let hparamResult = hyperparams.map((param) => {
+  //         let group1 = groups.groups[i].getHyperparam(param.name);
+  //         let group2 = groups.groups[j].getHyperparam(param.name);
+  //         return performStatisticalTest(group1, group2, param.type, param);
+  //       });
+  //       const weight = hparamResult
+  //         .map((r) => {
+  //           return r.pValue > 0.01 ? 0 : 1;
+  //         })
+  //         .reduce((a, b) => a + b, 0);
+
+  //       links.push({
+  //         source: nodes[i].id,
+  //         target: nodes[j].id,
+  //         weight: weight,
+  //       });
+  //     }
+  //   }
+
+  //   setNodes(nodes);
+  //   setLinks(links);
+  //   setGraph({ nodes, links });
+  //   console.log("node and link", nodes, links);
+  // }, [groups.getLength()]);
+
+  const { nodes, links } = useMemo(() => {
+    const nodes = groups.groups.map((group, i) => ({
+      id: group.id,
+      x: 10 + i * 30,
+      y: 30,
+    }));
+
+    const links = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const hparamResult = hyperparams.map((param) => {
+          const group1 = groups.groups[i].getHyperparam(param.name);
+          const group2 = groups.groups[j].getHyperparam(param.name);
+          return performStatisticalTest(group1, group2, param.type, param);
+        });
+        const weight = hparamResult.filter((r) => r.pValue <= 0.01).length;
+
+        links.push({
+          source: nodes[i].id,
+          target: nodes[j].id,
+          weight,
+        });
+      }
+    }
+
+    return { nodes, links };
+  }, [groups.getLength(), hyperparams]);
+
+  const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 
   const setHoverGroup = (group) => {
     if (!group) {
       setHoveredGroup(new Set());
+      setHoveredGroupId(null);
       return;
     }
     const selected = new Set(group.trials.map((trial) => trial.id));
     setHoveredGroup(selected);
+    setHoveredGroupId(group.id);
   };
+  const weightScale = useMemo(() => {
+    return d3
+      .scaleLinear()
+      .domain([0, d3.max(links.map((link) => link.weight))])
+      .range([1, 10]);
+  }, [links]);
 
-  // if (groups.length) {
-  //   console.log(calculateCorrelation(groups[0].trials));
-  // }
+  const width = Math.max(500, groups.groups.length * 100);
+  const height = 200;
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box height={"10%"} display={"flex"} justifyContent={"space-between"}>
@@ -139,7 +262,7 @@ const GroupView = () => {
           p={2}
           display="flex"
         >
-          {groups?.groups.map((group, idx) => {
+          {/* {groups?.groups.map((group, idx) => {
             console.log(group);
             const coverages = group.trials.map((trial) => trial.metric);
 
@@ -215,12 +338,146 @@ const GroupView = () => {
                 </CardBody>
               </Card>
             );
-          })}
+          })} */}
+          <svg width={width} height={height}>
+            <rect
+              width={width}
+              height={height}
+              rx={14}
+              fill={"white"}
+              onMouseOver={() => {
+                console.log("enter rect");
+                setHoverGroup(null);
+              }}
+              onMouseLeave={() => {
+                console.log("leave rect");
+                setHoverGroup(null);
+              }}
+            />
+            <Graph<CustomLink, CustomNode>
+              graph={graphMemo}
+              nodeComponent={({ node }) => (
+                <g>
+                  <circle
+                    onMouseOver={() => {
+                      setHoverGroup(groups.getGroup(Number(node.id)));
+                    }}
+                    r={15}
+                    fill={
+                      selectedGroup.has(node.id)
+                        ? "blue"
+                        : hoveredGroupId === Number(node.id)
+                        ? "red"
+                        : "#999"
+                    }
+                    cx={node.x}
+                    cy={node.y}
+                  />
+                  <text
+                    onClick={() => {
+                      console.log("click", node.id);
+                      if (selectedGroup.has(node.id)) {
+                        selectedGroup.delete(node.id);
+                      } else {
+                        if (selectedGroup.size === 2) {
+                          selectedGroup.delete(
+                            selectedGroup.values().next().value
+                          );
+                        }
+                        selectedGroup.add(node.id);
+                      }
+                      setSelectedGroup(selectedGroup);
+                      console.log(selectedGroup);
+                    }}
+                    style={{ cursor: "pointer" }}
+                    x={node.x}
+                    y={node.y + 5}
+                    textAnchor="middle"
+                    fill={
+                      selectedGroup.has(node.id)
+                        ? "white"
+                        : hoveredGroupId === Number(node.id)
+                        ? "white"
+                        : "black"
+                    }
+                    fontSize={12}
+                  >
+                    {node.id}
+                  </text>
+                </g>
+              )}
+              linkComponent={({ link }) => {
+                const source = nodes.find((n) => n.id === link.source)!;
+                const target = nodes.find((n) => n.id === link.target)!;
+                const arcHeight = Math.abs(source.x - target.x) * 0.22;
+                // console.log(createArcPath(source, target, arcHeight));
+                return (
+                  <path
+                    d={createArcPath(source, target, arcHeight)}
+                    fill="none"
+                    stroke="red"
+                    strokeWidth={
+                      link.weight === 0 ? 1 : weightScale(link.weight)
+                    }
+                    // strokeOpacity={0.5}
+                    strokeOpacity={
+                      hoveredGroupId !== null &&
+                      (hoveredGroupId === Number(link.source) ||
+                        hoveredGroupId === Number(link.target))
+                        ? 0.6
+                        : 0.1
+                    }
+                  />
+                );
+              }}
+            />
+          </svg>
         </Box>
       ) : (
         <Box p={4} bg="gray.100" m={2} height={"85%"}>
           There are no groups to display. Pleas create a group by clicking the
           "+ Group" button.
+          {/* <svg width={width} height={height}>
+            <rect width={width} height={height} rx={14} fill={"white"} />
+            <Graph<CustomLink, CustomNode>
+              graph={graph}
+              nodeComponent={({ node }) => (
+                <g>
+                  <circle
+                    r={15}
+                    fill={node.color || "#999"}
+                    cx={node.x}
+                    cy={node.y}
+                  />
+                  <text
+                    x={node.x}
+                    y={node.y + 25}
+                    textAnchor="middle"
+                    fill="#black"
+                    fontSize={12}
+                  >
+                    {node.id}
+                  </text>
+                </g>
+              )}
+              linkComponent={({ link }) => {
+                const source = nodes.find((n) => n.id === link.source)!;
+                const target = nodes.find((n) => n.id === link.target)!;
+                const arcHeight = Math.abs(source.x - target.x) * 0.2;
+                console.log(createArcPath(source, target, arcHeight));
+                return (
+                  <path
+                    d={createArcPath(source, target, arcHeight)}
+                    fill="none"
+                    stroke="red"
+                    strokeWidth={link.weight}
+                    strokeOpacity={0.6}
+                    strokeDasharray={link.dashed ? "8,4" : undefined}
+                  />
+                );
+              }}
+            />
+          </svg> */}
         </Box>
       )}
     </div>
