@@ -22,7 +22,7 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import StatTest from "./StatTest";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DefaultNode, Graph } from "@visx/network";
 import { performStatisticalTest } from "../model/statistic";
 import * as d3 from "d3";
@@ -43,22 +43,6 @@ interface CustomLink {
   target: string;
   weight: number;
 }
-
-// const nodes: CustomNode[] = [
-//   { id: "node-0", x: 50, y: 30 },
-//   { id: "node-1", x: 100, y: 30 },
-//   { id: "node-2", x: 150, y: 30 },
-//   { id: "node-3", x: 200, y: 30 },
-// ];
-
-// const links: CustomLink[] = [
-//   { source: "node-0", target: "node-1", weight: 1 },
-//   { source: "node-1", target: "node-2", weight: 2 },
-//   { source: "node-2", target: "node-0", weight: 3 },
-//   { source: "node-3", target: "node-2", weight: 4 },
-//   { source: "node-3", target: "node-1", weight: 5 },
-//   { source: "node-3", target: "node-0", weight: 6 },
-// ];
 
 function createArcPath(
   source: CustomNode,
@@ -88,6 +72,7 @@ const GroupView = () => {
   } = useCustomStore();
 
   const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
+  const [hoveredLink, setHoveredLink] = useState<CustomLink | null>(null);
 
   // const [nodes, setNodes] = useState<CustomNode[]>([]);
   // const [links, setLinks] = useState<CustomLink[]>([]);
@@ -126,11 +111,37 @@ const GroupView = () => {
   //   console.log("node and link", nodes, links);
   // }, [groups.getLength()]);
 
+  const boxRef = useRef(null);
+  const width = groups.groups.length * 120;
+
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     if (boxRef.current) {
+  //       const newWidth = boxRef.current.offsetWidth;
+  //       setWidth(newWidth);
+  //     }
+  //     setHeight(window.innerHeight * 0.8); // 80vh에 해당
+  //   };
+
+  //   const resizeObserver = new ResizeObserver(handleResize);
+  //   if (boxRef.current) {
+  //     resizeObserver.observe(boxRef.current);
+  //   }
+
+  //   handleResize(); // 초기 로드 시 실행
+
+  //   return () => {
+  //     if (boxRef.current) {
+  //       resizeObserver.unobserve(boxRef.current);
+  //     }
+  //   };
+  // }, []);
+
   const { nodes, links } = useMemo(() => {
     const nodes = groups.groups.map((group, i) => ({
       id: group.id,
-      x: 10 + i * 30,
-      y: 30,
+      x: 20 + i * 65,
+      y: 45,
     }));
 
     const links = [];
@@ -173,11 +184,54 @@ const GroupView = () => {
       .range([1, 10]);
   }, [links]);
 
-  const width = Math.max(500, groups.groups.length * 100);
-  const height = 200;
+  const NodeComponent = ({ node, onHover, onClick, isSelected, isHovered }) => (
+    <g>
+      <circle
+        onMouseEnter={() => onHover(node)}
+        onClick={() => onClick(node)}
+        r={30}
+        fill={isSelected ? "#3182CE" : isHovered ? "#ECC94B" : "#FAF089"}
+        cx={node.x}
+        cy={node.y}
+      />
+      <text
+        style={{ cursor: "pointer" }}
+        x={node.x}
+        y={node.y + 5}
+        textAnchor="middle"
+        fill={isSelected ? "white" : isHovered ? "white" : "black"}
+        fontSize={12}
+      >
+        {node.id}
+      </text>
+    </g>
+  );
+
+  const LinkComponent = ({
+    link,
+    nodes,
+    weightScale,
+    isHovered,
+    isLinkHovered,
+  }) => {
+    const source = nodes.find((n) => n.id === link.source)!;
+    const target = nodes.find((n) => n.id === link.target)!;
+    const arcHeight = Math.abs(source.x - target.x) * 0.22;
+
+    return (
+      <path
+        d={createArcPath(source, target, arcHeight)}
+        fill="none"
+        onMouseEnter={() => isLinkHovered(link)}
+        stroke={isHovered ? "#ECC94B" : isHovered ? "#FAF089" : "#FAF089"}
+        strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
+      />
+    );
+  };
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      <Box height={"10%"} display={"flex"} justifyContent={"space-between"}>
+      <Box height={"20%"} display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.600" p={4}>
           Groups
         </Heading>
@@ -258,7 +312,7 @@ const GroupView = () => {
         <Box
           width={"100%"}
           overflowX={"auto"}
-          height="90%" // 뷰포트 높이에서 적절한 값을 뺀 높이
+          height="80%" // 뷰포트 높이에서 적절한 값을 뺀 높이
           p={2}
           display="flex"
         >
@@ -339,102 +393,143 @@ const GroupView = () => {
               </Card>
             );
           })} */}
-          <svg width={width} height={height}>
-            <rect
-              width={width}
-              height={height}
-              rx={14}
-              fill={"white"}
-              onMouseOver={() => {
-                console.log("enter rect");
-                setHoverGroup(null);
-              }}
-              onMouseLeave={() => {
-                console.log("leave rect");
-                setHoverGroup(null);
-              }}
-            />
-            <Graph<CustomLink, CustomNode>
-              graph={graphMemo}
-              nodeComponent={({ node }) => (
-                <g>
-                  <circle
-                    onMouseOver={() => {
-                      setHoverGroup(groups.getGroup(Number(node.id)));
-                    }}
-                    r={15}
-                    fill={
-                      selectedGroup.has(node.id)
-                        ? "blue"
-                        : hoveredGroupId === Number(node.id)
-                        ? "red"
-                        : "#999"
-                    }
-                    cx={node.x}
-                    cy={node.y}
-                  />
-                  <text
-                    onClick={() => {
-                      console.log("click", node.id);
-                      if (selectedGroup.has(node.id)) {
-                        selectedGroup.delete(node.id);
-                      } else {
-                        if (selectedGroup.size === 2) {
-                          selectedGroup.delete(
-                            selectedGroup.values().next().value
-                          );
-                        }
-                        selectedGroup.add(node.id);
+          <Box
+            width={width} // 뷰포트 높이에서 적절한 값을 뺀 높이
+            height={"100%"}
+          >
+            <svg width={width} height={"100%"}>
+              <rect
+                width={width}
+                height={"100%"}
+                // rx={14}
+                fill={"white"}
+                onMouseEnter={() => {
+                  // console.log("enter rect");
+                  setHoverGroup(null);
+                  setHoveredLink(null);
+                }}
+                onMouseLeave={() => {
+                  // console.log("leave rect");
+                  setHoverGroup(null);
+                  setHoveredLink(null);
+                }}
+              />
+              <Graph<CustomLink, CustomNode>
+                graph={graphMemo}
+                nodeComponent={({ node }) => (
+                  <g>
+                    <circle
+                      onMouseEnter={() => {
+                        setHoveredLink(null);
+                        setHoverGroup(groups.getGroup(Number(node.id)));
+                      }}
+                      // onMouseLeave={() => {
+                      //   setHoverGroup(null);
+                      // }}
+                      r={30}
+                      fill={
+                        selectedGroup.has(node.id)
+                          ? "#3182CE"
+                          : hoveredGroupId === Number(node.id)
+                          ? "#ECC94B"
+                          : "#FAF089"
                       }
-                      setSelectedGroup(selectedGroup);
-                      console.log(selectedGroup);
-                    }}
-                    style={{ cursor: "pointer" }}
-                    x={node.x}
-                    y={node.y + 5}
-                    textAnchor="middle"
-                    fill={
-                      selectedGroup.has(node.id)
-                        ? "white"
-                        : hoveredGroupId === Number(node.id)
-                        ? "white"
-                        : "black"
-                    }
-                    fontSize={12}
-                  >
-                    {node.id}
-                  </text>
-                </g>
-              )}
-              linkComponent={({ link }) => {
-                const source = nodes.find((n) => n.id === link.source)!;
-                const target = nodes.find((n) => n.id === link.target)!;
-                const arcHeight = Math.abs(source.x - target.x) * 0.22;
-                // console.log(createArcPath(source, target, arcHeight));
-                return (
-                  <path
-                    d={createArcPath(source, target, arcHeight)}
-                    fill="none"
-                    stroke="red"
-                    strokeWidth={
-                      link.weight === 0 ? 1 : weightScale(link.weight)
-                    }
-                    // strokeOpacity={0.5}
-                    strokeOpacity={
-                      hoveredGroupId !== null &&
-                      (hoveredGroupId === Number(link.source) ||
-                        hoveredGroupId === Number(link.target))
-                        ? 0.6
-                        : 0.1
-                    }
-                  />
-                );
-              }}
-            />
-          </svg>
+                      cx={node.x}
+                      cy={node.y}
+                    />
+                    <text
+                      onClick={() => {
+                        console.log("click", node.id);
+                        if (selectedGroup.has(node.id)) {
+                          selectedGroup.delete(node.id);
+                        } else {
+                          if (selectedGroup.size === 2) {
+                            selectedGroup.delete(
+                              selectedGroup.values().next().value
+                            );
+                          }
+                          selectedGroup.add(node.id);
+                        }
+                        setSelectedGroup(selectedGroup);
+                        console.log(selectedGroup);
+                      }}
+                      style={{ cursor: "pointer" }}
+                      x={node.x}
+                      y={node.y + 5}
+                      textAnchor="middle"
+                      fill={
+                        selectedGroup.has(node.id)
+                          ? "white"
+                          : hoveredGroupId === Number(node.id)
+                          ? "white"
+                          : "black"
+                      }
+                      fontSize={12}
+                    >
+                      {node.id}
+                    </text>
+                  </g>
+                )}
+                linkComponent={({ link }) => {
+                  const source = nodes.find((n) => n.id === link.source)!;
+                  const target = nodes.find((n) => n.id === link.target)!;
+                  const arcHeight = Math.abs(source.x - target.x) * 0.22;
+                  // console.log(createArcPath(source, target, arcHeight));
+                  return (
+                    <path
+                      d={createArcPath(source, target, arcHeight)}
+                      fill="none"
+                      onMouseEnter={() => {
+                        setHoverGroup(null);
+
+                        setHoveredLink(link);
+                      }}
+                      onClick={() => {
+                        console.log("click", link);
+                      }}
+                      stroke={
+                        hoveredLink !== null &&
+                        hoveredLink.source === link.source &&
+                        hoveredLink.target === link.target
+                          ? "#ECC94B"
+                          : hoveredGroupId !== null &&
+                            (hoveredGroupId === Number(link.source) ||
+                              hoveredGroupId === Number(link.target))
+                          ? "#ECC94B"
+                          : "#FAF089"
+                        // hoveredGroupId !== null &&
+                        // (hoveredGroupId === Number(link.source) ||
+                        //   hoveredGroupId === Number(link.target))
+                        //   ? "#ECC94B"
+                        //   : "#FAF089"
+                      }
+                      strokeWidth={
+                        link.weight === 0 ? 1 : weightScale(link.weight)
+                      }
+                      // strokeOpacity={0.5}
+                      // strokeOpacity={
+                      //   hoveredGroupId !== null &&
+                      //   (hoveredGroupId === Number(link.source) ||
+                      //     hoveredGroupId === Number(link.target))
+                      //     ? 0.6
+                      //     : 0.1
+                      // }
+                    />
+                  );
+                }}
+              />
+            </svg>
+          </Box>
         </Box>
       ) : (
-        <Box p={4} bg="gray.100" m={2} height={"85%"}>
+        <Box
+          p={4}
+          bg="gray.100"
+          m={2}
+          height={
+            "calc(75%)" // 뷰포트 높이에서 적절한 값을 뺀 높이
+          }
+        >
           There are no groups to display. Pleas create a group by clicking the
           "+ Group" button.
           {/* <svg width={width} height={height}>

@@ -81,10 +81,10 @@ function App() {
                   display="flex"
                   flexDirection="column"
                 >
-                  <Box height={"50%"} flex="1" bg="white" m={1}>
+                  <Box height={"70%"} bg="white" m={1}>
                     <FastDataTable />
                   </Box>
-                  <Box height={"50%"} flex="1" bg="white" m={1}>
+                  <Box height={"30%"} bg="white" m={1}>
                     <GroupView />
                   </Box>
                 </Box>

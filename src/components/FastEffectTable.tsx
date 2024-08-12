@@ -6,8 +6,12 @@ import { Badge, Box, Button, Heading, Icon, Text } from "@chakra-ui/react";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
 import { BooleanHyperparam, CategoricalHyperparam } from "../model/hyperparam";
-import CustomBoxPlot from "./CustomBoxPlot";
 import * as d3 from "d3";
+import BarChart from "./BarChart";
+import { withTooltip, Tooltip } from "@visx/tooltip";
+import { WithTooltipProvidedProps } from "@visx/tooltip/lib/enhancers/withTooltip";
+import { FaAngleLeft } from "react-icons/fa6";
+import { FaAngleDown } from "react-icons/fa6";
 const FastEffectTable = () => {
   const { exp, hyperparams, setHyperparams } = useCustomStore();
 
@@ -20,6 +24,8 @@ const FastEffectTable = () => {
   const scrollContainerRef = useRef(null);
   const headerRef = useRef(null);
 
+  const [expandedRows, setExpandedRows] = useState(new Set());
+
   const data = useMemo(
     () =>
       exp?.hyperparams
@@ -30,33 +36,7 @@ const FastEffectTable = () => {
           displayName: hp.displayName,
           effect: hp.getEffect(),
           shapValues: hp.getEffectByValue(),
-          dist:
-            hp instanceof BooleanHyperparam
-              ? {
-                  points: exp?.trials.map((trial) =>
-                    trial.params[hp.name] ? 1 : 0
-                  ),
-                  type: "boolean",
-                  binCount: 2,
-                  keys: 0,
-                }
-              : hp instanceof CategoricalHyperparam
-              ? {
-                  points: exp?.trials.map((trial) => trial.params[hp.name]),
-                  type: "categorical",
-                  binCount: Array.from(
-                    new Set(exp?.trials.map((trial) => trial.params[hp.name]))
-                  ).length,
-                  keys: Array.from(
-                    new Set(exp?.trials.map((trial) => trial.params[hp.name]))
-                  ).sort(),
-                }
-              : {
-                  points: exp?.trials.map((trial) => trial.params[hp.name]),
-                  type: "numerical",
-                  binCount: 10,
-                  keys: 0,
-                },
+          dist: hp.name,
         })),
 
     [exp]
@@ -86,14 +66,19 @@ const FastEffectTable = () => {
       {
         key: "dist",
         label: "Dist.",
-        width: 50,
+        width: 100,
       },
 
       { key: "effect", label: "Effect", width: 50 },
-      { key: "shapValues", label: "SHAP", width: 100 },
+      // { key: "shapValues", label: "SHAP", width: 100 },
       {
         key: "visible",
         label: <Icon as={FaEye} ml={1.5} color={"gray"} />,
+        width: 50,
+      },
+      {
+        key: "expander",
+        label: "",
         width: 50,
       },
     ],
@@ -130,146 +115,369 @@ const FastEffectTable = () => {
     setLastSelectedIndex(index);
   };
 
+  // const Row = useCallback(
+  //   ({ item, index }) => {
+  //     // const item = data[index];
+  //     const isHovered = hoveredRow === item.id;
+  //     const isSelected = selectedRows.has(item.id);
+  //     const isExpanded = expandedRows.has(item.id);
+  //     return (
+  //       <>
+  //         <div
+  //           style={{
+  //             display: "flex",
+  //             backgroundColor: isSelected
+  //               ? "#d0e0fc"
+  //               : isHovered
+  //               ? "#f0f0f0"
+  //               : "white",
+  //             transition: "background-color 0.3s",
+  //             width: totalWidth,
+  //             alignItems: "center",
+  //           }}
+  //           onMouseEnter={() => setHoveredRow(item.id)}
+  //           onMouseLeave={() => setHoveredRow(null)}
+  //           onClick={(e) => toggleRowSelection(index, e.shiftKey)}
+  //         >
+  //           {columns.map((column) => (
+  //             <div
+  //               key={column.key}
+  //               style={{
+  //                 width: `${column.width}px`,
+  //                 padding: "2px",
+  //                 overflow: "hidden",
+  //                 textOverflow: "ellipsis",
+  //                 whiteSpace: "nowrap",
+  //                 flexShrink: 0,
+  //                 display: "flex",
+  //                 justifyContent: "start",
+  //               }}
+  //             >
+  //               {column.key === "checked" ? (
+  //                 <input
+  //                   style={{ marginLeft: "8px" }}
+  //                   type="checkbox"
+  //                   checked={isSelected}
+  //                   onChange={(e) =>
+  //                     toggleRowSelection(index, e.nativeEvent.shiftKey)
+  //                   }
+  //                 />
+  //               ) : column.key === "visible" ? (
+  //                 <Text fontSize={"sm"}>
+  //                   <Icon
+  //                     as={
+  //                       hyperparams.find((hp) => hp.displayName === item.name)
+  //                         ?.visible
+  //                         ? FaEye
+  //                         : FaEyeSlash
+  //                     }
+  //                     ml={1.5}
+  //                     onClick={() => {
+  //                       const hp = hyperparams.find(
+  //                         (hp) => hp.displayName === item.name
+  //                       );
+  //                       if (hp) {
+  //                         hp.visible = !hp.visible;
+  //                         setHyperparams([...hyperparams]);
+  //                       }
+  //                     }}
+  //                     color={"gray"}
+  //                   />
+  //                 </Text>
+  //               ) : column.key === "dist" ? (
+  //                 <BarChart dist={item.dist} width={90} />
+  //               ) : column.key === "name" ? (
+  //                 <Text userSelect={"none"} fontSize={"xs"}>
+  //                   {item[column.key]}
+  //                 </Text>
+  //               ) : column.key === "effect" ? (
+  //                 <Text userSelect={"none"} fontSize={"xs"}>
+  //                   {item[column.key].toFixed(2)}
+  //                 </Text>
+  //               ) : column.key === "shapValues" ? (
+  //                 (() => {
+  //                   let value = item[column.key];
+  //                   return (
+  //                     <Box
+  //                       display={"flex"}
+  //                       alignItems={"center"}
+  //                       justifyContent={"space-between"}
+  //                       whiteSpace={"nowrap"}
+  //                       overflowX={"auto"}
+  //                       textOverflow={"ellipsis"}
+  //                       maxWidth={"130px"}
+  //                       userSelect={"none"}
+  //                     >
+  //                       {Object.keys(value).map((key) => (
+  //                         <Box
+  //                           key={key}
+  //                           p={0.5}
+  //                           background={shapleyColorScale(value[key])}
+  //                           color={
+  //                             Math.abs(value[key]) < 0.5 ? "black" : "white"
+  //                           }
+  //                           display={"flex"}
+  //                           flexDir={"column"}
+  //                           alignItems={"center"}
+  //                           border={"1px solid #ffffff"}
+  //                         >
+  //                           <Text fontSize={"xs"} fontWeight={"bold"}>
+  //                             {key}
+  //                           </Text>
+  //                           <Text fontSize={"xs"}>{value[key].toFixed(3)}</Text>
+  //                         </Box>
+  //                       ))}
+  //                     </Box>
+  //                   );
+  //                 })()
+  //               ) : column.key === "expander" ? (
+  //                 <>
+  //                   <Icon
+  //                     as={isExpanded ? FaAngleDown : FaAngleLeft}
+  //                     onClick={(e) => toggleRowExpansion(item.id, e)}
+  //                     color="gray"
+  //                   />
+  //                 </>
+  //               ) : (
+  //                 <div>asdf</div>
+  //               )}
+  //             </div>
+  //           ))}
+  //         </div>
+  //         {isExpanded && (
+  //           <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
+  //             <Text fontSize="sm">Shap values of {item.name}</Text>
+  //             <Box
+  //               display={"flex"}
+  //               alignItems={"center"}
+  //               justifyContent={"space-between"}
+  //               whiteSpace={"nowrap"}
+  //               overflowX={"auto"}
+  //               textOverflow={"ellipsis"}
+  //               userSelect={"none"}
+  //             >
+  //               {Object.keys(item.shapValues).map((key) => (
+  //                 <Box
+  //                   key={key}
+  //                   p={0.5}
+  //                   background={shapleyColorScale(item.shapValues[key])}
+  //                   color={
+  //                     Math.abs(item.shapValues[key]) < 0.5 ? "black" : "white"
+  //                   }
+  //                   display={"flex"}
+  //                   flexDir={"column"}
+  //                   alignItems={"center"}
+  //                   border={"1px solid #ffffff"}
+  //                 >
+  //                   <Text fontSize={"xs"} fontWeight={"bold"}>
+  //                     {key}
+  //                   </Text>
+  //                   <Text fontSize={"xs"}>
+  //                     {item.shapValues[key].toFixed(3)}
+  //                   </Text>
+  //                 </Box>
+  //               ))}
+  //             </Box>
+  //             {/* Add more expanded content here */}
+  //           </div>
+  //         )}
+  //       </>
+  //     );
+  //   },
+  //   [columns, hoveredRow, totalWidth, selectedRows]
+  // );
   const Row = useCallback(
-    ({ index, style }) => {
-      const item = data[index];
+    ({ item, index }) => {
       const isHovered = hoveredRow === item.id;
       const isSelected = selectedRows.has(item.id);
+      const isExpanded = expandedRows.has(item.id);
 
       return (
-        <div
-          style={{
-            ...style,
-            display: "flex",
-            backgroundColor: isSelected
-              ? "#d0e0fc"
-              : isHovered
-              ? "#f0f0f0"
-              : "white",
-            transition: "background-color 0.3s",
-            width: totalWidth,
-            alignItems: "center",
-          }}
-          onMouseEnter={() => setHoveredRow(item.id)}
-          onMouseLeave={() => setHoveredRow(null)}
-          onClick={(e) => toggleRowSelection(index, e.shiftKey)}
-        >
-          {columns.map((column) => (
-            <div
-              key={column.key}
-              style={{
-                width: `${column.width}px`,
-                padding: "2px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                display: "flex",
-                justifyContent: "start",
-              }}
-            >
-              {column.key === "checked" ? (
-                <input
-                  style={{ marginLeft: "8px" }}
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={(e) =>
-                    toggleRowSelection(index, e.nativeEvent.shiftKey)
-                  }
-                />
-              ) : column.key === "visible" ? (
-                <Text fontSize={"sm"}>
-                  <Icon
-                    as={
-                      hyperparams.find((hp) => hp.displayName === item.name)
-                        ?.visible
-                        ? FaEye
-                        : FaEyeSlash
+        <>
+          <div
+            style={{
+              display: "flex",
+              backgroundColor: isSelected
+                ? "#d0e0fc"
+                : isHovered
+                ? "#f0f0f0"
+                : "white",
+              transition: "background-color 0.3s",
+              width: totalWidth,
+              alignItems: "center",
+            }}
+            onMouseEnter={() => setHoveredRow(item.id)}
+            onMouseLeave={() => setHoveredRow(null)}
+            onClick={(e) => toggleRowSelection(index, e.shiftKey)}
+          >
+            {columns.map((column) => (
+              <div
+                key={column.key}
+                style={{
+                  width: `${column.width}px`,
+                  padding: "2px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  display: "flex",
+                  justifyContent: "start",
+                }}
+              >
+                {column.key === "checked" ? (
+                  <input
+                    style={{ marginLeft: "8px" }}
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) =>
+                      toggleRowSelection(index, e.nativeEvent.shiftKey)
                     }
-                    ml={1.5}
-                    onClick={() => {
-                      const hp = hyperparams.find(
-                        (hp) => hp.displayName === item.name
-                      );
-                      if (hp) {
-                        hp.visible = !hp.visible;
-                        setHyperparams([...hyperparams]);
-                      }
-                    }}
-                    color={"gray"}
                   />
-                </Text>
-              ) : column.key === "dist" ? (
-                <CustomBoxPlot
-                  data={item.dist.points}
-                  name={"all"}
-                  width={40}
-                  height={30}
-                  type={item.dist.type}
-                  count={item.dist.points.length}
-                  binCount={item.dist.binCount}
-                  keys={item.dist.keys}
-                />
-              ) : column.key === "name" ? (
-                <Text userSelect={"none"} fontSize={"xs"}>
-                  {item[column.key]}
-                </Text>
-              ) : column.key === "effect" ? (
-                <Text userSelect={"none"} fontSize={"xs"}>
-                  {item[column.key].toFixed(2)}
-                </Text>
-              ) : column.key === "shapValues" ? (
-                (() => {
-                  let value = item[column.key];
-                  return (
-                    <Box
-                      display={"flex"}
-                      alignItems={"center"}
-                      justifyContent={"space-between"}
-                      whiteSpace={"nowrap"}
-                      overflowX={"auto"}
-                      textOverflow={"ellipsis"}
-                      maxWidth={"130px"}
-                      userSelect={"none"}
-                    >
-                      {Object.keys(value).map((key) => (
-                        <Box
-                          key={key}
-                          p={0.5}
-                          background={shapleyColorScale(value[key])}
-                          color={Math.abs(value[key]) < 0.5 ? "black" : "white"}
-                          display={"flex"}
-                          flexDir={"column"}
-                          alignItems={"center"}
-                          border={"1px solid #ffffff"}
-                        >
-                          <Text fontSize={"xs"} fontWeight={"bold"}>
-                            {key}
-                          </Text>
-                          <Text fontSize={"xs"}>{value[key].toFixed(3)}</Text>
-                        </Box>
-                      ))}
-                    </Box>
-                  );
-                })()
-              ) : (
-                <div>asdf</div>
-              )}
+                ) : column.key === "visible" ? (
+                  <Text fontSize={"sm"}>
+                    <Icon
+                      as={
+                        hyperparams.find((hp) => hp.displayName === item.name)
+                          ?.visible
+                          ? FaEye
+                          : FaEyeSlash
+                      }
+                      ml={1.5}
+                      onClick={() => {
+                        const hp = hyperparams.find(
+                          (hp) => hp.displayName === item.name
+                        );
+                        if (hp) {
+                          hp.visible = !hp.visible;
+                          setHyperparams([...hyperparams]);
+                        }
+                      }}
+                      color={"gray"}
+                    />
+                  </Text>
+                ) : column.key === "dist" ? (
+                  <BarChart dist={item.dist} width={90} />
+                ) : column.key === "name" ? (
+                  <Text userSelect={"none"} fontSize={"xs"}>
+                    {item[column.key]}
+                  </Text>
+                ) : column.key === "effect" ? (
+                  <Text userSelect={"none"} fontSize={"xs"}>
+                    {item[column.key].toFixed(2)}
+                  </Text>
+                ) : column.key === "shapValues" ? (
+                  (() => {
+                    let value = item[column.key];
+                    return (
+                      <Box
+                        display={"flex"}
+                        alignItems={"center"}
+                        justifyContent={"space-between"}
+                        whiteSpace={"nowrap"}
+                        overflowX={"auto"}
+                        textOverflow={"ellipsis"}
+                        maxWidth={"130px"}
+                        userSelect={"none"}
+                      >
+                        {Object.keys(value).map((key) => (
+                          <Box
+                            key={key}
+                            p={0.5}
+                            background={shapleyColorScale(value[key])}
+                            color={
+                              Math.abs(value[key]) < 0.5 ? "black" : "white"
+                            }
+                            display={"flex"}
+                            flexDir={"column"}
+                            alignItems={"center"}
+                            border={"1px solid #ffffff"}
+                          >
+                            <Text fontSize={"xs"} fontWeight={"bold"}>
+                              {key}
+                            </Text>
+                            <Text fontSize={"xs"}>{value[key].toFixed(3)}</Text>
+                          </Box>
+                        ))}
+                      </Box>
+                    );
+                  })()
+                ) : column.key === "expander" ? (
+                  <Icon
+                    as={isExpanded ? FaAngleDown : FaAngleLeft}
+                    onClick={(e) => toggleRowExpansion(item.id, e)}
+                    color="gray"
+                  />
+                ) : (
+                  <div>asdf</div>
+                )}
+              </div>
+            ))}
+          </div>
+          {isExpanded && (
+            <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
+              <Text fontSize="sm">Shap values of {item.name}</Text>
+              <Box
+                display={"flex"}
+                alignItems={"center"}
+                justifyContent={"space-between"}
+                whiteSpace={"nowrap"}
+                overflowX={"auto"}
+                textOverflow={"ellipsis"}
+                userSelect={"none"}
+              >
+                {Object.keys(item.shapValues).map((key) => (
+                  <Box
+                    key={key}
+                    p={0.5}
+                    background={shapleyColorScale(item.shapValues[key])}
+                    color={
+                      Math.abs(item.shapValues[key]) < 0.5 ? "black" : "white"
+                    }
+                    display={"flex"}
+                    flexDir={"column"}
+                    alignItems={"center"}
+                    border={"1px solid #ffffff"}
+                  >
+                    <Text fontSize={"xs"} fontWeight={"bold"}>
+                      {key}
+                    </Text>
+                    <Text fontSize={"xs"}>
+                      {item.shapValues[key].toFixed(3)}
+                    </Text>
+                  </Box>
+                ))}
+              </Box>
+              {/* Add more expanded content here */}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       );
     },
-    [columns, hoveredRow, totalWidth, selectedRows]
+    [columns, hoveredRow, totalWidth, selectedRows, expandedRows]
   );
 
   const shapleyColorScale = useMemo(
     () => d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]),
     []
   );
+
+  const toggleRowExpansion = useCallback((id, e) => {
+    e.stopPropagation();
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
   const toggleVisibilityForSelected = (visible) => {
     // console.log("clicked, visible:", visible);
     // console.log("selectedRows:", selectedRows);
+
     const newHyperparams = hyperparams.map((hp, index) => {
       if (selectedRows.has(index)) {
         hp.visible = visible;
@@ -297,26 +505,28 @@ const FastEffectTable = () => {
         <Heading as="h5" size="sm" color="gray.600" p={4}>
           Hyperparameter Effects
         </Heading>
-        <Box display={"flex"} p={2}>
-          <Button
-            size={"sm"}
-            onClick={() => toggleVisibilityForSelected(true)}
-            mr={2}
-            colorScheme="blue"
-            isDisabled={selectedRows.size === 0}
-          >
-            Show
-          </Button>
-          <Button
-            size={"sm"}
-            onClick={() => toggleVisibilityForSelected(false)}
-            colorScheme="blue"
-            isDisabled={selectedRows.size === 0}
-            variant={"outline"}
-          >
-            Hide
-          </Button>
-        </Box>
+        {selectedRows.size > 0 && (
+          <Box display={"flex"} p={2}>
+            <Button
+              size={"sm"}
+              onClick={() => toggleVisibilityForSelected(true)}
+              mr={2}
+              colorScheme="blue"
+              // isDisabled={selectedRows.size === 0}
+            >
+              Show
+            </Button>
+            <Button
+              size={"sm"}
+              onClick={() => toggleVisibilityForSelected(false)}
+              colorScheme="blue"
+              // isDisabled={selectedRows.size === 0}
+              variant={"outline"}
+            >
+              Hide
+            </Button>
+          </Box>
+        )}
       </Box>
       <AutoSizer>
         {({ height, width }) => (
@@ -352,7 +562,6 @@ const FastEffectTable = () => {
                       flexShrink: 0,
                       display: "flex",
                       justifyContent: "start",
-                      // fontWeight: "bold",
                     }}
                   >
                     <Text fontSize={"sm"}>{column.label}</Text>
@@ -363,18 +572,13 @@ const FastEffectTable = () => {
             <div
               style={{
                 height: height - 100,
+                overflowY: "scroll",
+                overflowX: "hidden",
               }}
             >
-              <List
-                height={height - 100} // Subtracting header height
-                itemCount={data.length}
-                itemSize={40} // Adjust based on your row height
-                width={totalWidth}
-                itemData={data}
-                style={{ overflowX: "hidden" }}
-              >
-                {Row}
-              </List>
+              {data.map((item, index) => (
+                <Row key={item.id} item={item} index={index} />
+              ))}
             </div>
           </div>
         )}

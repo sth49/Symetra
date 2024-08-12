@@ -29,6 +29,7 @@
     "@visx/legend": "^3.10.3",
     "@visx/mock-data": "^3.3.0",
     "@visx/network": "^3.3.0",
+    "@visx/pattern": "^3.3.0",
     "@visx/scale": "^3.5.0",
     "@visx/shape": "^3.5.0",
     "@visx/stats": "^3.5.0",
@@ -55,6 +56,7 @@
     "react-virtualized-auto-sizer": "^1.0.24",
     "react-window": "^1.8.10",
     "simple-statistics": "^7.8.3",
+    "textures": "^1.2.3",
     "uuid": "^10.0.0",
     "zustand": "^4.5.2"
   },

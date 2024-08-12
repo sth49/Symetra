@@ -3,6 +3,11 @@ import { Experiment } from "./model/experiment";
 import { Hyperparam } from "./model/hyperparam";
 import { Group, Groups } from "./model/group";
 
+interface HparamValue {
+  name: string;
+  value: any;
+}
+
 interface CustomStore {
   clickedHparam: string | null;
   setClickedHparam: (column: string | null) => void;
@@ -21,6 +26,9 @@ interface CustomStore {
 
   selectedGroup: Set<any>;
   setSelectedGroup: (selectedGroup: Set<any>) => void;
+
+  clickedHparamValue: HparamValue | null;
+  setClickedHparamValue: (value: HparamValue | null) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -41,4 +49,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   selectedGroup: new Set(),
   setSelectedGroup: (selectedGroup) => set({ selectedGroup }),
+
+  clickedHparamValue: null, // 선택된 하이퍼파라미터 값에 대한 다른 하이퍼파라미터 값들의 correlation 구할때 사용
+  setClickedHparamValue: (value) => set({ clickedHparamValue: value }),
 }));

@@ -65,6 +65,9 @@ importers:
       '@visx/network':
         specifier: ^3.3.0
         version: 3.3.0(react@18.3.1)
+      '@visx/pattern':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.3.1)
       '@visx/scale':
         specifier: ^3.5.0
         version: 3.5.0
@@ -143,6 +146,9 @@ importers:
       simple-statistics:
         specifier: ^7.8.3
         version: 7.8.3
+      textures:
+        specifier: ^1.2.3
+        version: 1.2.3
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -3233,6 +3239,9 @@ packages:
 
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
+
+  textures@1.2.3:
+    resolution: {integrity: sha512-Ehg2adOcyfCR5DPOzBauXERJN4cXF1Bh4dITY2pPQ3+CvBBU0SZAep6pq5cCWp8K+k3OlXYh5dc2stgEQlqAWg==}
 
   through2@0.6.5:
     resolution: {integrity: sha512-RkK/CCESdTKQZHdmKICijdKKsCRVHs5KsLZ6pACAmF/1GPUQhonHSXWNERctxEp7RmvjdNbZTL5z9V7nSCXKcg==}
@@ -7128,6 +7137,8 @@ snapshots:
       svg-path-bounds: 1.0.2
 
   text-table@0.2.0: {}
+
+  textures@1.2.3: {}
 
   through2@0.6.5:
     dependencies:
