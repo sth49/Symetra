@@ -356,7 +356,7 @@ const FastEffectTable = () => {
                     />
                   </Text>
                 ) : column.key === "dist" ? (
-                  <BarChart dist={item.dist} width={90} />
+                  <BarChart dist={item.dist} width={90} height={30} />
                 ) : column.key === "name" ? (
                   <Text userSelect={"none"} fontSize={"xs"}>
                     {item[column.key]}
@@ -500,9 +500,9 @@ const FastEffectTable = () => {
         display={"flex"}
         justifyContent={"space-between"}
         alignItems={"center"}
-        height={"70px"}
+        height={"40px"}
       >
-        <Heading as="h5" size="sm" color="gray.600" p={4}>
+        <Heading as="h5" size="sm" color="gray.400" p={2}>
           Hyperparameter Effects
         </Heading>
         {selectedRows.size > 0 && (

@@ -35,17 +35,28 @@ function App() {
   }, []);
 
   return (
-    <Box bg="gray.200" h={"100vh"} w={"100vw"}>
+    <Box bg="gray.100" h={"100vh"} w={"100vw"}>
       <Box display={"flex"} justifyContent={"space-between"}>
-        <Box p={3} color="gray.600" height={"7vh"} width="350px">
-          <Heading m={1}>
+        <Box p={3} color="gray.600" height={"5vh"} width="350px">
+          <Heading m={1} fontSize={"larger"}>
             <Icon as={AiFillRocket} color="gray.600" />
             VisCovery
           </Heading>
         </Box>
-        <Box width="calc(100% - 350px)" height={"7vh"}>
+        <Box
+          width="calc(100% - 350px)"
+          height={"5vh"}
+          display={"flex"}
+          justifyContent={"end"}
+        >
           {exp && (
-            <Box bg={"white"} m={1} height={"calc(7vh - 8px)"}>
+            <Box
+              // bg={"white"}
+              m={1}
+              height={"calc(5vh - 8px)"}
+              width={`calc(50% - 12px)`}
+              rounded={"lg"}
+            >
               <Overview data={exp} />
             </Box>
           )}
@@ -55,8 +66,8 @@ function App() {
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box width="350px" height="calc(100vh - 7vh)">
-              <Box height="calc(100vh - 7vh - 8px)" bg="white" m={1}>
+            <Box width="350px" height="calc(100vh - 5vh)">
+              <Box height="calc(100vh - 5vh - 8px)" bg="white" m={0.5}>
                 <FastEffectTable />
               </Box>
             </Box>
@@ -64,28 +75,30 @@ function App() {
               display="flex"
               flexDir="column"
               width="calc(100% - 350px)"
-              height="calc(100vh - 7vh)"
+              height="calc(100vh - 5vh)"
             >
               <Box display="flex" width="100%">
                 <Box
                   width="50%"
-                  bg="white"
-                  m={1}
-                  height="calc(100vh - 7vh - 8px)"
-                >
-                  <ScatterContourPlot />
-                </Box>
-                <Box
-                  width="50%"
-                  height="calc(100vh - 7vh)"
+                  height="calc(100vh - 5vh)"
                   display="flex"
                   flexDirection="column"
                 >
-                  <Box height={"70%"} bg="white" m={1}>
+                  <Box height={"70%"} bg="white" m={0.5}>
                     <FastDataTable />
                   </Box>
-                  <Box height={"30%"} bg="white" m={1}>
+                  <Box height={"30%"} bg="white" m={0.5} mb={1}>
                     <GroupView />
+                  </Box>
+                </Box>
+                <Box
+                  width="50%"
+                  height="calc(100vh - 5vh - 8px)"
+                  display="flex"
+                  flexDirection="column"
+                >
+                  <Box height={"70%"} m={0.5} bg="white">
+                    <ScatterContourPlot />
                   </Box>
                 </Box>
               </Box>

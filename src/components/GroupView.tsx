@@ -232,7 +232,7 @@ const GroupView = () => {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box height={"20%"} display={"flex"} justifyContent={"space-between"}>
-        <Heading as="h5" size="sm" color="gray.600" p={4}>
+        <Heading as="h5" size="sm" color="gray.400" p={2}>
           Groups
         </Heading>
 
