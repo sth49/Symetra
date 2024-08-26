@@ -231,29 +231,34 @@ const GroupView = () => {
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      <Box height={"20%"} display={"flex"} justifyContent={"space-between"}>
+      <Box display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.400" p={2}>
           Groups
         </Heading>
-
-        <Button
-          m={2}
-          size={"sm"}
-          isDisabled={selectedGroup.size === 0}
-          colorScheme="blue"
-          onClick={() => {
-            if (selectedGroup.size === 0) {
-              return;
-            } else if (selectedGroup.size === 1) {
-              console.log("Single group selected");
-              onOpen();
-            } else if (selectedGroup.size === 2) {
-              onOpen();
-            }
-          }}
+        <Box
+          display={"flex"}
+          justifyContent={"right"}
+          alignItems="center"
+          pr={2}
         >
-          Analysis
-        </Button>
+          <Button
+            size={"xs"}
+            isDisabled={selectedGroup.size === 0}
+            colorScheme="blue"
+            onClick={() => {
+              if (selectedGroup.size === 0) {
+                return;
+              } else if (selectedGroup.size === 1) {
+                console.log("Single group selected");
+                onOpen();
+              } else if (selectedGroup.size === 2) {
+                onOpen();
+              }
+            }}
+          >
+            Analysis
+          </Button>
+        </Box>
       </Box>
       <Modal
         isOpen={isOpen}

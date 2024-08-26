@@ -6,6 +6,7 @@ import {
   FormControl,
   FormLabel,
   Heading,
+  IconButton,
   Select,
   Switch,
   Text,
@@ -14,12 +15,15 @@ import {
 import * as d3 from "d3";
 import { useCustomStore } from "../store";
 import {
-  BooleanHyperparam,
-  CategoricalHyperparam,
-  NumericalHyperparam,
+  BinaryHyperparam,
+  ContinuousHyperparam,
+  DiscreteHyperparam,
+  NominalHyperparam,
 } from "../model/hyperparam";
 import { format } from "@visx/vendor/d3-format";
-
+import { TbLasso } from "react-icons/tb";
+import { TbLassoOff } from "react-icons/tb";
+import { PiLassoBold } from "react-icons/pi";
 const ScatterContourPlot = () => {
   const { exp, hyperparams, groups, setGroups, hoveredGroup } =
     useCustomStore();
@@ -204,95 +208,96 @@ const ScatterContourPlot = () => {
   return (
     <Box height={"100%"}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Heading as="h5" size="sm" color="gray.400" p={4}>
+        <Heading as="h5" size="sm" color="gray.400" p={2}>
           Branch Coverage
         </Heading>
 
         <Box display="flex" alignItems="center">
-          <Box>
-            {/* 고정 너비를 사용하여 안정성 확보 */}
-            {isLassoActive ? (
-              <Box display="flex" alignItems={"center"}>
-                <Text fontSize={"sm"} mr={2}>
-                  Selected:{" "}
-                  {selectedPoints.size +
-                    (!isLassoActive ? hoveredGroup.size : 0)}{" "}
-                  / {data.length}
-                </Text>
-                <Button
-                  onClick={confirmLasso}
-                  size="sm"
-                  colorScheme="blue"
-                  flex={1}
-                  mr={1}
-                  isDisabled={tempLassoPoints.length < 3}
-                >
-                  + Group
-                </Button>
-                <Button
-                  onClick={cancelLasso}
-                  size="sm"
-                  colorScheme="red"
-                  flex={1}
-                  ml={1}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            ) : (
-              <Button
-                onClick={() => {
-                  setIsLassoActive(true);
-                  setSelectedPoints(new Set());
-                }}
-                size="sm"
-                colorScheme="blue"
-                variant={"outline"}
-                width="100%"
-              >
-                Lasso
-              </Button>
-            )}
-          </Box>
-
-          <Select
-            placeholder=""
-            onChange={(e) => setSelected(e.target.value)}
-            value={selected}
-            size="sm"
-            width="100px"
+          <FormControl
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            mr={2}
+            width="150px"
           >
-            <option value="">None</option>
-            <option value="metric">METRIC</option>
-            {exp.hyperparams.map((hp) => (
-              <option key={hp.name} value={hp.name}>
-                {hp.displayName}
-              </option>
-            ))}
-          </Select>
+            <FormLabel htmlFor="metric-switch" mb={0} mr={1} width={"80%"}>
+              <Text fontSize="xs">Colored by</Text>
+            </FormLabel>
 
-          <FormControl display="flex" alignItems="center" ml={4} width="100px">
-            <FormLabel htmlFor="metric-switch" mb={0} mr={2}>
-              <Text fontSize="sm">Metric</Text>
+            <Select
+              placeholder=""
+              onChange={(e) => setSelected(e.target.value)}
+              value={selected}
+              size="xs"
+            >
+              <option value="">None</option>
+              <option value="metric">METRIC</option>
+              {exp.hyperparams.map((hp) => (
+                <option key={hp.name} value={hp.name}>
+                  {hp.displayName}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            mr={2}
+            width="170px"
+          >
+            <FormLabel htmlFor="metric-switch" mb={0} mr={1}>
+              <Text fontSize="xs">Contoured by Metric</Text>
             </FormLabel>
             <Switch
               id="metric-switch"
               onChange={() => setVisible(!visible)}
               isChecked={visible}
+              size={"sm"}
             />
           </FormControl>
+
+          <Box display={"flex"}>
+            <IconButton
+              aria-label="Lasso"
+              icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
+              onClick={() => {
+                if (isLassoActive) {
+                  cancelLasso();
+                } else {
+                  setIsLassoActive(true);
+                  setSelectedPoints(new Set());
+                }
+              }}
+              size="xs"
+              colorScheme={isLassoActive ? "red" : "blue"}
+              // variant={""}
+              mr={1}
+            />
+            <Button
+              onClick={confirmLasso}
+              size="xs"
+              colorScheme="blue"
+              flex={1}
+              mr={1}
+              isDisabled={tempLassoPoints.length < 3}
+            >
+              Add Group
+            </Button>
+          </Box>
         </Box>
       </Box>
-      <Box display={"flex"} p={2} justifyContent={"space-around"}>
-        <Box display={"flex"} width={"50%"} p={1} alignItems={"center"}>
+      <Box display={"flex"} justifyContent={"end"} width={"100%"}>
+        <Box display={"flex"} width={"25%"} p={1} alignItems={"center"}>
           <Text fontSize={"small"} width={"50%"} align={"center"}>
             N Neighbors:
           </Text>
           <Select
             onChange={(e) => setNNeighbors(Number(e.target.value))}
             value={nNeighbors}
-            size={"sm"}
-            width={"40%"}
+            size={"xs"}
+            width={"50%"}
           >
             {[
               ...new Set(
@@ -307,15 +312,15 @@ const ScatterContourPlot = () => {
               ))}
           </Select>
         </Box>
-        <Box display={"flex"} width={"50%"} p={1} alignItems={"center"}>
+        <Box display={"flex"} width={"25%"} p={1} alignItems={"center"}>
           <Text fontSize={"small"} width={"50%"} align={"center"}>
             Min Dist:
           </Text>
           <Select
             onChange={(e) => setMinDist(Number(e.target.value))}
             value={minDist}
-            size={"sm"}
-            width={"40%"}
+            size={"xs"}
+            width={"50%"}
           >
             {[
               ...new Set(
@@ -473,9 +478,9 @@ const ScatterContourPlot = () => {
                 .map((val, i) => (
                   <React.Fragment key={`legend-${i}`}>
                     {hyperparams.find((hp) => hp.name === selected) instanceof
-                      CategoricalHyperparam ||
+                      NominalHyperparam ||
                     hyperparams.find((hp) => hp.name === selected) instanceof
-                      BooleanHyperparam ? (
+                      BinaryHyperparam ? (
                       <>
                         <rect
                           x={10}
@@ -491,7 +496,7 @@ const ScatterContourPlot = () => {
                           stroke={
                             hyperparams.find(
                               (hp) => hp.name === selected
-                            ) instanceof BooleanHyperparam && "gray"
+                            ) instanceof BinaryHyperparam && "gray"
                           }
                           height={
                             legendHeight /
@@ -527,12 +532,14 @@ const ScatterContourPlot = () => {
                       </>
                     ) : hyperparams.find(
                         (hp) => hp.name === selected
-                      ) instanceof NumericalHyperparam ? (
+                      ) instanceof ContinuousHyperparam ||
+                      hyperparams.find((hp) => hp.name === selected) instanceof
+                        DiscreteHyperparam ? (
                       <g>
                         {(() => {
                           const hp = hyperparams.find(
                             (hp) => hp.name === selected
-                          ) as NumericalHyperparam;
+                          ) as ContinuousHyperparam | DiscreteHyperparam;
                           const domain = hp.scale.domain();
                           const linearScale = d3
                             .scaleLinear()

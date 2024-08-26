@@ -16,11 +16,11 @@ export function performStatisticalTest(
 ): StatTestResult {
   //   console.log(group1, group2, paramType);
   switch (paramType) {
-    case HyperparamTypes.Numerical:
+    case HyperparamTypes.Discrete | HyperparamTypes.Continuous:
       return performTTest(group1, group2, param);
-    case HyperparamTypes.Categorical:
+    case HyperparamTypes.Nominal | HyperparamTypes.Ordinal:
       return performChiSquareTest(group1, group2, param);
-    case HyperparamTypes.Boolean:
+    case HyperparamTypes.Binary:
       return performFisherExactTest(group1, group2, param);
     default:
       throw new Error("Unknown parameter type");

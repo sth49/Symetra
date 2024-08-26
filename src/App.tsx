@@ -51,10 +51,9 @@ function App() {
         >
           {exp && (
             <Box
-              // bg={"white"}
               m={1}
               height={"calc(5vh - 8px)"}
-              width={`calc(50% - 12px)`}
+              width={`calc(60% - 12px)`}
               rounded={"lg"}
             >
               <Overview data={exp} />

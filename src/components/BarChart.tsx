@@ -3,9 +3,11 @@ import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
 import { Bar } from "@visx/shape";
 import { useCustomStore } from "../store";
 import {
-  BooleanHyperparam,
-  CategoricalHyperparam,
-  NumericalHyperparam,
+  BinaryHyperparam,
+  ContinuousHyperparam,
+  DiscreteHyperparam,
+  NominalHyperparam,
+  OrdinalHyperparam,
 } from "../model/hyperparam";
 
 import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
@@ -58,8 +60,9 @@ const BarChart = ({
   //   console.log(hparam?.name);
 
   if (
-    hparam instanceof BooleanHyperparam ||
-    hparam instanceof CategoricalHyperparam ||
+    hparam instanceof BinaryHyperparam ||
+    hparam instanceof NominalHyperparam ||
+    hparam instanceof OrdinalHyperparam ||
     hparam?.displayName === "SF"
   ) {
     const keys = Array.from(new Set(hparam.values)).sort();
@@ -167,6 +170,7 @@ const BarChart = ({
                     tooltipTop: event.clientY,
                   });
                 }}
+                onMouseLeave={hideTooltip}
               />
             </>
           ))}
@@ -222,7 +226,10 @@ const BarChart = ({
         )}
       </Box>
     );
-  } else if (hparam instanceof NumericalHyperparam) {
+  } else if (
+    hparam instanceof ContinuousHyperparam ||
+    hparam instanceof DiscreteHyperparam
+  ) {
     const binCount = 5;
     const isInteger = data.every(Number.isInteger);
     const isSame = data.every((val, i, arr) => val === arr[0]);
@@ -322,6 +329,7 @@ const BarChart = ({
                   tooltipTop: event.clientY,
                 });
               }}
+              onMouseLeave={hideTooltip}
               onClick={(e) => {
                 e.stopPropagation();
                 if (clickedHparamValue?.name === dist) {

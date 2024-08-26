@@ -1,11 +1,22 @@
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 예시로 3개의 열을 가진 그리드 */
-  grid-gap: 10px; /* 그리드 간격 설정 */
+.virtual-table {
+  --row-height: 15px;
+  --hover-color: #f0f0f0;
+  --selected-color: #d0e0fc;
+  outline: none;
 }
-.grid-item {
-  padding: 10px;
-  border: 1px solid #ccc;
-  text-align: center;
-  transition: transform 0.5s ease;
+
+.virtual-table:hover .virtual-table-row:hover {
+  background-color: var(--hover-color);
+}
+
+.virtual-table-row.selected {
+  background-color: var(--selected-color);
+}
+
+.virtual-table-row.selected:hover {
+  background-color: var(--selected-color);
+}
+
+.virtual-table * {
+  outline: none;
 }

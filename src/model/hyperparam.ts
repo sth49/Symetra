@@ -7,12 +7,28 @@ import {
   scaleThreshold,
   scaleQuantile,
 } from "@visx/scale";
+import { MdCategory } from "react-icons/md";
+import { RxComponentBoolean } from "react-icons/rx";
+import { MdOutlineLeaderboard } from "react-icons/md";
+import { MdOutlineHdrStrong } from "react-icons/md";
+import { MdTimeline } from "react-icons/md";
+
 export enum HyperparamTypes {
-  Numerical,
-  Categorical,
-  Boolean,
-  List,
+  Continuous,
+  Discrete,
+  Binary,
+  Nominal,
+
+  Ordinal,
 }
+
+export const HparamIcons = {
+  Ordinal: MdOutlineHdrStrong,
+  Nominal: MdCategory,
+  Binary: RxComponentBoolean,
+  Continuous: MdTimeline,
+  Discrete: MdOutlineLeaderboard,
+};
 
 export interface HyperparamJson {
   name: string;
@@ -36,6 +52,7 @@ export class Hyperparam {
   public values: any[] = []; // 모든 trial의 해당 hp에 대한 값 저장
   public visible = true;
   public scale: any;
+  public icon: any;
   constructor(
     public name: string,
     public displayName: string,
@@ -46,13 +63,17 @@ export class Hyperparam {
   static fromJson(json: HyperparamJson, trialJson) {
     let hparam: Hyperparam;
     if (json.type === "numerical") {
-      hparam = new NumericalHyperparam(json);
+      if (json.valueType === "int") {
+        hparam = new DiscreteHyperparam(json);
+      } else {
+        hparam = new ContinuousHyperparam(json);
+      }
     } else if (json.type === "categorical") {
-      hparam = new CategoricalHyperparam(json);
+      hparam = new NominalHyperparam(json);
     } else if (json.type === "boolean") {
-      hparam = new BooleanHyperparam(json);
-    } else if (json.type === "list") {
-      hparam = new ListHyperparam(json);
+      hparam = new BinaryHyperparam(json);
+    } else if (json.type === "ordinal") {
+      hparam = new OrdinalHyperparam(json);
     } else {
       throw new Error("Invalid hyperparam type");
     }
@@ -92,18 +113,13 @@ export class Hyperparam {
   }
 }
 
-export class NumericalHyperparam extends Hyperparam {
-  type = HyperparamTypes.Numerical;
+export class QuantitativeHparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     const value = json.value as number[];
     super(json.name, json.displayName, value, json.valueType);
     this.scale = d3
       .scaleSequential(d3.interpolateReds)
       .domain([Math.min(...value), Math.max(...value)]);
-    // this.scale = scaleLinear({
-    //   domain: [Math.min(...value), Math.max(...value)],
-    //   range: ["#f0f0f0", "#ff0000"],
-    // });
   }
   formatting(value: number) {
     if (this.valueType === "int") {
@@ -113,7 +129,6 @@ export class NumericalHyperparam extends Hyperparam {
     }
   }
   getColor(index: number) {
-    // return d3.interpolateRdBu((this.value[index] + 1) / 2);
     return this.scale(this.values[index]);
   }
   getEffectByValue() {
@@ -156,16 +171,29 @@ export class NumericalHyperparam extends Hyperparam {
   }
 }
 
-export class CategoricalHyperparam extends Hyperparam {
-  type = HyperparamTypes.Categorical;
-  scale: d3.ScaleOrdinal<string, string>; // Add the missing type arguments
+export class DiscreteHyperparam extends QuantitativeHparam {
+  type = HyperparamTypes.Discrete;
+  icon = MdOutlineLeaderboard;
+  constructor(json: HyperparamJson) {
+    super(json);
+  }
+}
 
+export class ContinuousHyperparam extends QuantitativeHparam {
+  type = HyperparamTypes.Continuous;
+  icon = MdTimeline;
+  constructor(json: HyperparamJson) {
+    super(json);
+  }
+}
+
+export class CategoricalHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     const value = (json.value as string[]).sort();
     super(json.name, json.displayName, value, json.valueType);
-    this.scale = d3
-      .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
-      .domain(value);
+    // this.scale = d3
+    //   .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
+    //   .domain(value);
   }
   getColor(index: number) {
     // return this.scale(value);
@@ -187,7 +215,39 @@ export class CategoricalHyperparam extends Hyperparam {
     return effectByValue;
   }
 }
-
+export class BinaryHyperparam extends CategoricalHyperparam {
+  type = HyperparamTypes.Binary;
+  icon = RxComponentBoolean;
+  constructor(json: HyperparamJson) {
+    super(json);
+    this.scale = d3
+      .scaleOrdinal<string, string>(["gray", "white"]) // Add the missing type arguments
+      .domain([true, false]);
+  }
+  getColor(index: number): string | undefined {
+    return this.scale(this.values[index]);
+  }
+}
+export class NominalHyperparam extends CategoricalHyperparam {
+  type = HyperparamTypes.Nominal;
+  icon = MdCategory;
+  constructor(json: HyperparamJson) {
+    super(json);
+    this.scale = d3
+      .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
+      .domain(this.values);
+  }
+}
+export class OrdinalHyperparam extends CategoricalHyperparam {
+  type = HyperparamTypes.Ordinal;
+  icon = MdOutlineHdrStrong;
+  constructor(json: HyperparamJson) {
+    super(json);
+    this.scale = d3
+      .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
+      .domain(this.values);
+  }
+}
 // export class BooleanHyperparam extends Hyperparam {
 //   type = HyperparamTypes.Boolean;
 //   constructor(json: HyperparamJson) {
@@ -229,43 +289,43 @@ export class CategoricalHyperparam extends Hyperparam {
 
 // import { scaleOrdinal } from "d3-scale";
 
-export class BooleanHyperparam extends Hyperparam {
-  readonly type = HyperparamTypes.Boolean;
-  private static readonly scale = scaleOrdinal<boolean, string>()
-    .domain([true, false])
-    .range(["gray", "white"]);
+// export class BooleanHyperparam extends Hyperparam {
+//   readonly type = HyperparamTypes.Boolean;
+//   private static readonly scale = scaleOrdinal<boolean, string>()
+//     .domain([true, false])
+//     .range(["gray", "white"]);
 
-  constructor(json: HyperparamJson) {
-    const value = json.value as boolean[];
-    super(json.name, json.displayName, value, json.valueType);
-  }
+//   constructor(json: HyperparamJson) {
+//     const value = json.value as boolean[];
+//     super(json.name, json.displayName, value, json.valueType);
+//   }
 
-  getColor(index: number): string {
-    return BooleanHyperparam.scale(this.values[index]);
-  }
+//   getColor(index: number): string {
+//     return BooleanHyperparam.scale(this.values[index]);
+//   }
 
-  getEffectByValue(): Record<string, number> {
-    const effectSum: Record<boolean, number> = { true: 0, false: 0 };
-    const count: Record<boolean, number> = { true: 0, false: 0 };
+//   getEffectByValue(): Record<string, number> {
+//     const effectSum: Record<boolean, number> = { true: 0, false: 0 };
+//     const count: Record<boolean, number> = { true: 0, false: 0 };
 
-    this.values.forEach((val, index) => {
-      effectSum[val] += this.shapValues[index];
-      count[val]++;
-    });
+//     this.values.forEach((val, index) => {
+//       effectSum[val] += this.shapValues[index];
+//       count[val]++;
+//     });
 
-    const effectByValue: Record<string, number> = {
-      true: effectSum[true] / (count[true] || 1),
-      false: effectSum[false] / (count[false] || 1),
-    };
+//     const effectByValue: Record<string, number> = {
+//       true: effectSum[true] / (count[true] || 1),
+//       false: effectSum[false] / (count[false] || 1),
+//     };
 
-    return effectByValue;
-  }
-}
+//     return effectByValue;
+//   }
+// }
 
-export class ListHyperparam extends Hyperparam {
-  type = HyperparamTypes.List;
-  constructor(json: HyperparamJson) {
-    const value = json.value as number[];
-    super(json.name, json.displayName, value, json.valueType);
-  }
-}
+// export class ListHyperparam extends Hyperparam {
+//   type = HyperparamTypes.List;
+//   constructor(json: HyperparamJson) {
+//     const value = json.value as number[];
+//     super(json.name, json.displayName, value, json.valueType);
+//   }
+// }
