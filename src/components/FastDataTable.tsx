@@ -455,7 +455,7 @@ const FastDataTable = () => {
         justifyContent={"space-between"}
         alignItems={"center"}
       >
-        <Heading as="h5" size="sm" color="gray.400" p={2}>
+        <Heading as="h5" size="sm" color="gray.600" p={2}>
           Trial Details
         </Heading>
         <Box

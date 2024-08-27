@@ -16,9 +16,11 @@ export function performStatisticalTest(
 ): StatTestResult {
   //   console.log(group1, group2, paramType);
   switch (paramType) {
-    case HyperparamTypes.Discrete | HyperparamTypes.Continuous:
+    case HyperparamTypes.Discrete:
+    case HyperparamTypes.Continuous:
       return performTTest(group1, group2, param);
-    case HyperparamTypes.Nominal | HyperparamTypes.Ordinal:
+    case HyperparamTypes.Nominal:
+    case HyperparamTypes.Ordinal:
       return performChiSquareTest(group1, group2, param);
     case HyperparamTypes.Binary:
       return performFisherExactTest(group1, group2, param);

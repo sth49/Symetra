@@ -20,3 +20,37 @@
 .virtual-table * {
   outline: none;
 }
+
+/* SVG 스타일 */
+.node {
+  fill: #faf089;
+  transition: fill 0.3s ease;
+}
+
+.node:hover {
+  fill: #ecc94b;
+}
+
+.node.selected {
+  fill: #3182ce;
+}
+
+.node-text {
+  fill: black;
+  transition: fill 0.3s ease;
+}
+
+.node:hover .node-text,
+.node.selected .node-text {
+  fill: white;
+}
+
+.link {
+  fill: none;
+  stroke: #faf089;
+  transition: stroke 0.3s ease;
+}
+
+.link:hover {
+  stroke: #ecc94b;
+}

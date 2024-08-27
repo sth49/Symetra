@@ -1,17 +1,6 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Heading,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Box, Button, Heading, Text, useDisclosure } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
-import { formatting, generateBinnedData } from "../model/utils";
-import { ViolinPlot } from "@visx/stats";
-import { CloseIcon } from "@chakra-ui/icons";
+
 import {
   Modal,
   ModalOverlay,
@@ -22,7 +11,8 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import StatTest from "./StatTest";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo } from "react";
 import { DefaultNode, Graph } from "@visx/network";
 import { performStatisticalTest } from "../model/statistic";
 import * as d3 from "d3";
@@ -138,11 +128,14 @@ const GroupView = () => {
   // }, []);
 
   const { nodes, links } = useMemo(() => {
-    const nodes = groups.groups.map((group, i) => ({
-      id: group.id,
-      x: 20 + i * 65,
-      y: 45,
-    }));
+    const nodes = groups.groups.map(
+      (group, i) => ({
+        id: group.id,
+        x: 20 + i * 65,
+        y: 45,
+      }),
+      [groups.getLength(), hyperparams]
+    );
 
     const links = [];
     for (let i = 0; i < nodes.length; i++) {
@@ -184,50 +177,124 @@ const GroupView = () => {
       .range([1, 10]);
   }, [links]);
 
-  const NodeComponent = ({ node, onHover, onClick, isSelected, isHovered }) => (
-    <g>
-      <circle
-        onMouseEnter={() => onHover(node)}
-        onClick={() => onClick(node)}
-        r={30}
-        fill={isSelected ? "#3182CE" : isHovered ? "#ECC94B" : "#FAF089"}
-        cx={node.x}
-        cy={node.y}
-      />
-      <text
-        style={{ cursor: "pointer" }}
-        x={node.x}
-        y={node.y + 5}
-        textAnchor="middle"
-        fill={isSelected ? "white" : isHovered ? "white" : "black"}
-        fontSize={12}
-      >
-        {node.id}
-      </text>
-    </g>
+  const handleNodeHover = useCallback(
+    (node) => {
+      if (node) {
+        const group = groups.getGroup(Number(node.id));
+        const selected = new Set(group.trials.map((trial) => trial.id));
+        setHoveredGroup(selected);
+      } else {
+        setHoveredGroup(new Set());
+      }
+    },
+    [groups, setHoveredGroup]
   );
 
-  const LinkComponent = ({
-    link,
-    nodes,
-    weightScale,
-    isHovered,
-    isLinkHovered,
-  }) => {
-    const source = nodes.find((n) => n.id === link.source)!;
-    const target = nodes.find((n) => n.id === link.target)!;
-    const arcHeight = Math.abs(source.x - target.x) * 0.22;
+  const handleNodeClick = useCallback(
+    (nodeId) => {
+      setSelectedGroup((prevSelected) => {
+        const newSelected = new Set(prevSelected);
+        if (newSelected.has(nodeId)) {
+          newSelected.delete(nodeId);
+        } else {
+          if (newSelected.size === 2) {
+            newSelected.delete(newSelected.values().next().value);
+          }
+          newSelected.add(nodeId);
+        }
+        return newSelected;
+      });
+    },
+    [setSelectedGroup]
+  );
 
-    return (
-      <path
-        d={createArcPath(source, target, arcHeight)}
-        fill="none"
-        onMouseEnter={() => isLinkHovered(link)}
-        stroke={isHovered ? "#ECC94B" : isHovered ? "#FAF089" : "#FAF089"}
-        strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
-      />
-    );
-  };
+  // const NodeComponent = ({ node, onHover, onClick, isSelected, isHovered }) => (
+  //   <g>
+  //     <circle
+  //       onMouseEnter={() => onHover(node)}
+  //       onClick={() => onClick(node)}
+  //       r={30}
+  //       fill={isSelected ? "#3182CE" : isHovered ? "#ECC94B" : "#FAF089"}
+  //       cx={node.x}
+  //       cy={node.y}
+  //     />
+  //     <text
+  //       style={{ cursor: "pointer" }}
+  //       x={node.x}
+  //       y={node.y + 5}
+  //       textAnchor="middle"
+  //       fill={isSelected ? "white" : isHovered ? "white" : "black"}
+  //       fontSize={12}
+  //     >
+  //       {node.id}
+  //     </text>
+  //   </g>
+  // );
+
+  // const LinkComponent = ({
+  //   link,
+  //   nodes,
+  //   weightScale,
+  //   isHovered,
+  //   isLinkHovered,
+  // }) => {
+  //   const source = nodes.find((n) => n.id === link.source)!;
+  //   const target = nodes.find((n) => n.id === link.target)!;
+  //   const arcHeight = Math.abs(source.x - target.x) * 0.22;
+
+  //   return (
+  //     <path
+  //       d={createArcPath(source, target, arcHeight)}
+  //       fill="none"
+  //       onMouseEnter={() => isLinkHovered(link)}
+  //       stroke={isHovered ? "#ECC94B" : isHovered ? "#FAF089" : "#FAF089"}
+  //       strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
+  //     />
+  //   );
+  // };
+
+  const NodeComponent = useCallback(
+    ({ node }) => (
+      <g>
+        <circle
+          className={`node ${selectedGroup.has(node.id) ? "selected" : ""}`}
+          onMouseEnter={() => handleNodeHover(node)}
+          onMouseLeave={() => handleNodeHover(null)}
+          onClick={() => handleNodeClick(node.id)}
+          r={30}
+          cx={node.x}
+          cy={node.y}
+        />
+        <text
+          className="node-text"
+          x={node.x}
+          y={node.y + 5}
+          textAnchor="middle"
+          fontSize={12}
+        >
+          {node.id}
+        </text>
+      </g>
+    ),
+    [selectedGroup, handleNodeHover, handleNodeClick]
+  );
+
+  const LinkComponent = useCallback(
+    ({ link }) => {
+      const source = nodes.find((n) => n.id === link.source)!;
+      const target = nodes.find((n) => n.id === link.target)!;
+      const arcHeight = Math.abs(source.x - target.x) * 0.22;
+
+      return (
+        <path
+          className="link"
+          d={createArcPath(source, target, arcHeight)}
+          strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
+        />
+      );
+    },
+    [nodes, weightScale]
+  );
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -321,83 +388,6 @@ const GroupView = () => {
           p={2}
           display="flex"
         >
-          {/* {groups?.groups.map((group, idx) => {
-            console.log(group);
-            const coverages = group.trials.map((trial) => trial.metric);
-
-            let { binData, yScale } = generateBinnedData(
-              coverages,
-              100,
-              150,
-              "y"
-            );
-
-            return (
-              <Card key={idx} m={2} height={"95%"} width={"150px"}>
-                <CardHeader
-                  display={"flex"}
-                  justifyContent={"space-between"}
-                  alignItems={"center"}
-                >
-                  <input
-                    type="checkbox"
-                    onClick={() => {
-                      if (selectedGroup.has(group.id)) {
-                        selectedGroup.delete(group.id);
-                      } else {
-                        if (selectedGroup.size === 2) {
-                          selectedGroup.delete(
-                            selectedGroup.values().next().value
-                          );
-                        }
-                        selectedGroup.add(group.id);
-                      }
-                      setSelectedGroup(selectedGroup);
-                      console.log(selectedGroup);
-                    }}
-                    checked={selectedGroup.has(group.id)}
-                  ></input>
-                  <Text fontSize="md">
-                    {group.id} ({group.trials.length})
-                  </Text>
-                  <CloseIcon
-                    w={3}
-                    h={3}
-                    onClick={() => {
-                      groups.deleteGroup(group.id);
-                      setGroups(groups);
-                    }}
-                  />
-                </CardHeader>
-                <CardBody
-                  onMouseEnter={() => setHoverGroup(group)}
-                  onMouseLeave={() => setHoverGroup(null)}
-                >
-                  <svg width={100} height={150}>
-                    <ViolinPlot
-                      data={binData}
-                      stroke="#ECC94B"
-                      left={0}
-                      width={100}
-                      valueScale={yScale}
-                      fill="#F6E05E"
-                    />
-                  </svg>
-                  <Box mt={4}>
-                    <Text fontSize="sm">Min : {Math.min(...coverages)}</Text>
-                    <Text fontSize="sm">
-                      Mean:{" "}
-                      {formatting(
-                        coverages.reduce((a, b) => a + b, 0) / coverages.length,
-                        false
-                      )}
-                    </Text>
-                    <Text fontSize="sm">Max : {Math.max(...coverages)}</Text>
-                  </Box>
-                </CardBody>
-              </Card>
-            );
-          })} */}
           <Box
             width={width} // 뷰포트 높이에서 적절한 값을 뺀 높이
             height={"100%"}
@@ -409,119 +399,115 @@ const GroupView = () => {
                 // rx={14}
                 fill={"white"}
                 onMouseEnter={() => {
-                  // console.log("enter rect");
                   setHoverGroup(null);
                   setHoveredLink(null);
                 }}
                 onMouseLeave={() => {
-                  // console.log("leave rect");
                   setHoverGroup(null);
                   setHoveredLink(null);
                 }}
               />
               <Graph<CustomLink, CustomNode>
                 graph={graphMemo}
-                nodeComponent={({ node }) => (
-                  <g>
-                    <circle
-                      onMouseEnter={() => {
-                        setHoveredLink(null);
-                        setHoverGroup(groups.getGroup(Number(node.id)));
-                      }}
-                      // onMouseLeave={() => {
-                      //   setHoverGroup(null);
-                      // }}
-                      r={30}
-                      fill={
-                        selectedGroup.has(node.id)
-                          ? "#3182CE"
-                          : hoveredGroupId === Number(node.id)
-                          ? "#ECC94B"
-                          : "#FAF089"
-                      }
-                      cx={node.x}
-                      cy={node.y}
-                    />
-                    <text
-                      onClick={() => {
-                        console.log("click", node.id);
-                        if (selectedGroup.has(node.id)) {
-                          selectedGroup.delete(node.id);
-                        } else {
-                          if (selectedGroup.size === 2) {
-                            selectedGroup.delete(
-                              selectedGroup.values().next().value
-                            );
-                          }
-                          selectedGroup.add(node.id);
-                        }
-                        setSelectedGroup(selectedGroup);
-                        console.log(selectedGroup);
-                      }}
-                      style={{ cursor: "pointer" }}
-                      x={node.x}
-                      y={node.y + 5}
-                      textAnchor="middle"
-                      fill={
-                        selectedGroup.has(node.id)
-                          ? "white"
-                          : hoveredGroupId === Number(node.id)
-                          ? "white"
-                          : "black"
-                      }
-                      fontSize={12}
-                    >
-                      {node.id}
-                    </text>
-                  </g>
-                )}
-                linkComponent={({ link }) => {
-                  const source = nodes.find((n) => n.id === link.source)!;
-                  const target = nodes.find((n) => n.id === link.target)!;
-                  const arcHeight = Math.abs(source.x - target.x) * 0.22;
-                  // console.log(createArcPath(source, target, arcHeight));
-                  return (
-                    <path
-                      d={createArcPath(source, target, arcHeight)}
-                      fill="none"
-                      onMouseEnter={() => {
-                        setHoverGroup(null);
+                nodeComponent={NodeComponent}
+                linkComponent={LinkComponent}
+                // nodeComponent={({ node }) => (
+                //   <g>
+                //     <circle
+                //       className={`node ${
+                //         selectedGroup.has(node.id) ? "selected" : ""
+                //       }`}
+                //       onMouseEnter={() => {
+                //         setHoveredLink(null);
+                //         setHoverGroup(groups.getGroup(Number(node.id)));
+                //       }}
+                //       onMouseLeave={() => {
+                //         setHoverGroup(null);
+                //       }}
+                //       r={30}
+                //       cx={node.x}
+                //       cy={node.y}
+                //     />
+                //     <text
+                //       onClick={() => {
+                //         console.log("click", node.id);
+                //         if (selectedGroup.has(node.id)) {
+                //           selectedGroup.delete(node.id);
+                //         } else {
+                //           if (selectedGroup.size === 2) {
+                //             selectedGroup.delete(
+                //               selectedGroup.values().next().value
+                //             );
+                //           }
+                //           selectedGroup.add(node.id);
+                //         }
+                //         setSelectedGroup(selectedGroup);
+                //         console.log(selectedGroup);
+                //       }}
+                //       style={{ cursor: "pointer" }}
+                //       x={node.x}
+                //       y={node.y + 5}
+                //       textAnchor="middle"
+                //       fill={
+                //         selectedGroup.has(node.id)
+                //           ? "white"
+                //           : hoveredGroupId === Number(node.id)
+                //           ? "white"
+                //           : "black"
+                //       }
+                //       fontSize={12}
+                //     >
+                //       {node.id}
+                //     </text>
+                //   </g>
+                // )}
+                // linkComponent={({ link }) => {
+                //   const source = nodes.find((n) => n.id === link.source)!;
+                //   const target = nodes.find((n) => n.id === link.target)!;
+                //   const arcHeight = Math.abs(source.x - target.x) * 0.22;
+                //   // console.log(createArcPath(source, target, arcHeight));
+                //   return (
+                //     <path
+                //       d={createArcPath(source, target, arcHeight)}
+                //       fill="none"
+                //       onMouseEnter={() => {
+                //         setHoverGroup(null);
 
-                        setHoveredLink(link);
-                      }}
-                      onClick={() => {
-                        console.log("click", link);
-                      }}
-                      stroke={
-                        hoveredLink !== null &&
-                        hoveredLink.source === link.source &&
-                        hoveredLink.target === link.target
-                          ? "#ECC94B"
-                          : hoveredGroupId !== null &&
-                            (hoveredGroupId === Number(link.source) ||
-                              hoveredGroupId === Number(link.target))
-                          ? "#ECC94B"
-                          : "#FAF089"
-                        // hoveredGroupId !== null &&
-                        // (hoveredGroupId === Number(link.source) ||
-                        //   hoveredGroupId === Number(link.target))
-                        //   ? "#ECC94B"
-                        //   : "#FAF089"
-                      }
-                      strokeWidth={
-                        link.weight === 0 ? 1 : weightScale(link.weight)
-                      }
-                      // strokeOpacity={0.5}
-                      // strokeOpacity={
-                      //   hoveredGroupId !== null &&
-                      //   (hoveredGroupId === Number(link.source) ||
-                      //     hoveredGroupId === Number(link.target))
-                      //     ? 0.6
-                      //     : 0.1
-                      // }
-                    />
-                  );
-                }}
+                //         setHoveredLink(link);
+                //       }}
+                //       onClick={() => {
+                //         console.log("click", link);
+                //       }}
+                //       stroke={
+                //         hoveredLink !== null &&
+                //         hoveredLink.source === link.source &&
+                //         hoveredLink.target === link.target
+                //           ? "#ECC94B"
+                //           : hoveredGroupId !== null &&
+                //             (hoveredGroupId === Number(link.source) ||
+                //               hoveredGroupId === Number(link.target))
+                //           ? "#ECC94B"
+                //           : "#FAF089"
+                //         // hoveredGroupId !== null &&
+                //         // (hoveredGroupId === Number(link.source) ||
+                //         //   hoveredGroupId === Number(link.target))
+                //         //   ? "#ECC94B"
+                //         //   : "#FAF089"
+                //       }
+                //       strokeWidth={
+                //         link.weight === 0 ? 1 : weightScale(link.weight)
+                //       }
+                //       // strokeOpacity={0.5}
+                //       // strokeOpacity={
+                //       //   hoveredGroupId !== null &&
+                //       //   (hoveredGroupId === Number(link.source) ||
+                //       //     hoveredGroupId === Number(link.target))
+                //       //     ? 0.6
+                //       //     : 0.1
+                //       // }
+                //     />
+                //   );
+                // }}
               />
             </svg>
           </Box>
@@ -535,8 +521,8 @@ const GroupView = () => {
             "calc(75%)" // 뷰포트 높이에서 적절한 값을 뺀 높이
           }
         >
-          There are no groups to display. Pleas create a group by clicking the
-          "+ Group" button.
+          There are no groups to display. Please create a group by clicking the
+          "Add Group" button.
           {/* <svg width={width} height={height}>
             <rect width={width} height={height} rx={14} fill={"white"} />
             <Graph<CustomLink, CustomNode>
@@ -584,4 +570,4 @@ const GroupView = () => {
   );
 };
 
-export default GroupView;
+export default memo(GroupView);
