@@ -5,7 +5,7 @@ import { useCustomStore } from "../store";
 import {
   BinaryHyperparam,
   ContinuousHyperparam,
-  DiscreteHyperparam,
+  // DiscreteHyperparam,
   NominalHyperparam,
   OrdinalHyperparam,
 } from "../model/hyperparam";
@@ -226,10 +226,7 @@ const BarChart = ({
         )}
       </Box>
     );
-  } else if (
-    hparam instanceof ContinuousHyperparam ||
-    hparam instanceof DiscreteHyperparam
-  ) {
+  } else if (hparam instanceof ContinuousHyperparam) {
     const binCount = 5;
     const isInteger = data.every(Number.isInteger);
     const isSame = data.every((val, i, arr) => val === arr[0]);

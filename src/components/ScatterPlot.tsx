@@ -17,7 +17,7 @@ import { useCustomStore } from "../store";
 import {
   BinaryHyperparam,
   ContinuousHyperparam,
-  DiscreteHyperparam,
+  // DiscreteHyperparam,
   NominalHyperparam,
 } from "../model/hyperparam";
 import { format } from "@visx/vendor/d3-format";
@@ -532,14 +532,12 @@ const ScatterContourPlot = () => {
                       </>
                     ) : hyperparams.find(
                         (hp) => hp.name === selected
-                      ) instanceof ContinuousHyperparam ||
-                      hyperparams.find((hp) => hp.name === selected) instanceof
-                        DiscreteHyperparam ? (
+                      ) instanceof ContinuousHyperparam ? (
                       <g>
                         {(() => {
                           const hp = hyperparams.find(
                             (hp) => hp.name === selected
-                          ) as ContinuousHyperparam | DiscreteHyperparam;
+                          ) as ContinuousHyperparam;
                           const domain = hp.scale.domain();
                           const linearScale = d3
                             .scaleLinear()

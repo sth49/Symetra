@@ -6,17 +6,8 @@ import React, {
   useEffect,
 } from "react";
 import { useCustomStore } from "../store";
-import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
-import {
-  Badge,
-  Box,
-  Button,
-  Heading,
-  Icon,
-  IconButton,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Button, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
 import * as d3 from "d3";
@@ -26,31 +17,6 @@ import { FaAngleDown } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
-
-// const tableStyles = `
-//   .virtual-table {
-//     --row-height: 15px;
-//     --hover-color: #f0f0f0;
-//     --selected-color: #d0e0fc;
-//     outline: none;
-//   }
-
-//   .virtual-table:hover .virtual-table-row:hover {
-//     background-color: var(--hover-color);
-//   }
-
-//   .virtual-table-row.selected {
-//     background-color: var(--selected-color);
-//   }
-
-//   .virtual-table-row.selected:hover {
-//     background-color: var(--selected-color);
-//   }
-
-//   .virtual-table * {
-//     outline: none;
-//   }
-// `;
 
 const FastEffectTable = () => {
   const { exp, hyperparams, setHyperparams } = useCustomStore();
@@ -115,7 +81,6 @@ const FastEffectTable = () => {
     }
 
     setSortedData(sortedItems);
-    // console.log("sortedItems:", sortedItems);
   }, [data, sortConfig]);
 
   const columns = useMemo(
@@ -135,26 +100,30 @@ const FastEffectTable = () => {
             }}
           />
         ),
-        width: 40,
+        width: 36,
+        align: "left",
       },
-      { key: "name", label: "Name", width: 60 },
+      { key: "name", label: "Name", width: 65, align: "left" },
 
-      { key: "effect", label: "Effect", width: 60 },
+      { key: "effect", label: "Effect", width: 45, align: "right" },
       {
         key: "dist",
         label: "Distribution",
-        width: 80,
+        width: 110,
+        align: "center",
       },
       // { key: "shapValues", label: "SHAP", width: 100 },
       {
         key: "visible",
-        label: <Icon as={FaEye} ml={1.5} color={"gray"} />,
-        width: 60,
+        label: "Visible",
+        width: 40,
+        align: "left",
       },
       {
         key: "expander",
         label: "",
         width: 40,
+        align: "left",
       },
     ],
     [exp]
@@ -195,6 +164,11 @@ const FastEffectTable = () => {
       // const isHovered = hoveredRow === item.id;
       const isSelected = selectedRows.has(item.id);
       const isExpanded = expandedRows.has(item.id);
+      const isLastSelected =
+        selectedRows.size > 0 &&
+        Array.from(selectedRows).sort((a, b) => data[a].id - data[b].id)[
+          selectedRows.size - 1
+        ] === index;
       const hp = hyperparams.find((hp) => hp.displayName === item.name);
       const hparamIcon = hp?.icon;
 
@@ -220,7 +194,7 @@ const FastEffectTable = () => {
                   whiteSpace: "nowrap",
                   flexShrink: 0,
                   display: "flex",
-                  justifyContent: column.key === "visible" ? "center" : "start",
+                  justifyContent: column.align,
                 }}
               >
                 {column.key === "checked" ? (
@@ -233,45 +207,48 @@ const FastEffectTable = () => {
                     }
                   />
                 ) : column.key === "visible" ? (
-                  <Text fontSize={"sm"}>
-                    <Icon
-                      as={
+                  <Text fontSize={"xs"}>
+                    <IconButton
+                      size={"xs"}
+                      icon={
                         hyperparams.find((hp) => hp.displayName === item.name)
-                          ?.visible
-                          ? FaEye
-                          : FaEyeSlash
+                          ?.visible ? (
+                          <Icon as={FaEye} />
+                        ) : (
+                          <Icon as={FaEyeSlash} />
+                        )
                       }
-                      ml={1.5}
-                      onClick={() => {
-                        const hp = hyperparams.find(
-                          (hp) => hp.displayName === item.name
-                        );
-                        if (hp) {
-                          hp.visible = !hp.visible;
-                          setHyperparams([...hyperparams]);
-                        }
+                      colorScheme="blue"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const newHyperparams = hyperparams.map((hp, i) => {
+                          if (i === index) {
+                            hp.visible = !hp.visible;
+                          }
+                          return hp;
+                        });
+                        setHyperparams([...newHyperparams]);
                       }}
-                      color={"gray"}
+                      aria-label={""}
                     />
                   </Text>
                 ) : column.key === "dist" ? (
-                  <BarChart dist={item.dist} width={90} height={30} />
+                  <BarChart dist={item.dist} width={70} height={30} />
                 ) : column.key === "name" ? (
-                  <Badge
-                    variant={"solid"}
-                    colorScheme={"green"}
-                    fontWeight={"none"}
-                  >
-                    <Box display={"flex"} alignItems={"center"}>
-                      <Icon as={hparamIcon} mr={1} />
-                      <Text userSelect={"none"} fontSize={"xs"}>
-                        {item[column.key]}
-                      </Text>
-                    </Box>
-                  </Badge>
+                  <Box display={"flex"} alignItems={"center"}>
+                    <Text
+                      userSelect={"none"}
+                      fontSize={"xs"}
+                      display={"flex"}
+                      alignItems={"center"}
+                    >
+                      <Icon as={hparamIcon} mr={1} color={"gray.600"} />
+                      {item[column.key]}
+                    </Text>
+                  </Box>
                 ) : column.key === "effect" ? (
                   <Text userSelect={"none"} fontSize={"xs"}>
-                    {item[column.key].toFixed(2)}
+                    {item[column.key].toFixed(1)}
                   </Text>
                 ) : column.key === "shapValues" ? (
                   (() => {
@@ -303,7 +280,7 @@ const FastEffectTable = () => {
                             <Text fontSize={"xs"} fontWeight={"bold"}>
                               {key}
                             </Text>
-                            <Text fontSize={"xs"}>{value[key].toFixed(3)}</Text>
+                            <Text fontSize={"xs"}>{value[key].toFixed(2)}</Text>
                           </Box>
                         ))}
                       </Box>
@@ -321,6 +298,33 @@ const FastEffectTable = () => {
               </div>
             ))}
           </div>
+          {isSelected && isLastSelected && (
+            <Box
+              display={"flex"}
+              width={"100%"}
+              justifyContent={"space-around"}
+              p={"10px 0"}
+            >
+              <Button
+                size={"xs"}
+                isDisabled={selectedRows.size === 0}
+                onClick={() => toggleVisibilityForSelected(true)}
+                colorScheme="blue"
+              >
+                Show {selectedRows.size} Hparams.
+              </Button>
+              <Button
+                size={"xs"}
+                isDisabled={selectedRows.size === 0}
+                onClick={() => toggleVisibilityForSelected(false)}
+                colorScheme="blue"
+                variant={"outline"}
+              >
+                Hide {selectedRows.size} Hparams.
+              </Button>
+            </Box>
+          )}
+
           {isExpanded && (
             <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
               <Text fontSize="sm">Shap values of {item.name}</Text>
@@ -411,30 +415,37 @@ const FastEffectTable = () => {
         alignItems={"center"}
       >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Hyperparameter Effects
+          Hyperparameter View ({hyperparams.filter((hp) => hp.visible).length} /{" "}
+          {hyperparams.filter((hp) => hp.visible).length} Visible)
         </Heading>
-        <Box display={"flex"} pr={2}>
-          <Button
-            size={"xs"}
-            isDisabled={selectedRows.size === 0}
-            onClick={() => toggleVisibilityForSelected(true)}
-            mr={2}
-            colorScheme="blue"
-          >
-            Show
-          </Button>
-          <Button
-            size={"xs"}
-            isDisabled={selectedRows.size === 0}
-            onClick={() => toggleVisibilityForSelected(false)}
-            colorScheme="blue"
-            // isDisabled={selectedRows.size === 0}
-            variant={"outline"}
-          >
-            Hide
-          </Button>
-        </Box>
       </Box>
+
+      {/* <Box
+        display={"flex"}
+        width={"100%"}
+        justifyContent={"space-around"}
+        p={"2px"}
+        visibility={selectedRows.size === 0 ? "hidden" : "visible"}
+      >
+        <Button
+          size={"xs"}
+          isDisabled={selectedRows.size === 0}
+          onClick={() => toggleVisibilityForSelected(true)}
+          colorScheme="blue"
+        >
+          Show {selectedRows.size} Hyperparameters
+        </Button>
+        <Button
+          size={"xs"}
+          isDisabled={selectedRows.size === 0}
+          onClick={() => toggleVisibilityForSelected(false)}
+          colorScheme="blue"
+          variant={"outline"}
+        >
+          Hide {selectedRows.size} Hyperparameters
+        </Button>
+      </Box> */}
+
       <AutoSizer>
         {({ height, width }) => (
           <div
@@ -443,6 +454,7 @@ const FastEffectTable = () => {
               width,
               overflowX: "auto",
               overflowY: "hidden",
+              padding: "0 4px",
             }}
             ref={scrollContainerRef}
             onScroll={handleScroll}
@@ -465,12 +477,12 @@ const FastEffectTable = () => {
                       display: "flex",
                       width: `${column.width}px`,
                       padding: "2px",
-                      borderBottom: "2px solid #ddd",
+                      borderBottom: "1px solid #ddd",
                       cursor: "pointer",
                       flexShrink: 0,
-                      justifyContent:
-                        column.key === "visible" ? "center" : "start",
+                      justifyContent: column.align,
                       alignItems: "center",
+                      height: "35px",
                     }}
                     onClick={() => {
                       if (column.key === "name" || column.key === "effect") {
@@ -478,7 +490,9 @@ const FastEffectTable = () => {
                       }
                     }}
                   >
-                    <Text fontSize={"sm"}>{column.label}</Text>
+                    <Text fontSize={"xs"} fontWeight={"bold"}>
+                      {column.label}
+                    </Text>
                     {(column.key === "name" || column.key === "effect") && (
                       <Icon
                         color={"gray"}

@@ -11,14 +11,14 @@ import { MdCategory } from "react-icons/md";
 import { RxComponentBoolean } from "react-icons/rx";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { MdOutlineHdrStrong } from "react-icons/md";
+import { HiHashtag } from "react-icons/hi";
 import { MdTimeline } from "react-icons/md";
 
 export enum HyperparamTypes {
   Continuous,
-  Discrete,
+  // Discrete,
   Binary,
   Nominal,
-
   Ordinal,
 }
 
@@ -26,8 +26,7 @@ export const HparamIcons = {
   Ordinal: MdOutlineHdrStrong,
   Nominal: MdCategory,
   Binary: RxComponentBoolean,
-  Continuous: MdTimeline,
-  Discrete: MdOutlineLeaderboard,
+  Continuous: HiHashtag,
 };
 
 export interface HyperparamJson {
@@ -63,11 +62,7 @@ export class Hyperparam {
   static fromJson(json: HyperparamJson, trialJson) {
     let hparam: Hyperparam;
     if (json.type === "numerical") {
-      if (json.valueType === "int") {
-        hparam = new DiscreteHyperparam(json);
-      } else {
-        hparam = new ContinuousHyperparam(json);
-      }
+      hparam = new ContinuousHyperparam(json);
     } else if (json.type === "categorical") {
       hparam = new NominalHyperparam(json);
     } else if (json.type === "boolean") {
@@ -113,7 +108,9 @@ export class Hyperparam {
   }
 }
 
-export class QuantitativeHparam extends Hyperparam {
+export class ContinuousHyperparam extends Hyperparam {
+  type = HyperparamTypes.Continuous;
+  icon = HiHashtag;
   constructor(json: HyperparamJson) {
     const value = json.value as number[];
     super(json.name, json.displayName, value, json.valueType);
@@ -171,21 +168,21 @@ export class QuantitativeHparam extends Hyperparam {
   }
 }
 
-export class DiscreteHyperparam extends QuantitativeHparam {
-  type = HyperparamTypes.Discrete;
-  icon = MdOutlineLeaderboard;
-  constructor(json: HyperparamJson) {
-    super(json);
-  }
-}
+// export class DiscreteHyperparam extends QuantitativeHparam {
+//   type = HyperparamTypes.Discrete;
+//   icon = MdOutlineLeaderboard;
+//   constructor(json: HyperparamJson) {
+//     super(json);
+//   }
+// }
 
-export class ContinuousHyperparam extends QuantitativeHparam {
-  type = HyperparamTypes.Continuous;
-  icon = MdTimeline;
-  constructor(json: HyperparamJson) {
-    super(json);
-  }
-}
+// export class ContinuousHyperparam extends QuantitativeHparam {
+//   type = HyperparamTypes.Continuous;
+//   icon = MdTimeline;
+//   constructor(json: HyperparamJson) {
+//     super(json);
+//   }
+// }
 
 export class CategoricalHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {

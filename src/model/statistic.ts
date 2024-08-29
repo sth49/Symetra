@@ -16,7 +16,6 @@ export function performStatisticalTest(
 ): StatTestResult {
   //   console.log(group1, group2, paramType);
   switch (paramType) {
-    case HyperparamTypes.Discrete:
     case HyperparamTypes.Continuous:
       return performTTest(group1, group2, param);
     case HyperparamTypes.Nominal:

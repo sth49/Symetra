@@ -1,20 +1,5 @@
-import {
-  Badge,
-  Box,
-  Grid,
-  GridItem,
-  Heading,
-  Icon,
-  Tag,
-  TagLabel,
-  Text,
-} from "@chakra-ui/react";
+import { Badge, Box, Icon, Tag, TagLabel, Text } from "@chakra-ui/react";
 import { HparamIcons, HyperparamTypes } from "../model/hyperparam";
-import { MdCategory } from "react-icons/md";
-import { RxComponentBoolean } from "react-icons/rx";
-import { MdOutlineLeaderboard } from "react-icons/md";
-import { MdOutlineHdrStrong } from "react-icons/md";
-import { MdTimeline } from "react-icons/md";
 interface OverviewProps {
   data: any;
 }
@@ -41,17 +26,9 @@ const Overview = (data: OverviewProps) => {
         <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={1}>
           Dataset
         </Text>
-        <Box display={"flex"}>
-          {/* <Box>{data.data.name}</Box> */}
-          <Tag
-            size={"sm"}
-            borderRadius="full"
-            variant="solid"
-            colorScheme="teal"
-          >
-            <TagLabel>{data.data.name}</TagLabel>
-          </Tag>
-        </Box>
+        <Text fontSize="sm" color={"gray.600"}>
+          {data.data.name}
+        </Text>
       </Box>
       <Box display={"flex"}>
         <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={1}>
@@ -74,29 +51,20 @@ const Overview = (data: OverviewProps) => {
         .filter((key) => isNaN(Number(key)))
         .map((key, index) => {
           const icon = HparamIcons[key];
-          console.log(key);
           return (
-            <Badge
-              variant={"solid"}
-              colorScheme={"green"}
-              key={key}
-              mr={1}
-              mb={1}
-            >
-              <Box display={"flex"} alignItems={"center"}>
-                <Icon as={icon} mr={1} />
-                <Text fontSize="10px" fontWeight={"bold"} pr={1}>
-                  {key}
-                </Text>
-                <Text fontSize="10px">
-                  {
-                    data.data.hyperparams.filter(
-                      (hp) => hp.type === HyperparamTypes[key]
-                    ).length
-                  }
-                </Text>
-              </Box>
-            </Badge>
+            <Box display={"flex"} alignItems={"center"}>
+              <Icon as={icon} mr={1} />
+              <Text fontSize="sm" fontWeight={"bold"} pr={1}>
+                {key}
+              </Text>
+              <Text fontSize="sm">
+                {
+                  data.data.hyperparams.filter(
+                    (hp) => hp.type === HyperparamTypes[key]
+                  ).length
+                }
+              </Text>
+            </Box>
           );
         })}
       {/* <Badge variant={"solid"} colorScheme={"green"}>

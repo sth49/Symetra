@@ -12,6 +12,7 @@ import { useCustomStore } from "./store";
 import FastDataTable from "./components/FastDataTable";
 import GroupView from "./components/GroupView";
 import FastEffectTable from "./components/FastEffectTable";
+import { RiFlowChart } from "react-icons/ri";
 function App() {
   // const [exp, setExp] = useState<Experiment | null>(null);
   const { exp, setExp, setHyperparams } = useCustomStore();
@@ -37,25 +38,23 @@ function App() {
   return (
     <Box bg="gray.100" h={"100vh"} w={"100vw"}>
       <Box display={"flex"} justifyContent={"space-between"}>
-        <Box p={3} color="gray.600" height={"5vh"} width="350px">
-          <Heading m={1} fontSize={"larger"}>
-            <Icon as={AiFillRocket} color="gray.600" />
-            VisCovery
-          </Heading>
-        </Box>
         <Box
-          width="calc(100% - 350px)"
-          height={"5vh"}
+          color="gray.600"
+          height="calc(44px - 6px)" // 양쪽 margin을 고려하여 높이 조정
+          width="100%"
+          bg="white"
+          boxSizing="border-box"
+          m={1}
+          mb={0.5} // px 대신 rem 사용
+          alignItems={"center"}
           display={"flex"}
-          justifyContent={"end"}
         >
+          <Heading fontSize={"larger"} mr={4}>
+            <Icon as={AiFillRocket} color="gray.600" ml={1} />
+            VISTA
+          </Heading>
           {exp && (
-            <Box
-              m={1}
-              height={"calc(5vh - 8px)"}
-              width={`calc(60% - 12px)`}
-              rounded={"lg"}
-            >
+            <Box m={1} width={"60%"}>
               <Overview data={exp} />
             </Box>
           )}
@@ -65,8 +64,14 @@ function App() {
       <Box display={"flex"}>
         {exp ? (
           <>
-            <Box width="350px" height="calc(100vh - 5vh)">
-              <Box height="calc(100vh - 5vh - 8px)" bg="white" m={0.5}>
+            <Box width="350px" height="calc(100vh - 44px)">
+              <Box
+                height="calc(100vh - 44px - 8px)"
+                bg="white"
+                m={1}
+                mr={0.5}
+                mt={0.5}
+              >
                 <FastEffectTable />
               </Box>
             </Box>
@@ -74,12 +79,12 @@ function App() {
               display="flex"
               flexDir="column"
               width="calc(100% - 350px)"
-              height="calc(100vh - 5vh)"
+              height="calc(100vh - 44px)"
             >
               <Box display="flex" width="100%">
                 <Box
                   width="50%"
-                  height="calc(100vh - 5vh)"
+                  height="calc(100vh - 44px)"
                   display="flex"
                   flexDirection="column"
                 >
@@ -92,7 +97,7 @@ function App() {
                 </Box>
                 <Box
                   width="50%"
-                  height="calc(100vh - 5vh - 8px)"
+                  height="calc(100vh - 44px - 8px)"
                   display="flex"
                   flexDirection="column"
                 >
