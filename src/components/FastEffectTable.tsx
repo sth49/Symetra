@@ -13,12 +13,29 @@ import { FaEyeSlash } from "react-icons/fa6";
 import * as d3 from "d3";
 import BarChart from "./BarChart";
 import { FaAngleLeft } from "react-icons/fa6";
+import { FaAngleUp } from "react-icons/fa6";
 import { FaAngleDown } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
-
+type TooltipData = {
+  key: string;
+  value: number;
+};
+import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 const FastEffectTable = () => {
+  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+    scroll: true,
+  });
+  const {
+    tooltipOpen,
+    tooltipLeft,
+    tooltipTop,
+    tooltipData,
+    hideTooltip,
+    showTooltip,
+  } = useTooltip<TooltipData>();
+
   const { exp, hyperparams, setHyperparams } = useCustomStore();
 
   const [selectedRows, setSelectedRows] = useState(new Set());
@@ -44,6 +61,7 @@ const FastEffectTable = () => {
         .map((hp, index) => ({
           id: index,
           name: hp.displayName,
+          fullName: hp.name,
           displayName: hp.displayName,
           effect: hp.getEffect(),
           shapValues: hp.getEffectByValue(),
@@ -109,7 +127,7 @@ const FastEffectTable = () => {
       {
         key: "dist",
         label: "Distribution",
-        width: 110,
+        width: 100,
         align: "center",
       },
       // { key: "shapValues", label: "SHAP", width: 100 },
@@ -122,7 +140,7 @@ const FastEffectTable = () => {
       {
         key: "expander",
         label: "",
-        width: 40,
+        width: 50,
         align: "left",
       },
     ],
@@ -213,12 +231,12 @@ const FastEffectTable = () => {
                       icon={
                         hyperparams.find((hp) => hp.displayName === item.name)
                           ?.visible ? (
-                          <Icon as={FaEye} />
+                          <Icon as={FaEye} color={"gray.500"} />
                         ) : (
-                          <Icon as={FaEyeSlash} />
+                          <Icon as={FaEyeSlash} color={"gray.500"} />
                         )
                       }
-                      colorScheme="blue"
+                      // colorScheme="blue"
                       onClick={(e) => {
                         e.stopPropagation();
                         const newHyperparams = hyperparams.map((hp, i) => {
@@ -235,7 +253,18 @@ const FastEffectTable = () => {
                 ) : column.key === "dist" ? (
                   <BarChart dist={item.dist} width={70} height={30} />
                 ) : column.key === "name" ? (
-                  <Box display={"flex"} alignItems={"center"}>
+                  <Box
+                    display={"flex"}
+                    alignItems={"center"}
+                    onMouseEnter={(e) => {
+                      showTooltip({
+                        tooltipLeft: e.clientX,
+                        tooltipTop: e.clientY,
+                        tooltipData: { key: item.fullName, value: item.name },
+                      });
+                    }}
+                    onMouseLeave={hideTooltip}
+                  >
                     <Text
                       userSelect={"none"}
                       fontSize={"xs"}
@@ -250,47 +279,19 @@ const FastEffectTable = () => {
                   <Text userSelect={"none"} fontSize={"xs"}>
                     {item[column.key].toFixed(1)}
                   </Text>
-                ) : column.key === "shapValues" ? (
-                  (() => {
-                    let value = item[column.key];
-                    return (
-                      <Box
-                        display={"flex"}
-                        alignItems={"center"}
-                        justifyContent={"space-between"}
-                        whiteSpace={"nowrap"}
-                        overflowX={"auto"}
-                        textOverflow={"ellipsis"}
-                        maxWidth={"130px"}
-                        userSelect={"none"}
-                      >
-                        {Object.keys(value).map((key) => (
-                          <Box
-                            key={key}
-                            p={0.5}
-                            background={shapleyColorScale(value[key])}
-                            color={
-                              Math.abs(value[key]) < 0.5 ? "black" : "white"
-                            }
-                            display={"flex"}
-                            flexDir={"column"}
-                            alignItems={"center"}
-                            border={"1px solid #ffffff"}
-                          >
-                            <Text fontSize={"xs"} fontWeight={"bold"}>
-                              {key}
-                            </Text>
-                            <Text fontSize={"xs"}>{value[key].toFixed(2)}</Text>
-                          </Box>
-                        ))}
-                      </Box>
-                    );
-                  })()
                 ) : column.key === "expander" ? (
-                  <Icon
-                    as={isExpanded ? FaAngleDown : FaAngleLeft}
+                  <IconButton
+                    size={"xs"}
+                    icon={
+                      !isExpanded ? (
+                        <Icon as={FaAngleDown} color={"gray.500"} />
+                      ) : (
+                        <Icon as={FaAngleUp} color={"gray.500"} />
+                      )
+                    }
+                    // colorScheme="blue"
                     onClick={(e) => toggleRowExpansion(item.id, e)}
-                    color="gray"
+                    aria-label={""}
                   />
                 ) : (
                   <div>asdf</div>
@@ -494,6 +495,29 @@ const FastEffectTable = () => {
                       {column.label}
                     </Text>
                     {(column.key === "name" || column.key === "effect") && (
+                      // <IconButton
+                      //   size={"xs"}
+                      //   icon={
+                      //     sortConfig.key === column.key ? (
+                      //       sortConfig.direction === "ascending" ? (
+                      //         <Icon as={FaSortUp} color={"gray.500"} />
+                      //       ) : (
+                      //         <Icon as={FaSortDown} color={"gray.500"} />
+                      //       )
+                      //     ) : (
+                      //       <Icon as={FaSort} color={"gray.500"} />
+                      //     )
+                      //   }
+                      //   onClick={() => {
+                      //     if (
+                      //       column.key === "name" ||
+                      //       column.key === "effect"
+                      //     ) {
+                      //       requestSort(column.key);
+                      //     }
+                      //   }}
+                      //   aria-label={""}
+                      // />
                       <Icon
                         color={"gray"}
                         width={2}
@@ -505,7 +529,7 @@ const FastEffectTable = () => {
                               : FaSortDown
                             : FaSort
                         }
-                      ></Icon>
+                      />
                     )}
                   </div>
                 ))}
@@ -514,7 +538,7 @@ const FastEffectTable = () => {
             <div
               className={`virtual-table`}
               style={{
-                height: height - 65,
+                height: height - 75,
                 overflowY: "scroll",
                 overflowX: "hidden",
                 position: "relative",
@@ -527,6 +551,14 @@ const FastEffectTable = () => {
           </div>
         )}
       </AutoSizer>
+      {tooltipOpen && tooltipData && (
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
+          <div>
+            <strong>{tooltipData.key}</strong>
+          </div>
+          <div></div>
+        </TooltipInPortal>
+      )}
     </div>
   );
 };

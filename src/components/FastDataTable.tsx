@@ -456,15 +456,22 @@ const FastDataTable = () => {
         alignItems={"center"}
       >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Trial Details
+          Trial Details ({sortedData.length} trials)
         </Heading>
+
         <Box
           display={"flex"}
           justifyContent={"right"}
           alignItems="center"
           pr={2}
         >
+          <Text fontSize={"sm"} color="gray.600" p={2}>
+            Choose trials to create a group
+          </Text>
           <Button
+            style={{
+              visibility: selectedRows.size === 0 ? "hidden" : "visible",
+            }}
             size={"xs"}
             colorScheme={"blue"}
             variant={"solid"}
@@ -477,7 +484,7 @@ const FastDataTable = () => {
               setSelectedRows(new Set());
             }}
           >
-            Add Group
+            Create Trial Group
           </Button>
         </Box>
       </Box>
