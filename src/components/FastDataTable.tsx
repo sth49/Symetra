@@ -14,6 +14,8 @@ import { HyperparamTypes } from "../model/hyperparam";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
+import { formatting } from "../model/utils";
+import { csvParse } from "d3";
 
 const FastDataTable = () => {
   const { exp, hyperparams, setGroups, groups } = useCustomStore();
@@ -60,6 +62,7 @@ const FastDataTable = () => {
         width: 40,
         visibility: true,
         type: "checkbox",
+        hp: null,
         canGroup: false,
         isGroup: false,
       },
@@ -69,15 +72,17 @@ const FastDataTable = () => {
         width: 30,
         visibility: true,
         type: "string",
+        hp: null,
         canGroup: false,
         isGroup: false,
       },
       {
         key: "metric",
-        label: "Metric",
+        label: "Branch",
         width: 60,
         visibility: true,
         type: "numerical",
+        hp: null,
         canGroup: true,
         isGroup: false,
       },
@@ -233,7 +238,12 @@ const FastDataTable = () => {
                   whiteSpace: "nowrap",
                   flexShrink: 0,
                   display: "flex",
-                  justifyContent: "center",
+                  justifyContent:
+                    column.key === "metric" ||
+                    column.type === HyperparamTypes.Continuous ||
+                    column.type === HyperparamTypes.Ordinal
+                      ? "right"
+                      : "center",
                   alignItems: "center",
                 }}
               >
@@ -245,35 +255,44 @@ const FastDataTable = () => {
                       toggleRowSelection(index, e.nativeEvent.shiftKey)
                     }
                   />
-                ) : column.type === HyperparamTypes.Binary ? (
-                  <div
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      backgroundColor: item[column.key] ? "gray" : "white",
-                      border: "1px solid gray",
-                      display: "inline-block",
-                      userSelect: "none",
-                    }}
-                  />
-                ) : column.type === HyperparamTypes.Nominal ||
-                  column.type === HyperparamTypes.Ordinal ? (
-                  <div
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      backgroundColor: column.hp.getColor(index),
-                      display: "inline-block",
-                      userSelect: "none",
-                    }}
-                  />
+                ) : // column.type === HyperparamTypes.Binary ? (
+                //   <div
+                //     style={{
+                //       width: "10px",
+                //       height: "10px",
+                //       backgroundColor: item[column.key] ? "gray" : "white",
+                //       border: "1px solid gray",
+                //       display: "inline-block",
+                //       userSelect: "none",
+                //     }}
+                //   />
+                // ) : column.type === HyperparamTypes.Nominal ||
+                //   column.type === HyperparamTypes.Ordinal ? (
+                //   <div
+                //     style={{
+                //       width: "10px",
+                //       height: "10px",
+                //       backgroundColor: column.hp.getColor(index),
+                //       display: "inline-block",
+                //       userSelect: "none",
+                //     }}
+                //   />
+                // ) :
+                column.key === "metric" ? (
+                  <Text fontSize={"xs"} userSelect="none">
+                    {formatting(item[column.key], "int")}
+                  </Text>
                 ) : column.type === HyperparamTypes.Continuous ? (
                   <Text fontSize={"xs"} userSelect="none">
                     {column.hp.formatting(item[column.key])}
                   </Text>
                 ) : (
                   <Text fontSize={"xs"} userSelect="none">
-                    {item[column.key]}
+                    {item[column.key] === true
+                      ? "T"
+                      : item[column.key] === false
+                      ? "F"
+                      : item[column.key]}
                   </Text>
                 )}
               </div>
@@ -496,6 +515,7 @@ const FastDataTable = () => {
               width,
               overflowX: "auto",
               overflowY: "hidden",
+              padding: "0 4px",
             }}
             ref={scrollContainerRef}
             onScroll={handleScroll}
@@ -521,24 +541,49 @@ const FastDataTable = () => {
                       style={{
                         width: `${column.width}px`,
                         padding: "2px",
-                        borderBottom: "2px solid #ddd",
+                        borderBottom: "1px solid #ddd",
                         cursor: "pointer",
                         flexShrink: 0,
                         justifyContent: "center",
+                        height: "45px",
                       }}
                     >
                       <Box
                         display={"flex"}
                         justifyContent={"center"}
                         // height={column.key === "checked" ? "100%" : "50%"}
+                        flexDirection={"column"}
                         alignItems={"center"}
                       >
                         {column.key !== "checked" ? (
-                          <Text fontSize={"sm"} userSelect="none">
+                          <Text
+                            fontSize={"xs"}
+                            userSelect="none"
+                            display={"flex"}
+                            alignItems={"center"}
+                            fontWeight={"bold"}
+                          >
+                            {column.hp ? (
+                              <Icon
+                                as={column.hp.icon}
+                                mr={1}
+                                color={"gray.600"}
+                              ></Icon>
+                            ) : (
+                              ""
+                            )}
                             {column.label}
                           </Text>
                         ) : (
-                          column.label
+                          <Box
+                            display={"flex"}
+                            height={"parent"}
+                            justifyContent={"center"}
+                            alignItems={"center"}
+                            pt={"10px"}
+                          >
+                            {column.label}
+                          </Box>
                         )}
                         {column.key !== "checked" && (
                           <Box display={"flex"} justifyContent={"center"}>
@@ -555,21 +600,6 @@ const FastDataTable = () => {
                                   : FaSort
                               }
                             ></Icon>
-
-                            {/* {column.canGroup && (
-                              <IconButton
-                                size={"xs"}
-                                p={0}
-                                variant={
-                                  columnGroup && columnGroup.key === column.key
-                                    ? "solid"
-                                    : "ghost"
-                                }
-                                colorScheme="blue"
-                                onClick={() => groupByColumn(column.key)}
-                                icon={<Icon as={FaLayerGroup}></Icon>}
-                              />
-                            )} */}
                           </Box>
                         )}
                       </Box>

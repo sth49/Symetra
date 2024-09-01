@@ -57,6 +57,19 @@ export const generateBinnedData = (
   }
 };
 
-export const formatting = (value: number, isInt: boolean) => {
-  return isInt ? Math.round(value) : value.toFixed(2);
+// export const formatting = (value: number, isInt: boolean) => {
+//   return isInt ? Math.round(value) : value.toFixed(2);
+// };
+
+export const formatting = (value: number, valueType: string) => {
+  const formatter = new Intl.NumberFormat("ko-KR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  });
+
+  if (valueType === "int") {
+    return formatter.format(Math.round(value));
+  } else {
+    return formatter.format(value);
+  }
 };

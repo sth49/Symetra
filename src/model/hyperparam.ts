@@ -118,11 +118,23 @@ export class ContinuousHyperparam extends Hyperparam {
       .scaleSequential(d3.interpolateReds)
       .domain([Math.min(...value), Math.max(...value)]);
   }
+  // formatting(value: number) {
+  //   if (this.valueType === "int") {
+  //     return value;
+  //   } else {
+  //     return value.toFixed(2);
+  //   }
+  // }
   formatting(value: number) {
+    const formatter = new Intl.NumberFormat("ko-KR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    });
+
     if (this.valueType === "int") {
-      return value;
+      return formatter.format(Math.round(value));
     } else {
-      return value.toFixed(2);
+      return formatter.format(value);
     }
   }
   getColor(index: number) {
