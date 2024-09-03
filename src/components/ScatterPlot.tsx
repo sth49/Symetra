@@ -29,6 +29,7 @@ const ScatterContourPlot = () => {
     useCustomStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
+  const [isPreference, setIsPreference] = useState(false);
   const oneDecimalFormat = format(".1f");
   const data = useMemo(
     () =>
@@ -109,7 +110,7 @@ const ScatterContourPlot = () => {
   }, [metricScale]);
 
   const colorScale = d3
-    .scaleSequential(d3.interpolateTurbo)
+    .scaleSequential(d3.interpolateViridis)
     .domain([0, numThresholds]);
 
   const densityData = useMemo(() => {
@@ -208,7 +209,7 @@ const ScatterContourPlot = () => {
   return (
     <Box height={"100%"}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Heading as="h5" size="sm" color="gray.400" p={2}>
+        <Heading as="h5" size="sm" color="gray.600" p={2}>
           Branch Coverage
         </Heading>
 
@@ -221,7 +222,9 @@ const ScatterContourPlot = () => {
             width="150px"
           >
             <FormLabel htmlFor="metric-switch" mb={0} mr={1} width={"80%"}>
-              <Text fontSize="xs">Colored by</Text>
+              <Text fontSize="xs" color="gray.600">
+                Colored by
+              </Text>
             </FormLabel>
 
             <Select
@@ -248,7 +251,9 @@ const ScatterContourPlot = () => {
             width="170px"
           >
             <FormLabel htmlFor="metric-switch" mb={0} mr={1}>
-              <Text fontSize="xs">Contoured by Metric</Text>
+              <Text fontSize="xs" color="gray.600">
+                Show contour
+              </Text>
             </FormLabel>
             <Switch
               id="metric-switch"
@@ -276,6 +281,9 @@ const ScatterContourPlot = () => {
               mr={1}
             />
             <Button
+              visibility={
+                selectedPoints.size > 0 && isLassoActive ? "visible" : "hidden"
+              }
               onClick={confirmLasso}
               size="xs"
               colorScheme="blue"
@@ -283,57 +291,91 @@ const ScatterContourPlot = () => {
               mr={1}
               isDisabled={tempLassoPoints.length < 3}
             >
-              Add Group
+              Create Trial Group
             </Button>
           </Box>
         </Box>
       </Box>
-      <Box display={"flex"} justifyContent={"end"} width={"100%"}>
-        <Box display={"flex"} width={"25%"} p={1} alignItems={"center"}>
-          <Text fontSize={"small"} width={"50%"} align={"center"}>
-            N Neighbors:
-          </Text>
-          <Select
-            onChange={(e) => setNNeighbors(Number(e.target.value))}
-            value={nNeighbors}
-            size={"xs"}
-            width={"50%"}
+      <Box display={"flex"} justifyContent={"space-between"}>
+        <FormControl
+          display="flex"
+          justifyContent="start"
+          alignItems="center"
+          pl={3}
+        >
+          <FormLabel htmlFor="perference-switch" mb={0} mr={1}>
+            <Text fontSize="xs" color="gray.600">
+              Preference
+            </Text>
+          </FormLabel>
+          <Switch
+            id="perference-switch"
+            onChange={() => setIsPreference(!isPreference)}
+            isChecked={isPreference}
+            size={"sm"}
+          />
+        </FormControl>
+        <Box visibility={isPreference ? "visible" : "hidden"} display={"flex"}>
+          <FormControl
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            width={"200px"}
           >
-            {[
-              ...new Set(
-                exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
-              ),
-            ]
-              .sort((a, b) => a - b)
-              .map((n_neighbor) => (
-                <option key={n_neighbor} value={n_neighbor}>
-                  {n_neighbor}
-                </option>
-              ))}
-          </Select>
-        </Box>
-        <Box display={"flex"} width={"25%"} p={1} alignItems={"center"}>
-          <Text fontSize={"small"} width={"50%"} align={"center"}>
-            Min Dist:
-          </Text>
-          <Select
-            onChange={(e) => setMinDist(Number(e.target.value))}
-            value={minDist}
-            size={"xs"}
-            width={"50%"}
+            <FormLabel mb={0} mr={1}>
+              <Text fontSize="xs" color="gray.600">
+                N Neighbors
+              </Text>
+            </FormLabel>
+            <Select
+              onChange={(e) => setNNeighbors(Number(e.target.value))}
+              value={nNeighbors}
+              size={"xs"}
+              width={"50%"}
+            >
+              {[
+                ...new Set(
+                  exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
+                ),
+              ]
+                .sort((a, b) => a - b)
+                .map((n_neighbor) => (
+                  <option key={n_neighbor} value={n_neighbor}>
+                    {n_neighbor}
+                  </option>
+                ))}
+            </Select>
+          </FormControl>
+          <FormControl
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            width={"200px"}
           >
-            {[
-              ...new Set(
-                exp.trials[0].umapPositions.map((pos) => pos.min_dist)
-              ),
-            ]
-              .sort((a, b) => a - b)
-              .map((min_dist) => (
-                <option key={min_dist} value={min_dist}>
-                  {min_dist}
-                </option>
-              ))}
-          </Select>
+            <FormLabel mb={0} mr={1}>
+              <Text fontSize="xs" color="gray.600">
+                Min Dist
+              </Text>
+            </FormLabel>
+            <Select
+              onChange={(e) => setMinDist(Number(e.target.value))}
+              value={minDist}
+              size={"xs"}
+              width={"50%"}
+            >
+              {[
+                ...new Set(
+                  exp.trials[0].umapPositions.map((pos) => pos.min_dist)
+                ),
+              ]
+                .sort((a, b) => a - b)
+                .map((min_dist) => (
+                  <option key={min_dist} value={min_dist}>
+                    {min_dist}
+                  </option>
+                ))}
+            </Select>
+          </FormControl>
         </Box>
       </Box>
 
@@ -391,13 +433,7 @@ const ScatterContourPlot = () => {
                     ? "#D69E2E"
                     : !isLassoActive && hoveredGroup.size > 0
                     ? "#718096"
-                    : // : selected === "metric"
-                      // ? colorScale(metricScale(d.metric))
-                      // : selected !== "" && exp?.hyperparams
-                      // ? exp?.hyperparams
-                      //     .find((hp) => hp.name === selected)
-                      //     ?.getColor(i)
-                      "#2D3748"
+                    : "#2D3748"
                 }
                 opacity={
                   selectedPoints.has(d.id) ||
@@ -408,16 +444,6 @@ const ScatterContourPlot = () => {
               />
             ))}
 
-            {/* {isLassoActive && lassoPoints.length > 0 && (
-              <path
-                d={`M ${lassoPoints.map((p) => `${p.x},${p.y}`).join(" L ")} Z`}
-                fill="none"
-                stroke="blue"
-                strokeWidth="2"
-                pointerEvents="none"
-              />
-            )}
-             */}
             {isLassoActive && tempLassoPoints.length > 0 && (
               <path
                 d={`M ${tempLassoPoints

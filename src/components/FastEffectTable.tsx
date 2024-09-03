@@ -328,35 +328,63 @@ const FastEffectTable = () => {
 
           {isExpanded && (
             <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
-              <Text fontSize="sm">Shap values of {item.name}</Text>
+              {/* <Text fontSize="sm" w={"100%"}>
+                Shap values of {item.name}
+              </Text> */}
               <Box
                 display={"flex"}
+                flexDir={"column"}
                 alignItems={"center"}
                 justifyContent={"space-between"}
                 whiteSpace={"nowrap"}
                 overflowX={"auto"}
                 textOverflow={"ellipsis"}
                 userSelect={"none"}
+                w={"100%"}
+                p={3}
               >
+                <Box
+                  // p={0.5}
+                  width={"100%"}
+                  display={"flex"}
+                  alignItems={"center"}
+                >
+                  <Box width={"50%"} border={"1px solid #ffffff"}>
+                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
+                      {item.name} Value
+                    </Text>
+                  </Box>
+                  <Box width={"50%"}>
+                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
+                      Shap Value
+                    </Text>
+                  </Box>
+                </Box>
                 {Object.keys(item.shapValues).map((key) => (
                   <Box
                     key={key}
-                    p={0.5}
-                    background={shapleyColorScale(item.shapValues[key])}
-                    color={
-                      Math.abs(item.shapValues[key]) < 0.5 ? "black" : "white"
-                    }
+                    // p={0.5}
+                    width={"100%"}
                     display={"flex"}
-                    flexDir={"column"}
                     alignItems={"center"}
-                    border={"1px solid #ffffff"}
                   >
-                    <Text fontSize={"xs"} fontWeight={"bold"}>
-                      {key}
-                    </Text>
-                    <Text fontSize={"xs"}>
-                      {item.shapValues[key].toFixed(3)}
-                    </Text>
+                    <Box width={"50%"} border={"1px solid #ddd"}>
+                      <Text fontSize={"xs"} align="center">
+                        {key}
+                      </Text>
+                    </Box>
+                    <Box
+                      width={"50%"}
+                      border={"1px solid #ffffff"}
+                      bg={shapleyColorScale(item.shapValues[key])}
+                      color={
+                        Math.abs(item.shapValues[key]) < 0.5 ? "black" : "white"
+                      }
+                    >
+                      <Text fontSize={"xs"} align="center">
+                        {item.shapValues[key].toFixed(3)}
+                      </Text>
+                    </Box>
                   </Box>
                 ))}
               </Box>

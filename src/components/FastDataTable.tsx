@@ -78,7 +78,7 @@ const FastDataTable = () => {
       },
       {
         key: "metric",
-        label: "Branch",
+        label: "Coverage",
         width: 60,
         visibility: true,
         type: "numerical",
@@ -475,7 +475,7 @@ const FastDataTable = () => {
         alignItems={"center"}
       >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Trial Details ({sortedData.length} trials)
+          Trial View ({sortedData.length} Trials)
         </Heading>
 
         <Box
@@ -484,7 +484,7 @@ const FastDataTable = () => {
           alignItems="center"
           pr={2}
         >
-          <Text fontSize={"sm"} color="gray.600" p={2}>
+          <Text fontSize={"xs"} color="gray.600" p={2}>
             Choose trials to create a group
           </Text>
           <Button
@@ -627,7 +627,7 @@ const FastDataTable = () => {
                   </List>
                 ) : (
                   <List
-                    height={height - 85} // Subtracting header height
+                    height={height - 100} // Subtracting header height
                     itemCount={sortedData.length}
                     itemSize={15} // Adjust based on your row height
                     width={totalWidth}

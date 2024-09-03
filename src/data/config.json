@@ -430,7 +430,7 @@
       "name": "sym-files-1",
       "displayName": "SF1",
       "value": [1, 2],
-      "type": "numerical",
+      "type": "ordinal",
       "valueType": "int"
     },
     {

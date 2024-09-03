@@ -106,6 +106,9 @@ export class Hyperparam {
     console.log("toggleVisible");
     this.visible = !this.visible;
   }
+  getColorByValue(value: any): string {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export class ContinuousHyperparam extends Hyperparam {
@@ -115,7 +118,7 @@ export class ContinuousHyperparam extends Hyperparam {
     const value = json.value as number[];
     super(json.name, json.displayName, value, json.valueType);
     this.scale = d3
-      .scaleSequential(d3.interpolateReds)
+      .scaleSequential(d3.interpolateGreys)
       .domain([Math.min(...value), Math.max(...value)]);
   }
   // formatting(value: number) {
@@ -139,6 +142,9 @@ export class ContinuousHyperparam extends Hyperparam {
   }
   getColor(index: number) {
     return this.scale(this.values[index]);
+  }
+  getColorByValue(value: any): string {
+    return this.scale(value);
   }
   getEffectByValue() {
     let bins = 10; // 구간 수
@@ -198,8 +204,13 @@ export class ContinuousHyperparam extends Hyperparam {
 
 export class CategoricalHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
-    const value = (json.value as string[]).sort();
-    super(json.name, json.displayName, value, json.valueType);
+    if (json.valueType === "int") {
+      const value = (json.value as number[]).sort();
+      super(json.name, json.displayName, value, json.valueType);
+    } else {
+      const value = (json.value as string[]).sort();
+      super(json.name, json.displayName, value, json.valueType);
+    }
     // this.scale = d3
     //   .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
     //   .domain(value);
@@ -207,6 +218,9 @@ export class CategoricalHyperparam extends Hyperparam {
   getColor(index: number) {
     // return this.scale(value);
     return this.scale(this.values[index]);
+  }
+  getColorByValue(value: any): string {
+    return this.scale(value);
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};
@@ -230,11 +244,17 @@ export class BinaryHyperparam extends CategoricalHyperparam {
   constructor(json: HyperparamJson) {
     super(json);
     this.scale = d3
-      .scaleOrdinal<string, string>(["gray", "white"]) // Add the missing type arguments
+      .scaleOrdinal<string, string>([
+        "rgba(0, 0, 0, 0.2)",
+        "rgba(0, 0, 0, 0.5)",
+      ]) // Add the missing type arguments
       .domain([true, false]);
   }
   getColor(index: number): string | undefined {
     return this.scale(this.values[index]);
+  }
+  getColorByValue(value: boolean): string {
+    return this.scale(value);
   }
 }
 export class NominalHyperparam extends CategoricalHyperparam {
@@ -246,15 +266,31 @@ export class NominalHyperparam extends CategoricalHyperparam {
       .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
       .domain(this.values);
   }
+  getColorByValue(value: string): string {
+    return this.scale(value);
+  }
 }
 export class OrdinalHyperparam extends CategoricalHyperparam {
   type = HyperparamTypes.Ordinal;
   icon = MdOutlineHdrStrong;
   constructor(json: HyperparamJson) {
     super(json);
+    // this.scale = d3
+    //   .scaleOrdinal<string, string>([
+    //     "rgba(0, 0, 0, 0.2)",
+    //     "rgba(0, 0, 0, 0.5)",
+    //   ]) // Add the missing type arguments
+    //   .domain(this.values);
+    // this.scale = scaleLinear<string>()
+    //   .domain([Math.min(...domain), Math.max(...domain)])
+    //   .range(d3.interpolateGreys);
+    const value = json.value as number[];
     this.scale = d3
-      .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
-      .domain(this.values);
+      .scaleSequential(d3.interpolateGreys)
+      .domain([Math.min(...value) - 1, Math.max(...value) + 1]);
+  }
+  getColorByValue(value: string): string {
+    return this.scale(value);
   }
 }
 // export class BooleanHyperparam extends Hyperparam {
