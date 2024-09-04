@@ -1,12 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+body {
+  font-family: "Roboto", sans-serif;
+}
+
+/* 특정 요소에 다른 폰트를 적용하고 싶다면 아래와 같이 추가할 수 있습니다 */
 .virtual-table {
   --row-height: 15px;
   --hover-color: #f0f0f0;
   --selected-color: #d0e0fc;
   outline: none;
-}
-
-.virtual-table:hover .virtual-table-row:hover {
-  background-color: var(--hover-color);
 }
 
 .virtual-table-row.selected {
@@ -15,6 +18,10 @@
 
 .virtual-table-row.selected:hover {
   background-color: var(--selected-color);
+}
+
+.virtual-table:hover .virtual-table-row:not(.selected):hover {
+  background-color: var(--hover-color);
 }
 
 .virtual-table * {

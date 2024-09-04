@@ -52,6 +52,7 @@ export class Hyperparam {
   public visible = true;
   public scale: any;
   public icon: any;
+  public effectsByValue: any;
   constructor(
     public name: string,
     public displayName: string,
@@ -103,10 +104,13 @@ export class Hyperparam {
     throw new Error("Method not implemented.");
   }
   toggleVisible() {
-    console.log("toggleVisible");
+    // console.log("toggleVisible");
     this.visible = !this.visible;
   }
   getColorByValue(value: any): string {
+    throw new Error("Method not implemented.");
+  }
+  getEffectsByValue() {
     throw new Error("Method not implemented.");
   }
 }
@@ -114,6 +118,7 @@ export class Hyperparam {
 export class ContinuousHyperparam extends Hyperparam {
   type = HyperparamTypes.Continuous;
   icon = HiHashtag;
+  binCount = 5;
   constructor(json: HyperparamJson) {
     const value = json.value as number[];
     super(json.name, json.displayName, value, json.valueType);
@@ -121,13 +126,7 @@ export class ContinuousHyperparam extends Hyperparam {
       .scaleSequential(d3.interpolateGreys)
       .domain([Math.min(...value), Math.max(...value)]);
   }
-  // formatting(value: number) {
-  //   if (this.valueType === "int") {
-  //     return value;
-  //   } else {
-  //     return value.toFixed(2);
-  //   }
-  // }
+
   formatting(value: number) {
     const formatter = new Intl.NumberFormat("ko-KR", {
       minimumFractionDigits: 0,
@@ -146,9 +145,10 @@ export class ContinuousHyperparam extends Hyperparam {
   getColorByValue(value: any): string {
     return this.scale(value);
   }
-  getEffectByValue() {
-    let bins = 10; // 구간 수
-    let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
+
+  getEffectsByValue() {
+    let bins = 5; // 구간 수
+    let effectsByValue: { [key: string]: number[] } = {}; // 각 구간별 영향력 저장
     const isInt = this.valueType === "int";
 
     // 값들의 최소/최대값 계산
@@ -160,47 +160,61 @@ export class ContinuousHyperparam extends Hyperparam {
     let range = Array.from({ length: bins }, (_, i) => min + i * step);
     range.push(max);
 
-    // 각 구간별 영향력 평균 계산
+    // 각 구간별 영향력 저장
     for (let i = 0; i < bins; i++) {
       let start = range[i];
       let end = range[i + 1];
-      let effectSum = 0;
-      let count = 0;
-
+      effectsByValue[start] = [];
       this.shapValues.forEach((val, index) => {
         let value = this.values[index];
         if (value >= start && value < end) {
-          effectSum += val;
-          count++;
+          effectsByValue[start].push(val);
         }
       });
-
-      let effectAvg = count > 0 ? effectSum / count : 0;
-      let val = isInt
-        ? Math.round(start) + " ~ " + Math.round(end)
-        : start.toFixed(2) + " ~ " + end.toFixed(2);
-      effectByValue[val] = effectAvg;
     }
-
-    return effectByValue;
+    // console.log(effectsByValue);
+    return effectsByValue;
   }
+
+  // getEffectByValue() {
+  //   let bins = 5; // 구간 수
+  //   let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
+  //   const isInt = this.valueType === "int";
+
+  //   // 값들의 최소/최대값 계산
+  //   let min = Math.min(...this.values);
+  //   let max = Math.max(...this.values);
+
+  //   // 구간 범위 계산
+  //   let step = (max - min) / bins;
+  //   let range = Array.from({ length: bins }, (_, i) => min + i * step);
+  //   range.push(max);
+
+  //   // 각 구간별 영향력 평균 계산
+  //   for (let i = 0; i < bins; i++) {
+  //     let start = range[i];
+  //     let end = range[i + 1];
+  //     let effectSum = 0;
+  //     let count = 0;
+
+  //     this.shapValues.forEach((val, index) => {
+  //       let value = this.values[index];
+  //       if (value >= start && value < end) {
+  //         effectSum += val;
+  //         count++;
+  //       }
+  //     });
+
+  //     let effectAvg = count > 0 ? effectSum / count : 0;
+  //     let val = isInt
+  //       ? Math.round(start) + " ~ " + Math.round(end)
+  //       : start.toFixed(2) + " ~ " + end.toFixed(2);
+  //     effectByValue[val] = effectAvg;
+  //   }
+
+  //   return effectByValue;
+  // }
 }
-
-// export class DiscreteHyperparam extends QuantitativeHparam {
-//   type = HyperparamTypes.Discrete;
-//   icon = MdOutlineLeaderboard;
-//   constructor(json: HyperparamJson) {
-//     super(json);
-//   }
-// }
-
-// export class ContinuousHyperparam extends QuantitativeHparam {
-//   type = HyperparamTypes.Continuous;
-//   icon = MdTimeline;
-//   constructor(json: HyperparamJson) {
-//     super(json);
-//   }
-// }
 
 export class CategoricalHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
@@ -211,9 +225,6 @@ export class CategoricalHyperparam extends Hyperparam {
       const value = (json.value as string[]).sort();
       super(json.name, json.displayName, value, json.valueType);
     }
-    // this.scale = d3
-    //   .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
-    //   .domain(value);
   }
   getColor(index: number) {
     // return this.scale(value);
@@ -221,6 +232,18 @@ export class CategoricalHyperparam extends Hyperparam {
   }
   getColorByValue(value: any): string {
     return this.scale(value);
+  }
+  getEffectsByValue() {
+    let effectsByValue: { [key: string]: number[] } = {};
+    this.values.forEach((value) => {
+      effectsByValue[value] = [];
+      this.shapValues.forEach((val, index) => {
+        if (this.values[index] === value) {
+          effectsByValue[value].push(val);
+        }
+      });
+    });
+    return effectsByValue;
   }
   getEffectByValue() {
     let effectByValue: { [key: string]: number } = {};

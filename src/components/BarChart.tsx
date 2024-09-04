@@ -14,6 +14,7 @@ import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 import { Pattern, PatternLines } from "@visx/pattern";
 import { schemeCategory10 } from "d3";
 import { scaleLog } from "@visx/vendor/d3-scale";
+import { formatting } from "../model/utils";
 type TooltipData = {
   key: string; // hparam name
   value: any; // hparam value
@@ -222,10 +223,12 @@ const BarChart = ({
         {tooltipOpen && tooltipData && (
           <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
             <Box>
-              <Text fontWeight={"bold"} align={"center"}>
-                {tooltipData.key} {tooltipData.value}
+              <Text fontWeight={"bold"} align={"left"} mb={2}>
+                {tooltipData.key} = {tooltipData.value}
               </Text>
-              <Text align={"center"}>{tooltipData.count} trials</Text>
+              <Text align={"left"} mb={"2px"}>
+                {formatting(tooltipData.count, "int")} trials
+              </Text>
             </Box>
           </TooltipInPortal>
         )}
@@ -398,10 +401,12 @@ const BarChart = ({
         {tooltipOpen && tooltipData && (
           <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
             <Box>
-              <Text fontWeight={"bold"} align={"center"}>
-                {tooltipData.key} {tooltipData.value}
+              <Text fontWeight={"bold"} align={"left"} mb={2}>
+                {tooltipData.key} = {tooltipData.value}
               </Text>
-              <Text align={"center"}>{tooltipData.count} trials</Text>
+              <Text align={"left"} mb={"2px"}>
+                {formatting(tooltipData.count, "int")} trials
+              </Text>
             </Box>
           </TooltipInPortal>
         )}

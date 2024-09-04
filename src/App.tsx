@@ -13,6 +13,8 @@ import FastDataTable from "./components/FastDataTable";
 import GroupView from "./components/GroupView";
 import FastEffectTable from "./components/FastEffectTable";
 import { RiFlowChart } from "react-icons/ri";
+import theme from "./theme";
+import { ChakraProvider } from "@chakra-ui/react";
 function App() {
   // const [exp, setExp] = useState<Experiment | null>(null);
   const { exp, setExp, setHyperparams } = useCustomStore();
@@ -36,83 +38,82 @@ function App() {
   }, []);
 
   return (
-    <Box bg="gray.100" h={"100vh"} w={"100vw"}>
-      <Box display={"flex"} justifyContent={"space-between"}>
-        <Box
-          color="gray.600"
-          height="calc(44px - 6px)" // 양쪽 margin을 고려하여 높이 조정
-          width="100%"
-          bg="white"
-          boxSizing="border-box"
-          m={1}
-          mb={0.5} // px 대신 rem 사용
-          alignItems={"center"}
-          display={"flex"}
-        >
-          <Heading fontSize={"larger"} mr={4}>
-            <Icon as={AiFillRocket} color="gray.600" ml={1} />
-            VISTA
-          </Heading>
-          {exp && (
-            <Box m={1} width={"60%"}>
-              <Overview data={exp} />
-            </Box>
+    <ChakraProvider theme={theme}>
+      {/* <AppContent /> */}
+      <Box bg="gray.100" h={"100vh"} w={"100vw"}>
+        <Box display={"flex"} justifyContent={"space-between"}>
+          <Box
+            color="gray.600"
+            height="calc(44px - 6px)" // 양쪽 margin을 고려하여 높이 조정
+            width="100%"
+            bg="white"
+            boxSizing="border-box"
+            m={1}
+            mb={0.5} // px 대신 rem 사용
+            alignItems={"center"}
+            display={"flex"}
+          >
+            {exp && (
+              <Box m={1} width={"100%"}>
+                <Overview />
+              </Box>
+            )}
+          </Box>
+        </Box>
+
+        <Box display={"flex"}>
+          {exp ? (
+            <>
+              <Box width="320px" height="calc(100vh - 44px)">
+                <Box
+                  height="calc(100vh - 44px - 8px)"
+                  bg="white"
+                  m={1}
+                  mr={0.5}
+                  mt={0.5}
+                >
+                  <FastEffectTable />
+                </Box>
+              </Box>
+              <Box
+                display="flex"
+                flexDir="column"
+                width="calc(100% - 320px)"
+                height="calc(100vh - 44px)"
+              >
+                <Box display="flex" width="100%">
+                  <Box
+                    width="50%"
+                    height="calc(100vh - 44px)"
+                    display="flex"
+                    flexDirection="column"
+                  >
+                    <Box height={"70%"} bg="white" m={0.5}>
+                      <FastDataTable />
+                    </Box>
+                    <Box height={"30%"} bg="white" m={0.5} mb={1}>
+                      <GroupView />
+                    </Box>
+                  </Box>
+                  <Box
+                    width="50%"
+                    height="calc(100vh - 44px - 8px)"
+                    display="flex"
+                    flexDirection="column"
+                  >
+                    <Box height={"70%"} m={0.5} bg="white" mr={1}>
+                      <ScatterContourPlot />
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </>
+          ) : (
+            <div>Loading...</div>
           )}
         </Box>
       </Box>
-
-      <Box display={"flex"}>
-        {exp ? (
-          <>
-            <Box width="350px" height="calc(100vh - 44px)">
-              <Box
-                height="calc(100vh - 44px - 8px)"
-                bg="white"
-                m={1}
-                mr={0.5}
-                mt={0.5}
-              >
-                <FastEffectTable />
-              </Box>
-            </Box>
-            <Box
-              display="flex"
-              flexDir="column"
-              width="calc(100% - 350px)"
-              height="calc(100vh - 44px)"
-            >
-              <Box display="flex" width="100%">
-                <Box
-                  width="50%"
-                  height="calc(100vh - 44px)"
-                  display="flex"
-                  flexDirection="column"
-                >
-                  <Box height={"70%"} bg="white" m={0.5}>
-                    <FastDataTable />
-                  </Box>
-                  <Box height={"30%"} bg="white" m={0.5} mb={1}>
-                    <GroupView />
-                  </Box>
-                </Box>
-                <Box
-                  width="50%"
-                  height="calc(100vh - 44px - 8px)"
-                  display="flex"
-                  flexDirection="column"
-                >
-                  <Box height={"70%"} m={0.5} bg="white">
-                    <ScatterContourPlot />
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </>
-        ) : (
-          <div>Loading...</div>
-        )}
-      </Box>
-    </Box>
+    </ChakraProvider>
   );
 }
 

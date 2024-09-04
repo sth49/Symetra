@@ -18,11 +18,27 @@ import { FaAngleDown } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
+import { Group } from "@visx/group";
+import { ViolinPlot, BoxPlot } from "@visx/stats";
+import { LinearGradient } from "@visx/gradient";
+import { scaleBand, scaleLinear } from "@visx/scale";
+import genStats, { Stats } from "@visx/mock-data/lib/generators/genStats";
+import { getSeededRandom, getRandomNormal } from "@visx/mock-data";
+import {
+  withTooltip,
+  Tooltip,
+  defaultStyles as defaultTooltipStyles,
+} from "@visx/tooltip";
+import { WithTooltipProvidedProps } from "@visx/tooltip/lib/enhancers/withTooltip";
+import { PatternLines } from "@visx/pattern";
+
 type TooltipData = {
   key: string;
   value: number;
 };
 import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
+import { formatting, generateBinnedData } from "../model/utils";
+import { HyperparamTypes } from "../model/hyperparam";
 const FastEffectTable = () => {
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     scroll: true,
@@ -64,7 +80,7 @@ const FastEffectTable = () => {
           fullName: hp.name,
           displayName: hp.displayName,
           effect: hp.getEffect(),
-          shapValues: hp.getEffectByValue(),
+          effctsByValue: hp.getEffectsByValue(),
           dist: hp.name,
         })),
 
@@ -103,22 +119,28 @@ const FastEffectTable = () => {
 
   const columns = useMemo(
     () => [
+      // {
+      //   key: "checked",
+      //   label: (
+      //     <input
+      //       type="checkbox"
+      //       style={{ marginLeft: "8px" }}
+      //       onChange={(e) => {
+      //         if (e.target.checked) {
+      //           setSelectedRows(new Set(data.map((item) => item.id)));
+      //         } else {
+      //           setSelectedRows(new Set());
+      //         }
+      //       }}
+      //     />
+      //   ),
+      //   width: 36,
+      //   align: "left",
+      // },
       {
-        key: "checked",
-        label: (
-          <input
-            type="checkbox"
-            style={{ marginLeft: "8px" }}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setSelectedRows(new Set(data.map((item) => item.id)));
-              } else {
-                setSelectedRows(new Set());
-              }
-            }}
-          />
-        ),
-        width: 36,
+        key: "visible",
+        label: "",
+        width: 40,
         align: "left",
       },
       { key: "name", label: "Name", width: 65, align: "left" },
@@ -130,17 +152,10 @@ const FastEffectTable = () => {
         width: 100,
         align: "center",
       },
-      // { key: "shapValues", label: "SHAP", width: 100 },
-      {
-        key: "visible",
-        label: "Visible",
-        width: 40,
-        align: "left",
-      },
       {
         key: "expander",
         label: "",
-        width: 50,
+        width: 56,
         align: "left",
       },
     ],
@@ -299,38 +314,9 @@ const FastEffectTable = () => {
               </div>
             ))}
           </div>
-          {isSelected && isLastSelected && (
-            <Box
-              display={"flex"}
-              width={"100%"}
-              justifyContent={"space-around"}
-              p={"10px 0"}
-            >
-              <Button
-                size={"xs"}
-                isDisabled={selectedRows.size === 0}
-                onClick={() => toggleVisibilityForSelected(true)}
-                colorScheme="blue"
-              >
-                Show {selectedRows.size} Hparams.
-              </Button>
-              <Button
-                size={"xs"}
-                isDisabled={selectedRows.size === 0}
-                onClick={() => toggleVisibilityForSelected(false)}
-                colorScheme="blue"
-                variant={"outline"}
-              >
-                Hide {selectedRows.size} Hparams.
-              </Button>
-            </Box>
-          )}
 
           {isExpanded && (
             <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
-              {/* <Text fontSize="sm" w={"100%"}>
-                Shap values of {item.name}
-              </Text> */}
               <Box
                 display={"flex"}
                 flexDir={"column"}
@@ -341,55 +327,178 @@ const FastEffectTable = () => {
                 textOverflow={"ellipsis"}
                 userSelect={"none"}
                 w={"100%"}
-                p={3}
               >
                 <Box
-                  // p={0.5}
                   width={"100%"}
                   display={"flex"}
                   alignItems={"center"}
+                  borderBottom={"1px solid #ddd"}
                 >
-                  <Box width={"50%"} border={"1px solid #ffffff"}>
+                  <Box width={"40%"}>
                     <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      {item.name} Value
+                      {item.name}
                     </Text>
                   </Box>
-                  <Box width={"50%"}>
+                  <Box width={"20%"}>
                     <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      Shap Value
+                      Shap
+                    </Text>
+                  </Box>
+                  <Box width={"40%"}>
+                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
+                      {/* Distribution */}
                     </Text>
                   </Box>
                 </Box>
-                {Object.keys(item.shapValues).map((key) => (
-                  <Box
-                    key={key}
-                    // p={0.5}
-                    width={"100%"}
-                    display={"flex"}
-                    alignItems={"center"}
-                  >
-                    <Box width={"50%"} border={"1px solid #ddd"}>
-                      <Text fontSize={"xs"} align="center">
-                        {key}
-                      </Text>
+                {Object.keys(item.effctsByValue).map((key) => {
+                  console.log(key);
+                  const { binData, xScale } = generateBinnedData(
+                    item.effctsByValue[key],
+                    100,
+                    30,
+                    "x"
+                  );
+                  // console.log("binsData:", binsData);
+                  // console.log("xScale:", xScale);
+                  return (
+                    <Box display={"flex"} width={"100%"}>
+                      <Box width={"40%"}>
+                        <Text fontSize={"xs"} align="center">
+                          {key}
+                        </Text>
+                        <Text fontSize={"xs"} align="center">
+                          ({formatting(item.effctsByValue[key].length, "int")})
+                        </Text>
+                      </Box>
+                      <Box width={"20%"}>
+                        <Text fontSize={"xs"} align="center">
+                          {formatting(
+                            item.effctsByValue[key].reduce((a, b) => a + b, 0) /
+                              item.effctsByValue[key].length,
+                            "float"
+                          )}
+                        </Text>
+                      </Box>
+                      <Box>
+                        <svg width={100} height={36}>
+                          <ViolinPlot
+                            data={binData}
+                            valueScale={xScale}
+                            width={25}
+                            height={100}
+                            horizontal={true}
+                            left={0}
+                            top={4}
+                            // stroke={"black"}
+                            fill="grey"
+                            // strokeWidth={1}
+                          ></ViolinPlot>
+                        </svg>
+                      </Box>
                     </Box>
+                  );
+                })}
+                {/* {Object.keys(item.shapValues).map((key) => {
+                  const hp = hyperparams.find(
+                    (hp) => hp.displayName === item.name
+                  );
+
+                  let filterFunction;
+                  if (hp.type === HyperparamTypes.Continuous) {
+                    // console.log("continuous", key);
+                    const [min, max] = key.split("~").map(Number);
+                    console.log("min, max:", min, max);
+                    filterFunction = (trial) => {
+                      const value = trial.params[item.fullName];
+                      return value >= min && value <= max;
+                    };
+                  } else {
+                    const keyString = key.toString();
+                    filterFunction = (trial) =>
+                      trial.params[item.fullName].toString() === keyString;
+                    console.log(hp?.getEffectsByValue());
+                  }
+
+                  const trials = exp?.trials.filter(filterFunction);
+                  // console.log("trials:", trials);
+                  return (
                     <Box
-                      width={"50%"}
-                      border={"1px solid #ffffff"}
-                      bg={shapleyColorScale(item.shapValues[key])}
-                      color={
-                        Math.abs(item.shapValues[key]) < 0.5 ? "black" : "white"
-                      }
+                      key={key}
+                      width={"100%"}
+                      display={"flex"}
+                      alignItems={"center"}
                     >
-                      <Text fontSize={"xs"} align="center">
-                        {item.shapValues[key].toFixed(3)}
-                      </Text>
+                      <Box width={"40%"}>
+                        <Text fontSize={"xs"} align="center">
+                          {key}
+                        </Text>
+                        <Text fontSize={"xs"} align="center">
+                          ({formatting(trials?.length, "int")})
+                        </Text>
+                      </Box>
+                      <Box
+                        width={"20%"}
+                        height={"100%"}
+                        // border={"1px solid #ffffff"}
+                        bg={shapleyColorScale(item.shapValues[key])}
+                        color={
+                          Math.abs(item.shapValues[key]) < 0.5
+                            ? "black"
+                            : "white"
+                        }
+                      >
+                        <Text fontSize={"xs"} align="right">
+                          {item.shapValues[key].toFixed(3)}
+                        </Text>
+                      </Box>
                     </Box>
-                  </Box>
-                ))}
+                  );
+                })} */}
               </Box>
               {/* Add more expanded content here */}
             </div>
+          )}
+          {isSelected && isLastSelected && (
+            <Box
+              display={"flex"}
+              width={"100%"}
+              justifyContent={"space-between"}
+              p={"10px 0"}
+              bgColor={"#f9f9f9"}
+            >
+              <Button
+                size={"xs"}
+                width={"48%"}
+                height={"40px"}
+                isDisabled={selectedRows.size === 0}
+                onClick={() => toggleVisibilityForSelected(true)}
+                colorScheme="blue"
+                whiteSpace="normal"
+                display={"flex"}
+                wordBreak="break-word"
+                ml={0.5}
+                fontSize={"10px"}
+              >
+                <Icon as={FaEye} />
+                Show selected hyperparameters ({selectedRows.size})
+              </Button>
+              <Button
+                size={"xs"}
+                width={"48%"}
+                height={"40px"}
+                isDisabled={selectedRows.size === 0}
+                onClick={() => toggleVisibilityForSelected(false)}
+                colorScheme="blue"
+                display={"flex"}
+                whiteSpace="normal"
+                wordBreak="break-word"
+                mr={0.5}
+                fontSize={"10px"}
+              >
+                <Icon as={FaEyeSlash} />
+                Hide selected hyperparameters ({selectedRows.size})
+              </Button>
+            </Box>
           )}
         </>
       );
@@ -445,7 +554,7 @@ const FastEffectTable = () => {
       >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Hyperparameter View ({hyperparams.filter((hp) => hp.visible).length} /{" "}
-          {hyperparams.filter((hp) => hp.visible).length} Visible)
+          {hyperparams.length} Visible)
         </Heading>
       </Box>
 

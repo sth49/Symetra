@@ -20,6 +20,12 @@ importers:
       '@emotion/styled':
         specifier: ^11.11.5
         version: 11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
+      '@fontsource/open-sans':
+        specifier: ^5.0.29
+        version: 5.0.29
+      '@fontsource/raleway':
+        specifier: ^5.0.20
+        version: 5.0.20
       '@react-icons/all-files':
         specifier: ^4.1.0
         version: 4.1.0(react@18.3.1)
@@ -949,6 +955,12 @@ packages:
   '@faker-js/faker@8.4.1':
     resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
+
+  '@fontsource/open-sans@5.0.29':
+    resolution: {integrity: sha512-5ayVkmB5fY2NXm/YKF0UxtjWipLIqeXBxyhjtR46ab+z8xiJonolUBIVFYUfn5zH4FDf078zXbsIvmo82C0Aew==}
+
+  '@fontsource/raleway@5.0.20':
+    resolution: {integrity: sha512-ZgTAEnlVYUIk75RM1Xsyk932zQ29DgxVr7io0QwVfDwcr88LHop0e2BZhBBI4MxL4b5L+T91RYwm6mLl/CXnpA==}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -4424,6 +4436,10 @@ snapshots:
   '@eslint/js@8.57.0': {}
 
   '@faker-js/faker@8.4.1': {}
+
+  '@fontsource/open-sans@5.0.29': {}
+
+  '@fontsource/raleway@5.0.20': {}
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:

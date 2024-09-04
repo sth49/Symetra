@@ -210,7 +210,7 @@ const ScatterContourPlot = () => {
     <Box height={"100%"}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Branch Coverage
+          Coverage View
         </Heading>
 
         <Box display="flex" alignItems="center">
