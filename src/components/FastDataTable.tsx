@@ -8,27 +8,38 @@ import React, {
 import { useCustomStore } from "../store";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { Box, Button, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Heading,
+  Icon,
+  IconButton,
+  Switch,
+  Text,
+} from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { HyperparamTypes } from "../model/hyperparam";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
-import { csvParse } from "d3";
+import { csvParse, sort } from "d3";
 
 const FastDataTable = () => {
   const { exp, hyperparams, setGroups, groups } = useCustomStore();
   const [sortedData, setSortedData] = useState([]);
   const [sortConfig, setSortConfig] = useState({
-    key: null,
-    direction: "none", // ascending or descending
+    key: "metric",
+    direction: "descending", // ascending or descending
   });
   // const [hoveredRow, setHoveredRow] = useState(null);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   const [isMultiSelect, setIsMultiSelect] = useState(false);
 
+  const [visible, setVisible] = useState(false);
   const [columnGroup, setColumnGroup] = useState(null);
   const scrollContainerRef = useRef(null);
   const headerRef = useRef(null);
@@ -278,7 +289,7 @@ const FastDataTable = () => {
                 //     }}
                 //   />
                 // ) :
-                column.key === "metric" ? (
+                column.key === "metric" || column.key === "id" ? (
                   <Text fontSize={"xs"} userSelect="none">
                     {formatting(item[column.key], "int")}
                   </Text>
@@ -468,7 +479,7 @@ const FastDataTable = () => {
   };
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
+    <div style={{ height: "100%", width: "100%", position: "relative" }}>
       <Box
         display={"flex"}
         justifyContent={"space-between"}
@@ -477,36 +488,26 @@ const FastDataTable = () => {
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Trial View ({sortedData.length} Trials)
         </Heading>
-
-        <Box
-          display={"flex"}
-          justifyContent={"right"}
+        <FormControl
+          display="flex"
+          justifyContent="center"
           alignItems="center"
-          pr={2}
+          width="140px"
         >
-          <Text fontSize={"xs"} color="gray.600" p={2}>
-            Choose trials to create a group
-          </Text>
-          <Button
-            style={{
-              visibility: selectedRows.size === 0 ? "hidden" : "visible",
-            }}
-            size={"xs"}
-            colorScheme={"blue"}
-            variant={"solid"}
-            isDisabled={selectedRows.size === 0}
-            onClick={() => {
-              groups.addGroup(
-                exp?.trials.filter((trial) => selectedRows.has(trial.id)) ?? []
-              );
-              setGroups(groups);
-              setSelectedRows(new Set());
-            }}
-          >
-            Create Trial Group
-          </Button>
-        </Box>
+          <FormLabel htmlFor="metric-switch" mb={0}>
+            <Text fontSize="xs" color="gray.600">
+              Show controls
+            </Text>
+          </FormLabel>
+          <Switch
+            id="metric-switch"
+            onChange={() => setVisible(!visible)}
+            isChecked={visible}
+            size={"sm"}
+          />
+        </FormControl>
       </Box>
+
       <AutoSizer>
         {({ height, width }) => (
           <div
@@ -545,13 +546,13 @@ const FastDataTable = () => {
                         cursor: "pointer",
                         flexShrink: 0,
                         justifyContent: "center",
-                        height: "45px",
+                        height: visible ? "45px" : "",
+                        paddingBottom: "5px",
                       }}
                     >
                       <Box
                         display={"flex"}
                         justifyContent={"center"}
-                        // height={column.key === "checked" ? "100%" : "50%"}
                         flexDirection={"column"}
                         alignItems={"center"}
                       >
@@ -562,6 +563,7 @@ const FastDataTable = () => {
                             display={"flex"}
                             alignItems={"center"}
                             fontWeight={"bold"}
+                            onClick={() => requestSort(column.key)}
                           >
                             {column.hp ? (
                               <Icon
@@ -573,6 +575,24 @@ const FastDataTable = () => {
                               ""
                             )}
                             {column.label}
+                            <Icon
+                              visibility={
+                                column.key === sortConfig.key
+                                  ? "visible"
+                                  : "hidden"
+                              }
+                              // width={2}
+                              // ml={1}
+                              onClick={() => requestSort(column.key)}
+                              color={"gray"}
+                              as={
+                                sortConfig.key === column.key
+                                  ? sortConfig.direction === "ascending"
+                                    ? FaSortUp
+                                    : FaSortDown
+                                  : FaSort
+                              }
+                            ></Icon>
                           </Text>
                         ) : (
                           <Box
@@ -580,12 +600,12 @@ const FastDataTable = () => {
                             height={"parent"}
                             justifyContent={"center"}
                             alignItems={"center"}
-                            pt={"10px"}
+                            pt={visible ? "10px" : "2px"}
                           >
                             {column.label}
                           </Box>
                         )}
-                        {column.key !== "checked" && (
+                        {column.key !== "checked" && visible && (
                           <Box display={"flex"} justifyContent={"center"}>
                             <Icon
                               width={2}
@@ -610,7 +630,7 @@ const FastDataTable = () => {
               <div
                 className={`virtual-table ${columnGroup ? "group-table" : ""}`}
                 style={{
-                  height: height - 85,
+                  height: visible ? height - 45 : height,
                   position: "relative",
                 }}
               >
@@ -627,7 +647,7 @@ const FastDataTable = () => {
                   </List>
                 ) : (
                   <List
-                    height={height - 100} // Subtracting header height
+                    height={visible ? height - 100 : height - 80} // Subtracting header height
                     itemCount={sortedData.length}
                     itemSize={15} // Adjust based on your row height
                     width={totalWidth}
@@ -642,6 +662,43 @@ const FastDataTable = () => {
           </div>
         )}
       </AutoSizer>
+      <Box
+        position="absolute"
+        bg="white"
+        boxShadow="lg"
+        borderRadius="md"
+        top="93%"
+        left="50%"
+        width={"50%"}
+        transform="translate(-50%, -50%)" // Center the box
+        p={1}
+        zIndex={10}
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems="center"
+      >
+        <Text fontSize={"xs"} color="gray.600" p={2}>
+          Choose trials to create a group
+        </Text>
+        <Button
+          // style={{
+          //   visibility: selectedRows.size === 0 ? "hidden" : "visible",
+          // }}
+          size={"xs"}
+          colorScheme={"blue"}
+          variant={"solid"}
+          isDisabled={selectedRows.size === 0}
+          onClick={() => {
+            groups.addGroup(
+              exp?.trials.filter((trial) => selectedRows.has(trial.id)) ?? []
+            );
+            setGroups(groups);
+            setSelectedRows(new Set());
+          }}
+        >
+          Create Trial Group
+        </Button>
+      </Box>
     </div>
   );
 };

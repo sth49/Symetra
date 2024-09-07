@@ -1,8 +1,5 @@
 import * as d3 from "d3";
 
-import { Apriori } from "node-apriori";
-import { Trial } from "./trial";
-
 export interface BinData {
   value: number;
   count: number;
