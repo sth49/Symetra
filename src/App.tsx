@@ -18,6 +18,14 @@ import { ChakraProvider } from "@chakra-ui/react";
 function App() {
   // const [exp, setExp] = useState<Experiment | null>(null);
   const { exp, setExp, setHyperparams } = useCustomStore();
+  const [selectedTrial, setSelectedTrial] = useState(null);
+  const [selectedRowPosition, setSelectedRowPosition] = useState(null);
+
+  const handleSelectTrial = (trialId, position) => {
+    setSelectedTrial(trialId);
+    setSelectedRowPosition(position);
+  };
+
   useEffect(() => {
     async function loadExperiment() {
       try {
@@ -89,7 +97,7 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"70%"} bg="white" m={0.5}>
-                      <FastDataTable />
+                      <FastDataTable onSelectTrial={handleSelectTrial} />
                     </Box>
                     <Box height={"30%"} bg="white" m={0.5} mb={1}>
                       <GroupView />
@@ -102,7 +110,10 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"70%"} m={0.5} bg="white" mr={1}>
-                      <ScatterContourPlot />
+                      <ScatterContourPlot
+                        selectedTrial={selectedTrial}
+                        selectedRowPosition={selectedRowPosition}
+                      />
                     </Box>
                   </Box>
                 </Box>

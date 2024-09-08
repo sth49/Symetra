@@ -27,14 +27,44 @@ import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
 import { csvParse, sort } from "d3";
 
-const FastDataTable = () => {
+interface FastDataTableProps {
+  onSelectTrial: any;
+}
+
+const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
   const { exp, hyperparams, setGroups, groups } = useCustomStore();
   const [sortedData, setSortedData] = useState([]);
   const [sortConfig, setSortConfig] = useState({
     key: "metric",
     direction: "descending", // ascending or descending
   });
-  // const [hoveredRow, setHoveredRow] = useState(null);
+  const rowRefs = useRef({});
+  const handleRowClick = (trialId, index) => {
+    const rowElement = rowRefs.current[index];
+    if (rowElement) {
+      const rect = rowElement.getBoundingClientRect();
+      const tableContainer = rowElement.closest(".virtual-table");
+      const tableRect = tableContainer
+        ? tableContainer.getBoundingClientRect()
+        : { top: 0, left: 0 };
+
+      console.log("Row position:", rect); // 디버깅: 행 위치 로깅
+      console.log("Table position:", tableRect); // 디버깅: 테이블 위치 로깅
+      onSelectTrial(trialId, {
+        top: rect.bottom,
+        left: rect.left,
+        height: rect.height,
+        width: rect.width,
+        tableTop: tableRect.top,
+        tableLeft: tableRect.left,
+        tableHeight: tableRect.height,
+        tableWidth: tableRect.width,
+      });
+    } else {
+      console.warn("Row element not found for index:", index); // 디버깅: 행 요소를 찾지 못한 경우
+    }
+  };
+
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   const [isMultiSelect, setIsMultiSelect] = useState(false);
@@ -232,7 +262,11 @@ const FastDataTable = () => {
           }}
           // onMouseEnter={() => setHoveredRow(item.id)}
           // onMouseLeave={() => setHoveredRow(null)}
-          onClick={(e) => toggleRowSelection(index, e.shiftKey)}
+          ref={(el) => (rowRefs.current[index] = el)}
+          onClick={(e) => {
+            handleRowClick(item.id, index);
+            toggleRowSelection(index, e.shiftKey);
+          }}
         >
           {columns.map((column) => {
             if (column.visibility === false) {
@@ -262,9 +296,10 @@ const FastDataTable = () => {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={(e) =>
-                      toggleRowSelection(index, e.nativeEvent.shiftKey)
-                    }
+                    onChange={(e) => {
+                      handleRowClick(item.id, index);
+                      toggleRowSelection(index, e.nativeEvent.shiftKey);
+                    }}
                   />
                 ) : // column.type === HyperparamTypes.Binary ? (
                 //   <div
@@ -630,7 +665,7 @@ const FastDataTable = () => {
               <div
                 className={`virtual-table ${columnGroup ? "group-table" : ""}`}
                 style={{
-                  height: visible ? height - 45 : height,
+                  height: visible ? height - 95 : height - 80,
                   position: "relative",
                 }}
               >
@@ -647,7 +682,7 @@ const FastDataTable = () => {
                   </List>
                 ) : (
                   <List
-                    height={visible ? height - 100 : height - 80} // Subtracting header height
+                    height={visible ? height - 95 : height - 80} // Subtracting header height
                     itemCount={sortedData.length}
                     itemSize={15} // Adjust based on your row height
                     width={totalWidth}

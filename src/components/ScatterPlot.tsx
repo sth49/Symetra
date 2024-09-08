@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import { scaleLinear } from "@visx/scale";
 import {
   Box,
@@ -17,19 +23,25 @@ import { useCustomStore } from "../store";
 import {
   BinaryHyperparam,
   ContinuousHyperparam,
-  // DiscreteHyperparam,
   NominalHyperparam,
 } from "../model/hyperparam";
 import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
-import { PiLassoBold } from "react-icons/pi";
-const ScatterContourPlot = () => {
+interface ScatterPlotProps {
+  selectedTrial: any;
+  selectedRowPosition: any;
+}
+const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
+  selectedTrial,
+  selectedRowPosition,
+}) => {
   const { exp, hyperparams, groups, setGroups, hoveredGroup } =
     useCustomStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
   const [isPreference, setIsPreference] = useState(false);
+  const [startXOffset, setStartXOffset] = useState<number>(0);
   const oneDecimalFormat = format(".1f");
   const data = useMemo(
     () =>
@@ -47,19 +59,25 @@ const ScatterContourPlot = () => {
     [exp, nNeighbors, minDist]
   );
 
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({
+    width: 1000,
+    height: 900,
+  });
+
   const [isLassoActive, setIsLassoActive] = useState(false);
   const [selectedPoints, setSelectedPoints] = useState(new Set());
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempLassoPoints, setTempLassoPoints] = useState([]);
 
   const svgRef = useRef(null);
-
+  const [svgRect, setSvgRect] = useState(null);
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
 
   // console.log(clickedHparam);
-  const width = 700;
-  const height = 800;
+  const width = 1000;
+  const height = 900;
   const margin = { top: 20, right: 30, bottom: 40, left: 40 };
 
   const legendWidth = 100;
@@ -69,23 +87,62 @@ const ScatterContourPlot = () => {
   const xValues = data.map((d) => d.x);
   const yValues = data.map((d) => d.y);
   const metricValues = data.map((d) => d.metric);
+  const [svgPosition, setSvgPosition] = useState({ top: 0, left: 0 });
 
+  useEffect(() => {
+    const updateSvgPosition = () => {
+      if (svgRef.current) {
+        const rect = svgRef.current.getBoundingClientRect();
+        setSvgPosition({
+          top: rect.top + window.scrollY,
+          left: rect.left + window.scrollX,
+        });
+      }
+    };
+
+    updateSvgPosition();
+    window.addEventListener("scroll", updateSvgPosition);
+    window.addEventListener("resize", updateSvgPosition);
+
+    return () => {
+      window.removeEventListener("scroll", updateSvgPosition);
+      window.removeEventListener("resize", updateSvgPosition);
+    };
+  }, []);
+
+  // const xScale = useMemo(
+  //   () =>
+  //     scaleLinear({
+  //       domain: [Math.min(...xValues), Math.max(...xValues)],
+  //       range: [margin.left, width - margin.right],
+  //     }),
+  //   [xValues, width, margin.left, margin.right]
+  // );
+
+  // const yScale = useMemo(
+  //   () =>
+  //     scaleLinear({
+  //       domain: [Math.min(...yValues), Math.max(...yValues)],
+  //       range: [height - margin.bottom, margin.top],
+  //     }),
+  //   [yValues, height, margin.top, margin.bottom]
+  // );
   const xScale = useMemo(
     () =>
       scaleLinear({
         domain: [Math.min(...xValues), Math.max(...xValues)],
-        range: [margin.left, width - margin.right],
+        range: [margin.left, containerSize.width - margin.right],
       }),
-    [xValues, width, margin.left, margin.right]
+    [xValues, containerSize.width, margin.left, margin.right]
   );
 
   const yScale = useMemo(
     () =>
       scaleLinear({
         domain: [Math.min(...yValues), Math.max(...yValues)],
-        range: [height - margin.bottom, margin.top],
+        range: [containerSize.height - margin.bottom, margin.top],
       }),
-    [yValues, height, margin.top, margin.bottom]
+    [yValues, containerSize.height, margin.top, margin.bottom]
   );
 
   const numThresholds = 5;
@@ -119,12 +176,15 @@ const ScatterContourPlot = () => {
       .x((d) => xScale(d.x))
       .y((d) => yScale(d.y))
       .weight((d) => metricScale(d.metric))
-      .size([width, height])
+      .size([
+        containerSize.width - margin.left - margin.right,
+        containerSize.height - margin.top - margin.bottom,
+      ])
       .bandwidth(10)
       .thresholds(numThresholds);
 
     return densityGenerator(data);
-  }, [data, xScale, yScale, width, height, metricScale]);
+  }, [data, xScale, yScale, metricScale, containerSize]);
 
   const handleMouseDown = useCallback(
     (event) => {
@@ -180,18 +240,7 @@ const ScatterContourPlot = () => {
   }, [isLassoActive, isDrawing]);
 
   const confirmLasso = useCallback(() => {
-    // setGroups([
-    //   ...groups,
-    //   new Group(
-    //     uuidv4(),
-    //     exp.trials.filter((trial) => selectedPoints.has(trial.id))
-    //   ),
-    // ]);
-    console.log("groups", groups);
     groups.addGroup(exp.trials.filter((trial) => selectedPoints.has(trial.id)));
-
-    // console.log("newGroups", newGroups);
-
     setGroups(groups);
     setIsLassoActive(false);
     setIsDrawing(false);
@@ -205,18 +254,154 @@ const ScatterContourPlot = () => {
     setIsLassoActive(false);
     setIsDrawing(false);
   }, []);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setContainerSize({ width, height });
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  useEffect(() => {
+    const updateSvgRect = () => {
+      if (svgRef.current) {
+        const rect = svgRef.current.getBoundingClientRect();
+        setSvgRect(rect);
+      }
+    };
+
+    updateSvgRect();
+    window.addEventListener("resize", updateSvgRect);
+    return () => window.removeEventListener("resize", updateSvgRect);
+  }, [margin.left]);
+
+  const drawConnectionLine = useCallback(() => {
+    if (!selectedTrial || !selectedRowPosition || !svgRef.current) {
+      return null;
+    }
+
+    const selectedPoint = data.find((d) => d.id === selectedTrial);
+    if (!selectedPoint) {
+      console.warn("Selected point not found:", selectedTrial);
+      return null;
+    }
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const viewBox = svgRef.current.viewBox.baseVal;
+    // Convert the row position to SVG coordinates
+    // const svgStartX = 0;
+    // const svgStartY = selectedRowPosition.top - svgPosition.top + 10;
+    const svgEndX = xScale(selectedPoint.x);
+    const svgEndY = yScale(selectedPoint.y);
+
+    // SVG의 스케일 비율을 계산합니다.
+    const scaleX = viewBox.width / svgRect.width;
+    const scaleY = viewBox.height / svgRect.height;
+
+    // 테이블 컨테이너의 위치를 가져옵니다.
+    const tableContainer = document.querySelector(".virtual-table");
+    const tableRect = tableContainer
+      ? tableContainer.getBoundingClientRect()
+      : { top: 0, left: 0 };
+
+    // 행 위치를 SVG 좌표계로 변환합니다.
+    const svgStartX = -margin.left;
+    const svgStartY =
+      (selectedRowPosition.top - svgRect.top + tableContainer.scrollTop) *
+        scaleY +
+      viewBox.y -
+      7.5;
+
+    console.log("SVG coordinates:", { svgStartX, svgStartY, svgEndX, svgEndY });
+
+    const controlPointX = svgStartX + (svgEndX - svgStartX) / 3;
+    const pathData = `
+      M ${svgStartX} ${svgStartY}
+      C ${controlPointX} ${svgStartY}, ${controlPointX} ${svgEndY}, ${svgEndX} ${svgEndY}
+    `;
+    const cubicBezier = (
+      t: number,
+      p0: number,
+      p1: number,
+      p2: number,
+      p3: number
+    ) => {
+      const mt = 1 - t;
+      return (
+        mt * mt * mt * p0 +
+        3 * mt * mt * t * p1 +
+        3 * mt * t * t * p2 +
+        t * t * t * p3
+      );
+    };
+    const numSegments = 30;
+    const points = [];
+    for (let i = 0; i <= numSegments; i++) {
+      const t = i / numSegments;
+      const x = cubicBezier(
+        t,
+        svgStartX,
+        controlPointX,
+        controlPointX,
+        svgEndX
+      );
+      const y = cubicBezier(t, svgStartY, svgStartY, svgEndY, svgEndY);
+      points.push([x, y]);
+    }
+
+    // Generate line segments with decreasing width
+    const startWidth = 15;
+    const endWidth = 3;
+    const lines = points.map((point, index) => {
+      const progress = index / (points.length - 1);
+      const width = startWidth - (startWidth - endWidth) * progress;
+      return (
+        <line
+          key={index}
+          x1={points[index][0]}
+          y1={points[index][1]}
+          x2={points[index + 1] ? points[index + 1][0] : point[0]}
+          y2={points[index + 1] ? points[index + 1][1] : point[1]}
+          stroke="#d0e0fc"
+          strokeWidth={width}
+          strokeLinecap="round"
+        />
+      );
+    });
+
+    return (
+      <>
+        <circle cx={svgStartX} cy={svgStartY} r={3} fill="red" />
+
+        <circle cx={svgEndX} cy={svgEndY} r={3} fill="blue" />
+        {lines}
+        <circle
+          cx={selectedRowPosition.tableTop - svgPosition.top}
+          cy={selectedRowPosition.tableLeft - svgPosition.left}
+          r={3}
+          fill="green"
+        />
+      </>
+    );
+  }, [selectedTrial, selectedRowPosition, data, xScale, yScale, svgPosition]);
+
   // console.log("densityData", densityData);
   return (
-    <Box height={"100%"}>
+    <Box height={"100%"} position={"relative"} ref={containerRef}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Coverage View
         </Heading>
 
-        <Box display="flex" alignItems="center">
+        <Box display="flex" justifyContent="space-between" alignItems="center">
           <FormControl
             display="flex"
-            justifyContent="center"
+            justifyContent="right"
             alignItems="center"
             mr={2}
             width="150px"
@@ -245,7 +430,7 @@ const ScatterContourPlot = () => {
 
           <FormControl
             display="flex"
-            justifyContent="center"
+            justifyContent="right"
             alignItems="center"
             mr={2}
             width="170px"
@@ -262,200 +447,176 @@ const ScatterContourPlot = () => {
               size={"sm"}
             />
           </FormControl>
-
-          <Box display={"flex"}>
-            <IconButton
-              aria-label="Lasso"
-              icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
-              onClick={() => {
-                if (isLassoActive) {
-                  cancelLasso();
-                } else {
-                  setIsLassoActive(true);
-                  setSelectedPoints(new Set());
-                }
-              }}
-              size="xs"
-              colorScheme={isLassoActive ? "red" : "blue"}
-              // variant={""}
-              mr={1}
+          <FormControl
+            display="flex"
+            justifyContent="right"
+            alignItems="center"
+            width="150px"
+            pr={2}
+          >
+            <FormLabel htmlFor="perference-switch" mb={0} mr={1}>
+              <Text fontSize="xs" color="gray.600">
+                Preference
+              </Text>
+            </FormLabel>
+            <Switch
+              id="perference-switch"
+              onChange={() => setIsPreference(!isPreference)}
+              isChecked={isPreference}
+              size={"sm"}
             />
-            <Button
-              visibility={
-                selectedPoints.size > 0 && isLassoActive ? "visible" : "hidden"
-              }
-              onClick={confirmLasso}
-              size="xs"
-              colorScheme="blue"
-              flex={1}
-              mr={1}
-              isDisabled={tempLassoPoints.length < 3}
-            >
-              Create Trial Group
-            </Button>
-          </Box>
+          </FormControl>
         </Box>
       </Box>
-      <Box display={"flex"} justifyContent={"space-between"}>
+      {/* <Box
+        visibility={isPreference ? "visible" : "hidden"}
+        display={"flex"}
+        width={"100%"}
+        justifyContent={"right"}
+        alignItems={"center"}
+      >
         <FormControl
           display="flex"
-          justifyContent="start"
+          justifyContent="right"
           alignItems="center"
-          pl={3}
+          width={"200px"}
         >
-          <FormLabel htmlFor="perference-switch" mb={0} mr={1}>
+          <FormLabel mb={0} mr={1}>
             <Text fontSize="xs" color="gray.600">
-              Preference
+              N Neighbors
             </Text>
           </FormLabel>
-          <Switch
-            id="perference-switch"
-            onChange={() => setIsPreference(!isPreference)}
-            isChecked={isPreference}
-            size={"sm"}
-          />
+          <Select
+            onChange={(e) => setNNeighbors(Number(e.target.value))}
+            value={nNeighbors}
+            size={"xs"}
+            width={"50%"}
+          >
+            {[
+              ...new Set(
+                exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
+              ),
+            ]
+              .sort((a, b) => a - b)
+              .map((n_neighbor) => (
+                <option key={n_neighbor} value={n_neighbor}>
+                  {n_neighbor}
+                </option>
+              ))}
+          </Select>
         </FormControl>
-        <Box visibility={isPreference ? "visible" : "hidden"} display={"flex"}>
-          <FormControl
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            width={"200px"}
+        <FormControl
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          width={"200px"}
+        >
+          <FormLabel mb={0} mr={1}>
+            <Text fontSize="xs" color="gray.600">
+              Min Dist
+            </Text>
+          </FormLabel>
+          <Select
+            onChange={(e) => setMinDist(Number(e.target.value))}
+            value={minDist}
+            size={"xs"}
+            width={"50%"}
           >
-            <FormLabel mb={0} mr={1}>
-              <Text fontSize="xs" color="gray.600">
-                N Neighbors
-              </Text>
-            </FormLabel>
-            <Select
-              onChange={(e) => setNNeighbors(Number(e.target.value))}
-              value={nNeighbors}
-              size={"xs"}
-              width={"50%"}
-            >
-              {[
-                ...new Set(
-                  exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
-                ),
-              ]
-                .sort((a, b) => a - b)
-                .map((n_neighbor) => (
-                  <option key={n_neighbor} value={n_neighbor}>
-                    {n_neighbor}
-                  </option>
-                ))}
-            </Select>
-          </FormControl>
-          <FormControl
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            width={"200px"}
-          >
-            <FormLabel mb={0} mr={1}>
-              <Text fontSize="xs" color="gray.600">
-                Min Dist
-              </Text>
-            </FormLabel>
-            <Select
-              onChange={(e) => setMinDist(Number(e.target.value))}
-              value={minDist}
-              size={"xs"}
-              width={"50%"}
-            >
-              {[
-                ...new Set(
-                  exp.trials[0].umapPositions.map((pos) => pos.min_dist)
-                ),
-              ]
-                .sort((a, b) => a - b)
-                .map((min_dist) => (
-                  <option key={min_dist} value={min_dist}>
-                    {min_dist}
-                  </option>
-                ))}
-            </Select>
-          </FormControl>
-        </Box>
-      </Box>
+            {[
+              ...new Set(
+                exp.trials[0].umapPositions.map((pos) => pos.min_dist)
+              ),
+            ]
+              .sort((a, b) => a - b)
+              .map((min_dist) => (
+                <option key={min_dist} value={min_dist}>
+                  {min_dist}
+                </option>
+              ))}
+          </Select>
+        </FormControl>
+      </Box> */}
 
-      <Box bg={"white"} p={2} height="calc(100% - 108px)">
+      <Box bg={"white"} height="calc(100% - 40px)" position={"relative"}>
         <svg
           ref={svgRef}
           width="100%"
           height="100%"
-          viewBox={`0 0 ${width} ${height}`}
+          // viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
           preserveAspectRatio="xMidYMid meet"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
         >
-          <g transform={`translate(0, 0)`}>
-            {visible && (
-              <g>
-                {densityData.map((density, i) => (
-                  <path
-                    key={`contour-${i}`}
-                    d={d3.geoPath()(density)}
-                    fill={colorScale(i)}
-                    opacity={0.2}
-                    stroke="black"
-                  />
-                ))}
-              </g>
-            )}
+          {/* <rect width="100%" height="100%" stroke="black" /> */}
+          {visible && (
+            <g>
+              {densityData.map((density, i) => (
+                <path
+                  key={`contour-${i}`}
+                  d={d3.geoPath()(density)}
+                  fill={colorScale(i)}
+                  opacity={0.2}
+                  stroke="black"
+                />
+              ))}
+            </g>
+          )}
 
-            {data.map((d, i) => (
-              <circle
-                key={`circle-${i}`}
-                cx={xScale(d.x)}
-                cy={yScale(d.y)}
-                r={3}
-                fill={
-                  selectedPoints.has(d.id)
-                    ? "#FC8181"
-                    : !isLassoActive && hoveredGroup.has(d.id)
-                    ? "#F6E05E"
-                    : !isLassoActive && hoveredGroup.size > 0
-                    ? "#CBD5E0"
-                    : selected === "metric"
-                    ? colorScale(metricScale(d.metric))
-                    : selected !== "" && exp?.hyperparams
-                    ? exp?.hyperparams
-                        .find((hp) => hp.name === selected)
-                        ?.getColor(i)
-                    : "#718096"
-                }
-                stroke={
-                  selectedPoints.has(d.id)
-                    ? "#E53E3E"
-                    : !isLassoActive && hoveredGroup.has(d.id)
-                    ? "#D69E2E"
-                    : !isLassoActive && hoveredGroup.size > 0
-                    ? "#718096"
-                    : "#2D3748"
-                }
-                opacity={
-                  selectedPoints.has(d.id) ||
-                  (!isLassoActive && hoveredGroup.has(d.id))
-                    ? 1
-                    : 0.5
-                }
-              />
-            ))}
+          {data.map((d, i) => (
+            <circle
+              key={`circle-${i}`}
+              cx={xScale(d.x)}
+              cy={yScale(d.y)}
+              r={3}
+              fill={
+                selectedPoints.has(d.id)
+                  ? "#FC8181"
+                  : !isLassoActive && hoveredGroup.has(d.id)
+                  ? "#F6E05E"
+                  : !isLassoActive && hoveredGroup.size > 0
+                  ? "#CBD5E0"
+                  : selected === "metric"
+                  ? colorScale(metricScale(d.metric))
+                  : selected !== "" && exp?.hyperparams
+                  ? exp?.hyperparams
+                      .find((hp) => hp.name === selected)
+                      ?.getColor(i)
+                  : selectedTrial === d.id
+                  ? "#2B6CB0"
+                  : "#ffffff"
+              }
+              stroke={
+                selectedPoints.has(d.id)
+                  ? "#E53E3E"
+                  : !isLassoActive && hoveredGroup.has(d.id)
+                  ? "#D69E2E"
+                  : !isLassoActive && hoveredGroup.size > 0
+                  ? "#718096"
+                  : "#2D3748"
+              }
+              // opacity={
+              //   selectedPoints.has(d.id) ||
+              //   (!isLassoActive && hoveredGroup.has(d.id))
+              //     ? 1
+              //     : 0.5
+              // }
+            />
+          ))}
+          {selectedTrial && selectedRowPosition && drawConnectionLine()}
 
-            {isLassoActive && tempLassoPoints.length > 0 && (
-              <path
-                d={`M ${tempLassoPoints
-                  .map((p) => `${p.x},${p.y}`)
-                  .join(" L ")} Z`}
-                fill="none"
-                stroke="#2B6CB0"
-                strokeWidth="2"
-                pointerEvents="none"
-              />
-            )}
-          </g>
+          {isLassoActive && tempLassoPoints.length > 0 && (
+            <path
+              d={`M ${tempLassoPoints
+                .map((p) => `${p.x},${p.y}`)
+                .join(" L ")} Z`}
+              fill="none"
+              stroke="#2B6CB0"
+              strokeWidth="2"
+              pointerEvents="none"
+            />
+          )}
           {/* 레전드 */}
           {visible ||
             (selected === "metric" && (
@@ -642,6 +803,52 @@ const ScatterContourPlot = () => {
           )}
         </svg>
       </Box>
+      {/* <Box
+        position="absolute"
+        bg="white"
+        boxShadow="lg"
+        borderRadius="md"
+        top="93%"
+        left="50%"
+        width={"50%"}
+        transform="translate(-50%, -50%)" // Center the box
+        p={1}
+        zIndex={10}
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems="center"
+      >
+        <Text fontSize={"xs"} color="gray.600" p={2}>
+          Choose trials to create a group
+        </Text>
+        <Box display={"flex"}>
+          <IconButton
+            aria-label="Lasso"
+            icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
+            onClick={() => {
+              if (isLassoActive) {
+                cancelLasso();
+              } else {
+                setIsLassoActive(true);
+                setSelectedPoints(new Set());
+              }
+            }}
+            size="xs"
+            colorScheme={isLassoActive ? "red" : "blue"}
+            mr={1}
+          />
+          <Button
+            onClick={confirmLasso}
+            size="xs"
+            colorScheme="blue"
+            flex={1}
+            mr={1}
+            isDisabled={tempLassoPoints.length < 3}
+          >
+            Create Trial Group
+          </Button>
+        </Box>
+      </Box> */}
     </Box>
   );
 };
