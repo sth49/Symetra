@@ -18,12 +18,14 @@ import { ChakraProvider } from "@chakra-ui/react";
 function App() {
   // const [exp, setExp] = useState<Experiment | null>(null);
   const { exp, setExp, setHyperparams } = useCustomStore();
-  const [selectedTrial, setSelectedTrial] = useState(null);
-  const [selectedRowPosition, setSelectedRowPosition] = useState(null);
+  const [selectedTrials, setSelectedTrials] = useState([]);
+  const [selectedRowPositions, setSelectedRowPositions] = useState([]);
+  const [isTableScrolling, setIsTableScrolling] = useState(false);
 
-  const handleSelectTrial = (trialId, position) => {
-    setSelectedTrial(trialId);
-    setSelectedRowPosition(position);
+  const handleSelectTrial = (trialIds, positions, isScrolling) => {
+    setSelectedTrials(trialIds);
+    setSelectedRowPositions(positions);
+    setIsTableScrolling(isScrolling);
   };
 
   useEffect(() => {
@@ -111,8 +113,9 @@ function App() {
                   >
                     <Box height={"70%"} m={0.5} bg="white" mr={1}>
                       <ScatterContourPlot
-                        selectedTrial={selectedTrial}
-                        selectedRowPosition={selectedRowPosition}
+                        selectedTrials={selectedTrials}
+                        selectedRowPositions={selectedRowPositions}
+                        isTableScrolling={isTableScrolling}
                       />
                     </Box>
                   </Box>

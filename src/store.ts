@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Experiment } from "./model/experiment";
 import { Hyperparam } from "./model/hyperparam";
 import { Group, Groups } from "./model/group";
+import { TrialPathModel } from "./model/trialPath";
 
 interface HparamValue {
   name: string;
@@ -29,6 +30,9 @@ interface CustomStore {
 
   clickedHparamValue: HparamValue | null;
   setClickedHparamValue: (value: HparamValue | null) => void;
+
+  trialPathModel: TrialPathModel;
+  setTrialPathModel: (trialPathModel: TrialPathModel) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -52,4 +56,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   clickedHparamValue: null, // 선택된 하이퍼파라미터 값에 대한 다른 하이퍼파라미터 값들의 correlation 구할때 사용
   setClickedHparamValue: (value) => set({ clickedHparamValue: value }),
+
+  trialPathModel: new TrialPathModel(),
+  setTrialPathModel: (trialPathModel) => set({ trialPathModel }),
 }));

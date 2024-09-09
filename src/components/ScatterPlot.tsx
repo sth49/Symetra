@@ -29,12 +29,14 @@ import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
 interface ScatterPlotProps {
-  selectedTrial: any;
-  selectedRowPosition: any;
+  selectedTrials: any[];
+  selectedRowPositions: any[];
+  isTableScrolling: boolean;
 }
 const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
-  selectedTrial,
-  selectedRowPosition,
+  selectedTrials,
+  selectedRowPositions,
+  isTableScrolling,
 }) => {
   const { exp, hyperparams, groups, setGroups, hoveredGroup } =
     useCustomStore();
@@ -76,8 +78,6 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   const [selected, setSelected] = useState("");
 
   // console.log(clickedHparam);
-  const width = 1000;
-  const height = 900;
   const margin = { top: 20, right: 30, bottom: 40, left: 40 };
 
   const legendWidth = 100;
@@ -282,113 +282,118 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   }, [margin.left]);
 
   const drawConnectionLine = useCallback(() => {
-    if (!selectedTrial || !selectedRowPosition || !svgRef.current) {
+    if (
+      !selectedTrials ||
+      !selectedRowPositions ||
+      !svgRef.current ||
+      isTableScrolling
+    ) {
       return null;
     }
+    console.log("selectedTrial", selectedTrials);
+    return Array.from(selectedTrials).map((trialId, i) => {
+      const selectedTrial = trialId;
+      const selectedRowPosition = selectedRowPositions[i];
 
-    const selectedPoint = data.find((d) => d.id === selectedTrial);
-    if (!selectedPoint) {
-      console.warn("Selected point not found:", selectedTrial);
-      return null;
-    }
-    const svgRect = svgRef.current.getBoundingClientRect();
-    const viewBox = svgRef.current.viewBox.baseVal;
-    // Convert the row position to SVG coordinates
-    // const svgStartX = 0;
-    // const svgStartY = selectedRowPosition.top - svgPosition.top + 10;
-    const svgEndX = xScale(selectedPoint.x);
-    const svgEndY = yScale(selectedPoint.y);
+      const selectedPoint = data.find((d) => d.id === selectedTrial);
+      if (!selectedPoint) {
+        console.warn("Selected point not found:", selectedTrial);
+        return null;
+      }
+      const svgRect = svgRef.current.getBoundingClientRect();
+      const viewBox = svgRef.current.viewBox.baseVal;
+      const svgEndX = xScale(selectedPoint.x);
+      const svgEndY = yScale(selectedPoint.y);
 
-    // SVG의 스케일 비율을 계산합니다.
-    const scaleX = viewBox.width / svgRect.width;
-    const scaleY = viewBox.height / svgRect.height;
+      // SVG의 스케일 비율을 계산합니다.
+      const scaleY = viewBox.height / svgRect.height;
 
-    // 테이블 컨테이너의 위치를 가져옵니다.
-    const tableContainer = document.querySelector(".virtual-table");
-    const tableRect = tableContainer
-      ? tableContainer.getBoundingClientRect()
-      : { top: 0, left: 0 };
+      // 테이블 컨테이너의 위치를 가져옵니다.
+      const tableContainer = document.querySelector(".virtual-table");
 
-    // 행 위치를 SVG 좌표계로 변환합니다.
-    const svgStartX = -margin.left;
-    const svgStartY =
-      (selectedRowPosition.top - svgRect.top + tableContainer.scrollTop) *
-        scaleY +
-      viewBox.y -
-      7.5;
+      // 행 위치를 SVG 좌표계로 변환합니다.
+      const svgStartX = -margin.left;
+      const svgStartY =
+        (selectedRowPosition.top - svgRect.top + tableContainer.scrollTop) *
+          scaleY +
+        viewBox.y -
+        7.5;
 
-    console.log("SVG coordinates:", { svgStartX, svgStartY, svgEndX, svgEndY });
+      // console.log("SVG coordinates:", { svgStartX, svgStartY, svgEndX, svgEndY });
 
-    const controlPointX = svgStartX + (svgEndX - svgStartX) / 3;
-    const pathData = `
-      M ${svgStartX} ${svgStartY}
-      C ${controlPointX} ${svgStartY}, ${controlPointX} ${svgEndY}, ${svgEndX} ${svgEndY}
-    `;
-    const cubicBezier = (
-      t: number,
-      p0: number,
-      p1: number,
-      p2: number,
-      p3: number
-    ) => {
-      const mt = 1 - t;
+      const controlPointX = svgStartX + (svgEndX - svgStartX) / 3;
+      const pathData = `
+    M ${svgStartX} ${svgStartY}
+    C ${controlPointX} ${svgStartY}, ${controlPointX} ${svgEndY}, ${svgEndX} ${svgEndY}
+  `;
+      const cubicBezier = (
+        t: number,
+        p0: number,
+        p1: number,
+        p2: number,
+        p3: number
+      ) => {
+        const mt = 1 - t;
+        return (
+          mt * mt * mt * p0 +
+          3 * mt * mt * t * p1 +
+          3 * mt * t * t * p2 +
+          t * t * t * p3
+        );
+      };
+      const numSegments = 30;
+      const points = [];
+      for (let i = 0; i <= numSegments; i++) {
+        const t = i / numSegments;
+        const x = cubicBezier(
+          t,
+          svgStartX,
+          controlPointX,
+          controlPointX,
+          svgEndX
+        );
+        const y = cubicBezier(t, svgStartY, svgStartY, svgEndY, svgEndY);
+        points.push([x, y]);
+      }
+
+      // Generate line segments with decreasing width
+      const startWidth = 15;
+      const endWidth = 3;
+      const lines = points.map((point, index) => {
+        const progress = index / (points.length - 1);
+        const width = startWidth - (startWidth - endWidth) * progress;
+        return (
+          <line
+            key={index}
+            x1={points[index][0]}
+            y1={points[index][1]}
+            x2={points[index + 1] ? points[index + 1][0] : point[0]}
+            y2={points[index + 1] ? points[index + 1][1] : point[1]}
+            stroke="#d0e0fc"
+            strokeWidth={width}
+            strokeLinecap="round"
+          />
+        );
+      });
+
       return (
-        mt * mt * mt * p0 +
-        3 * mt * mt * t * p1 +
-        3 * mt * t * t * p2 +
-        t * t * t * p3
-      );
-    };
-    const numSegments = 30;
-    const points = [];
-    for (let i = 0; i <= numSegments; i++) {
-      const t = i / numSegments;
-      const x = cubicBezier(
-        t,
-        svgStartX,
-        controlPointX,
-        controlPointX,
-        svgEndX
-      );
-      const y = cubicBezier(t, svgStartY, svgStartY, svgEndY, svgEndY);
-      points.push([x, y]);
-    }
-
-    // Generate line segments with decreasing width
-    const startWidth = 15;
-    const endWidth = 3;
-    const lines = points.map((point, index) => {
-      const progress = index / (points.length - 1);
-      const width = startWidth - (startWidth - endWidth) * progress;
-      return (
-        <line
-          key={index}
-          x1={points[index][0]}
-          y1={points[index][1]}
-          x2={points[index + 1] ? points[index + 1][0] : point[0]}
-          y2={points[index + 1] ? points[index + 1][1] : point[1]}
-          stroke="#d0e0fc"
-          strokeWidth={width}
-          strokeLinecap="round"
-        />
+        <>
+          <circle cx={svgStartX} cy={svgStartY} r={3} fill="red" />
+          <circle cx={svgEndX} cy={svgEndY} r={3} fill="blue" />
+          {lines}
+          <path d={pathData} fill="none" stroke="red" strokeWidth={3} />
+        </>
       );
     });
-
-    return (
-      <>
-        <circle cx={svgStartX} cy={svgStartY} r={3} fill="red" />
-
-        <circle cx={svgEndX} cy={svgEndY} r={3} fill="blue" />
-        {lines}
-        <circle
-          cx={selectedRowPosition.tableTop - svgPosition.top}
-          cy={selectedRowPosition.tableLeft - svgPosition.left}
-          r={3}
-          fill="green"
-        />
-      </>
-    );
-  }, [selectedTrial, selectedRowPosition, data, xScale, yScale, svgPosition]);
+  }, [
+    selectedTrials,
+    selectedRowPositions,
+    data,
+    xScale,
+    yScale,
+    svgPosition,
+    isTableScrolling,
+  ]);
 
   // console.log("densityData", densityData);
   return (
@@ -583,9 +588,9 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                   ? exp?.hyperparams
                       .find((hp) => hp.name === selected)
                       ?.getColor(i)
-                  : selectedTrial === d.id
-                  ? "#2B6CB0"
-                  : "#ffffff"
+                  : // : selectedTrials.includes(d.id)
+                    // ? "#2B6CB0"
+                    "#ffffff"
               }
               stroke={
                 selectedPoints.has(d.id)
@@ -604,7 +609,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
               // }
             />
           ))}
-          {selectedTrial && selectedRowPosition && drawConnectionLine()}
+          {selectedTrials && selectedRowPositions && drawConnectionLine()}
 
           {isLassoActive && tempLassoPoints.length > 0 && (
             <path

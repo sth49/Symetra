@@ -116,6 +116,9 @@ importers:
       jstat:
         specifier: ^1.9.6
         version: 1.9.6
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       mathjs:
         specifier: ^13.0.3
         version: 13.0.3
