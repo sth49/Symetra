@@ -638,7 +638,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
         alignItems={"center"}
       >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Trial View ({sortedData.length} Trials)
+          Trial View ({formatting(sortedData.length, "int")} Trials)
         </Heading>
         <FormControl
           display="flex"
@@ -822,7 +822,8 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
         bg="white"
         boxShadow="lg"
         borderRadius="md"
-        top="93%"
+        // top="95%"
+        bottom={"0px"}
         left="50%"
         width={"50%"}
         transform="translate(-50%, -50%)" // Center the box
@@ -836,13 +837,11 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
           Choose trials to create a group
         </Text>
         <Button
-          // style={{
-          //   visibility: selectedRows.size === 0 ? "hidden" : "visible",
-          // }}
           size={"xs"}
           colorScheme={"blue"}
           variant={"solid"}
           isDisabled={selectedRows.size === 0}
+          mr={1}
           onClick={() => {
             groups.addGroup(
               exp?.trials.filter((trial) => selectedRows.has(trial.id)) ?? []

@@ -38,7 +38,6 @@ type TooltipData = {
 };
 import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 import { formatting, generateBinnedData } from "../model/utils";
-import { HyperparamTypes } from "../model/hyperparam";
 const FastEffectTable = () => {
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     scroll: true,
@@ -119,24 +118,6 @@ const FastEffectTable = () => {
 
   const columns = useMemo(
     () => [
-      // {
-      //   key: "checked",
-      //   label: (
-      //     <input
-      //       type="checkbox"
-      //       style={{ marginLeft: "8px" }}
-      //       onChange={(e) => {
-      //         if (e.target.checked) {
-      //           setSelectedRows(new Set(data.map((item) => item.id)));
-      //         } else {
-      //           setSelectedRows(new Set());
-      //         }
-      //       }}
-      //     />
-      //   ),
-      //   width: 36,
-      //   align: "left",
-      // },
       {
         key: "visible",
         label: "",
@@ -334,14 +315,19 @@ const FastEffectTable = () => {
                   alignItems={"center"}
                   borderBottom={"1px solid #ddd"}
                 >
-                  <Box width={"40%"}>
+                  <Box width={"20%"}>
                     <Text fontSize={"xs"} fontWeight={"bold"} align="center">
                       {item.name}
                     </Text>
                   </Box>
-                  <Box width={"20%"}>
+                  <Box width={"15%"}>
                     <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      Shap
+                      Count
+                    </Text>
+                  </Box>
+                  <Box width={"15%"}>
+                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
+                      Effect
                     </Text>
                   </Box>
                   <Box width={"40%"}>
@@ -358,20 +344,20 @@ const FastEffectTable = () => {
                     30,
                     "x"
                   );
-                  // console.log("binsData:", binsData);
-                  // console.log("xScale:", xScale);
                   return (
-                    <Box display={"flex"} width={"100%"}>
-                      <Box width={"40%"}>
+                    <Box display={"flex"} width={"100%"} alignItems={"center"}>
+                      <Box width={"20%"}>
                         <Text fontSize={"xs"} align="center">
                           {key}
                         </Text>
-                        <Text fontSize={"xs"} align="center">
-                          ({formatting(item.effctsByValue[key].length, "int")})
+                      </Box>
+                      <Box width={"15%"}>
+                        <Text fontSize={"xs"} align="right">
+                          {formatting(item.effctsByValue[key].length, "int")}
                         </Text>
                       </Box>
-                      <Box width={"20%"}>
-                        <Text fontSize={"xs"} align="center">
+                      <Box width={"15%"}>
+                        <Text fontSize={"xs"} align="right">
                           {formatting(
                             item.effctsByValue[key].reduce((a, b) => a + b, 0) /
                               item.effctsByValue[key].length,
@@ -379,7 +365,11 @@ const FastEffectTable = () => {
                           )}
                         </Text>
                       </Box>
-                      <Box>
+                      <Box
+                        width={"50%"}
+                        display={"flex"}
+                        justifyContent={"center"}
+                      >
                         <svg width={100} height={36}>
                           <ViolinPlot
                             data={binData}

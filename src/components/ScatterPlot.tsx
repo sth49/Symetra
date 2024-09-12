@@ -78,7 +78,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   const [selected, setSelected] = useState("");
 
   // console.log(clickedHparam);
-  const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+  const margin = { top: 20, right: 30, bottom: 80, left: 40 };
 
   const legendWidth = 100;
   const legendHeight = 100;
@@ -302,8 +302,11 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
       }
       const svgRect = svgRef.current.getBoundingClientRect();
       const viewBox = svgRef.current.viewBox.baseVal;
-      const svgEndX = xScale(selectedPoint.x);
-      const svgEndY = yScale(selectedPoint.y);
+      const svgMidX1 = xScale(selectedPoint.x);
+      const svgMidY1 = yScale(selectedPoint.y) - 2;
+
+      const svgMidX2 = xScale(selectedPoint.x);
+      const svgMidY2 = yScale(selectedPoint.y) + 2;
 
       // SVG의 스케일 비율을 계산합니다.
       const scaleY = viewBox.height / svgRect.height;
@@ -313,75 +316,67 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
 
       // 행 위치를 SVG 좌표계로 변환합니다.
       const svgStartX = -margin.left;
+      // const svgStartX = 0;
       const svgStartY =
         (selectedRowPosition.top - svgRect.top + tableContainer.scrollTop) *
           scaleY +
         viewBox.y -
-        7.5;
+        15;
+      const svgEndX = -margin.left;
+      const svgEndY =
+        (selectedRowPosition.top - svgRect.top + tableContainer.scrollTop) *
+          scaleY +
+        viewBox.y;
 
       // console.log("SVG coordinates:", { svgStartX, svgStartY, svgEndX, svgEndY });
 
-      const controlPointX = svgStartX + (svgEndX - svgStartX) / 3;
-      const pathData = `
-    M ${svgStartX} ${svgStartY}
-    C ${controlPointX} ${svgStartY}, ${controlPointX} ${svgEndY}, ${svgEndX} ${svgEndY}
-  `;
-      const cubicBezier = (
-        t: number,
-        p0: number,
-        p1: number,
-        p2: number,
-        p3: number
-      ) => {
-        const mt = 1 - t;
-        return (
-          mt * mt * mt * p0 +
-          3 * mt * mt * t * p1 +
-          3 * mt * t * t * p2 +
-          t * t * t * p3
-        );
-      };
-      const numSegments = 30;
-      const points = [];
-      for (let i = 0; i <= numSegments; i++) {
-        const t = i / numSegments;
-        const x = cubicBezier(
-          t,
-          svgStartX,
-          controlPointX,
-          controlPointX,
-          svgEndX
-        );
-        const y = cubicBezier(t, svgStartY, svgStartY, svgEndY, svgEndY);
-        points.push([x, y]);
-      }
+      //     const pathData = `
+      //   M ${svgStartX} ${svgStartY}
+      //   C ${controlPointX} ${svgStartY}, ${controlPointX} ${svgEndY}, ${svgEndX} ${svgEndY}
+      // `;
+      // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
+      // Calculate the slope
+      const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
-      // Generate line segments with decreasing width
-      const startWidth = 15;
-      const endWidth = 3;
-      const lines = points.map((point, index) => {
-        const progress = index / (points.length - 1);
-        const width = startWidth - (startWidth - endWidth) * progress;
-        return (
-          <line
-            key={index}
-            x1={points[index][0]}
-            y1={points[index][1]}
-            x2={points[index + 1] ? points[index + 1][0] : point[0]}
-            y2={points[index + 1] ? points[index + 1][1] : point[1]}
-            stroke="#d0e0fc"
-            strokeWidth={width}
-            strokeLinecap="round"
-          />
-        );
-      });
+      const baseCurveStrength = 50;
+      const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
+      const curveStrength =
+        baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
+
+      // Determine the direction of the curve
+      const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
+
+      const pathData = `
+        M ${svgStartX} ${svgStartY}
+        C ${
+          (svgStartX + curveStrength * curveDirection) * curveDirection
+        } ${svgStartY}, 
+          ${svgMidX1} ${svgMidY1}, 
+          ${svgMidX1} ${svgMidY1}
+        L ${svgMidX2} ${svgMidY2}
+        C ${svgMidX2} ${svgMidY2}, 
+          ${
+            -(svgEndX - curveStrength * curveDirection) * curveDirection
+          } ${svgEndY}, 
+          ${svgEndX} ${svgEndY}
+        Z
+      `;
 
       return (
         <>
-          <circle cx={svgStartX} cy={svgStartY} r={3} fill="red" />
-          <circle cx={svgEndX} cy={svgEndY} r={3} fill="blue" />
-          {lines}
-          <path d={pathData} fill="none" stroke="red" strokeWidth={3} />
+          <path
+            d={pathData}
+            fill="#d0e0fc"
+            // stroke="#2B6CB0"
+            opacity={0.8}
+            strokeWidth={1}
+          />
+          <circle
+            cx={xScale(selectedPoint.x)}
+            cy={yScale(selectedPoint.y)}
+            r={3}
+            fill="#2B6CB0"
+          />
         </>
       );
     });
@@ -601,15 +596,9 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                   ? "#718096"
                   : "#2D3748"
               }
-              // opacity={
-              //   selectedPoints.has(d.id) ||
-              //   (!isLassoActive && hoveredGroup.has(d.id))
-              //     ? 1
-              //     : 0.5
-              // }
             />
           ))}
-          {selectedTrials && selectedRowPositions && drawConnectionLine()}
+          {/* {selectedTrials && selectedRowPositions && drawConnectionLine()} */}
 
           {isLassoActive && tempLassoPoints.length > 0 && (
             <path
@@ -622,7 +611,6 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
               pointerEvents="none"
             />
           )}
-          {/* 레전드 */}
           {visible ||
             (selected === "metric" && (
               <g>
@@ -807,13 +795,28 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
             </g>
           )}
         </svg>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
+          // preserveAspectRatio="xMidYMid meet"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            pointerEvents: "none",
+          }}
+        >
+          {selectedTrials && selectedRowPositions && drawConnectionLine()}
+        </svg>
       </Box>
-      {/* <Box
+      <Box
         position="absolute"
         bg="white"
         boxShadow="lg"
         borderRadius="md"
-        top="93%"
+        // top="95%"
+        bottom={"0px"}
         left="50%"
         width={"50%"}
         transform="translate(-50%, -50%)" // Center the box
@@ -846,14 +849,13 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
             onClick={confirmLasso}
             size="xs"
             colorScheme="blue"
-            flex={1}
-            mr={1}
             isDisabled={tempLassoPoints.length < 3}
+            mr={1}
           >
             Create Trial Group
           </Button>
         </Box>
-      </Box> */}
+      </Box>
     </Box>
   );
 };
