@@ -19,13 +19,11 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
 import { HyperparamTypes } from "../model/hyperparam";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
-import { csvParse, sort } from "d3";
 
 interface FastDataTableProps {
   onSelectTrial: any;

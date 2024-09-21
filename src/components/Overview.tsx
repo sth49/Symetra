@@ -35,7 +35,7 @@ const Overview = () => {
       </Heading> */}
       <Heading fontSize={"larger"} display={"flex"}>
         <Icon as={AiFillRocket} color="gray.600" />
-        VISTA
+        ViSTrics
       </Heading>
       <Box display={"flex"} w={"70%"} justifyContent={"space-between"}>
         <Box display={"flex"}>

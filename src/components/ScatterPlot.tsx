@@ -110,23 +110,6 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
     };
   }, []);
 
-  // const xScale = useMemo(
-  //   () =>
-  //     scaleLinear({
-  //       domain: [Math.min(...xValues), Math.max(...xValues)],
-  //       range: [margin.left, width - margin.right],
-  //     }),
-  //   [xValues, width, margin.left, margin.right]
-  // );
-
-  // const yScale = useMemo(
-  //   () =>
-  //     scaleLinear({
-  //       domain: [Math.min(...yValues), Math.max(...yValues)],
-  //       range: [height - margin.bottom, margin.top],
-  //     }),
-  //   [yValues, height, margin.top, margin.bottom]
-  // );
   const xScale = useMemo(
     () =>
       scaleLinear({
@@ -328,17 +311,11 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
           scaleY +
         viewBox.y;
 
-      // console.log("SVG coordinates:", { svgStartX, svgStartY, svgEndX, svgEndY });
-
-      //     const pathData = `
-      //   M ${svgStartX} ${svgStartY}
-      //   C ${controlPointX} ${svgStartY}, ${controlPointX} ${svgEndY}, ${svgEndX} ${svgEndY}
-      // `;
       // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
       // Calculate the slope
       const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
-      const baseCurveStrength = 50;
+      const baseCurveStrength = 200;
       const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
       const curveStrength =
         baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
@@ -349,14 +326,21 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
       const pathData = `
         M ${svgStartX} ${svgStartY}
         C ${
-          (svgStartX + curveStrength * curveDirection) * curveDirection
+          (svgStartX +
+            curveStrength * curveDirection +
+            100 * Math.min(0.5, Math.abs(slope))) *
+          curveDirection
         } ${svgStartY}, 
           ${svgMidX1} ${svgMidY1}, 
           ${svgMidX1} ${svgMidY1}
         L ${svgMidX2} ${svgMidY2}
         C ${svgMidX2} ${svgMidY2}, 
           ${
-            -(svgEndX - curveStrength * curveDirection) * curveDirection
+            -(
+              svgEndX -
+              curveStrength * curveDirection +
+              100 * Math.min(0.5, Math.abs(slope))
+            ) * curveDirection
           } ${svgEndY}, 
           ${svgEndX} ${svgEndY}
         Z
@@ -364,19 +348,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
 
       return (
         <>
-          <path
-            d={pathData}
-            fill="#d0e0fc"
-            // stroke="#2B6CB0"
-            opacity={0.8}
-            strokeWidth={1}
-          />
-          <circle
-            cx={xScale(selectedPoint.x)}
-            cy={yScale(selectedPoint.y)}
-            r={3}
-            fill="#2B6CB0"
-          />
+          <path d={pathData} fill="#d0e0fc" opacity={0.8} strokeWidth={1} />
         </>
       );
     });
@@ -808,6 +780,20 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
           }}
         >
           {selectedTrials && selectedRowPositions && drawConnectionLine()}
+          {selectedTrials &&
+            selectedTrials.map((trialId, i) => {
+              const selectedPoint = data.find((d) => d.id === trialId);
+
+              return (
+                <circle
+                  key={`circle-${i}`}
+                  cx={xScale(selectedPoint.x)}
+                  cy={yScale(selectedPoint.y)}
+                  r={3}
+                  fill="#2B6CB0"
+                />
+              );
+            })}
         </svg>
       </Box>
       <Box
