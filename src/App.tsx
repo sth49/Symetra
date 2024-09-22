@@ -21,11 +21,19 @@ function App() {
   const [selectedTrials, setSelectedTrials] = useState([]);
   const [selectedRowPositions, setSelectedRowPositions] = useState([]);
   const [isTableScrolling, setIsTableScrolling] = useState(false);
+  const [lastViewIndex, setLastViewIndex] = useState(0);
+  const [hoveredRowPosition, setHoveredRowPosition] = useState(null);
 
-  const handleSelectTrial = (trialIds, positions, isScrolling) => {
+  const handleSelectTrial = (trialIds, positions, isScrolling, index) => {
     setSelectedTrials(trialIds);
     setSelectedRowPositions(positions);
     setIsTableScrolling(isScrolling);
+    setLastViewIndex(index);
+  };
+
+  const handleHoverRow = (position) => {
+    console.log("hovered row position", position);
+    setHoveredRowPosition(position);
   };
 
   useEffect(() => {
@@ -99,7 +107,10 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"70%"} bg="white" m={0.5}>
-                      <FastDataTable onSelectTrial={handleSelectTrial} />
+                      <FastDataTable
+                        onSelectTrial={handleSelectTrial}
+                        onHoverTrial={handleHoverRow}
+                      />
                     </Box>
                     <Box height={"30%"} bg="white" m={0.5} mb={1}>
                       <GroupView />
@@ -116,6 +127,8 @@ function App() {
                         selectedTrials={selectedTrials}
                         selectedRowPositions={selectedRowPositions}
                         isTableScrolling={isTableScrolling}
+                        lastViewIndex={lastViewIndex}
+                        hoveredRowPosition={hoveredRowPosition}
                       />
                     </Box>
                   </Box>

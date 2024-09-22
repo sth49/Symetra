@@ -24,12 +24,18 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
+import { debounce } from "lodash";
+import { throttle } from "lodash";
 
 interface FastDataTableProps {
   onSelectTrial: any;
+  onHoverTrial: any;
 }
 
-const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
+const FastDataTable: React.FC<FastDataTableProps> = ({
+  onSelectTrial,
+  onHoverTrial,
+}) => {
   const { exp, hyperparams, setGroups, groups } = useCustomStore();
   const [sortedData, setSortedData] = useState([]);
   const [sortConfig, setSortConfig] = useState({
@@ -39,36 +45,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
   const rowRefs = useRef({});
   const [isScrolling, setIsScrolling] = useState(false);
   let scrollTimer = null;
-  const [lastSelectedTrialId, setLastSelectedTrialId] = useState(null);
-
-  // const handleRowClick = useCallback(
-  //   (trialId, index) => {
-  //     const rowElement = rowRefs.current[index];
-  //     if (rowElement) {
-  //       const rect = rowElement.getBoundingClientRect();
-  //       const tableContainer = rowElement.closest(".virtual-table");
-  //       const tableRect = tableContainer
-  //         ? tableContainer.getBoundingClientRect()
-  //         : { top: 0, left: 0 };
-
-  //       console.log("Row position:", rect); // 디버깅: 행 위치 로깅
-  //       console.log("Table position:", tableRect); // 디버깅: 테이블 위치 로깅
-  //       onSelectTrial(
-  //         trialId,
-  //         {
-  //           top: rect.bottom,
-  //           left: rect.left,
-  //           height: rect.height,
-  //           width: rect.width,
-  //         },
-  //         isScrolling
-  //       );
-  //     } else {
-  //       console.warn("Row element not found for index:", index); // 디버깅: 행 요소를 찾지 못한 경우
-  //     }
-  //   },
-  //   [onSelectTrial, isScrolling]
-  // );
+  const scrollTimerRef = useRef(null);
 
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
@@ -212,49 +189,66 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
   //   }
   // };
 
-  const handleRowClick = useCallback(
-    (trialId, index) => {
-      setLastSelectedTrialId(trialId);
-      const rowElement = rowRefs.current[index];
-      if (rowElement) {
-        const rect = rowElement.getBoundingClientRect();
-        onSelectTrial(
-          trialId,
-          {
-            top: rect.bottom,
-            left: rect.left,
-            height: rect.height,
-            width: rect.width,
-          },
-          isScrolling
-        );
-      } else {
-        console.warn("Row element not found for index:", index);
-      }
-    },
-    [onSelectTrial, isScrolling]
-  );
   const updateSelectedTrials = useCallback(
     (newSelectedRows: Set<string>) => {
       const selectedTrialArray = Array.from(newSelectedRows);
+      const tableContainer = document.querySelector(".virtual-table");
+      const tableContainer2 = document.querySelector(".scroll-container");
+      const tableRect = tableContainer.getBoundingClientRect();
+      const tableRect2 = tableContainer2.getBoundingClientRect();
+
       const positions = selectedTrialArray
         .map((trialId) => {
           const index = sortedData.findIndex((item) => item.id === trialId);
           const rowElement = rowRefs.current[index];
           if (rowElement) {
             const rect = rowElement.getBoundingClientRect();
+            // console.log("Row position:", rect.top); // 디버깅: 행 위치 로깅
+            // console.log("table position:", tableRect.top);
+            let top = rect.bottom;
+
+            if (rect.bottom < tableRect.top - 15) {
+              top = tableRect.top - 15;
+            } else if (rect.bottom > tableRect2.bottom) {
+              top = tableRect.bottom;
+            }
+
             return {
-              top: rect.bottom,
+              trialId: trialId,
+              top: top,
               left: rect.left,
               height: rect.height,
               width: rect.width,
+              order: index,
             };
           }
-          return null;
+          return {
+            trialId: trialId,
+            top: null,
+            left: null,
+            height: null,
+            width: null,
+            order: index,
+          };
         })
         .filter((position) => position !== null);
+      // Calculate lastViewIndex
+      let lastViewIndex = -1;
+      let minDistance = Infinity;
 
-      onSelectTrial(selectedTrialArray, positions);
+      sortedData.forEach((item, index) => {
+        const rowElement = rowRefs.current[index];
+        if (rowElement) {
+          const rect = rowElement.getBoundingClientRect();
+          const distance = Math.abs(rect.top - tableRect2.bottom);
+          if (distance < minDistance) {
+            minDistance = distance;
+            lastViewIndex = index;
+          }
+        }
+      });
+
+      onSelectTrial(selectedTrialArray, positions, isScrolling, lastViewIndex);
     },
     [sortedData, onSelectTrial]
   );
@@ -266,7 +260,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
         const trialId = sortedData[index].id;
 
         if (shiftKey && lastSelectedIndex !== null) {
-          console.log("shiftKey");
+          // console.log("shiftKey");
           const start = Math.min(lastSelectedIndex, index);
           const end = Math.max(lastSelectedIndex, index);
           for (let i = start; i <= end; i++) {
@@ -274,11 +268,11 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
           }
           setIsMultiSelect(true);
         } else if (isMultiSelect) {
-          console.log("isMultiSelect");
+          // console.log("isMultiSelect");
           newSelectedRows.clear();
           setIsMultiSelect(false);
         } else {
-          console.log("else");
+          // console.log("else");
           if (newSelectedRows.has(trialId)) {
             newSelectedRows.delete(trialId);
           } else {
@@ -291,60 +285,54 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
         return newSelectedRows;
       });
     },
-    [sortedData, lastSelectedIndex, updateSelectedTrials, isMultiSelect]
+    [sortedData, lastSelectedIndex, isMultiSelect]
   );
 
-  // const toggleRowSelection = (index, shiftKey) => {
-  //   if (shiftKey && lastSelectedIndex !== null) {
-  //     const start = Math.min(lastSelectedIndex, index);
-  //     const end = Math.max(lastSelectedIndex, index);
-  //     const newSelectedRows = new Set(selectedRows);
-  //     for (let i = start; i <= end; i++) {
-  //       newSelectedRows.add(
-  //         sortedData[i].id // Use the actual trial ID
-  //       );
-  //     }
-  //     setSelectedRows(newSelectedRows);
-  //     setIsMultiSelect(true);
-  //   } else if (isMultiSelect) {
-  //     setSelectedRows(new Set());
-  //     setIsMultiSelect(false);
-  //   } else {
-  //     const newSelectedRows = new Set(selectedRows);
-  //     if (
-  //       newSelectedRows.has(
-  //         sortedData[index].id // Use the actual trial ID
-  //       )
-  //     ) {
-  //       newSelectedRows.delete(
-  //         sortedData[index].id // Use the actual trial ID
-  //       );
-  //     } else {
-  //       newSelectedRows.add(
-  //         sortedData[index].id // Use the actual trial ID
-  //       );
-  //     }
-  //     setSelectedRows(newSelectedRows);
-  //   }
-  //   setLastSelectedIndex(index);
-  //   const positions = [];
-  //   selectedRows.forEach((id) => {
-  //     const index = sortedData.findIndex((item) => item.id === id);
-  //     if (index !== -1) {
-  //       const rowElement = rowRefs.current[index];
-  //       if (rowElement) {
-  //         const rect = rowElement.getBoundingClientRect();
-  //         positions.push({
-  //           top: rect.bottom,
-  //           left: rect.left,
-  //           height: rect.height,
-  //           width: rect.width,
-  //         });
+  // const handleHoveredRow = useMemo(
+  //   () =>
+  //     throttle((index: number) => {
+  //       if (index !== -1) {
+  //         const rowElement = rowRefs.current[index];
+  //         if (rowElement) {
+  //           const rect = rowElement.getBoundingClientRect();
+  //           const position = {
+  //             trialId: sortedData[index].id,
+  //             top: rect.bottom,
+  //             left: rect.left,
+  //             height: rect.height,
+  //             width: rect.width,
+  //             order: index,
+  //           };
+  //           onHoverTrial(position);
+  //         }
+  //       } else {
+  //         onHoverTrial(null);
   //       }
-  //     }
-  //   });
-  //   onSelectTrial(selectedRows, positions, isScrolling);
-  // };
+  //     }, 100), // 약 60fps에 해당하는 시간 간격
+  //   [onHoverTrial, sortedData, rowRefs]
+  // );
+  const handleHoveredRow = useCallback(
+    debounce((index: number) => {
+      if (index !== -1) {
+        const rowElement = rowRefs.current[index];
+        if (rowElement) {
+          const rect = rowElement.getBoundingClientRect();
+          const position = {
+            trialId: sortedData[index].id,
+            top: rect.bottom,
+            left: rect.left,
+            height: rect.height,
+            width: rect.width,
+            order: index,
+          };
+          onHoverTrial(position);
+        }
+      } else {
+        onHoverTrial(null);
+      }
+    }, 90),
+    [onHoverTrial, sortedData]
+  );
 
   const Row = useCallback(
     ({ index, style }) => {
@@ -357,15 +345,10 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
           style={{
             ...style,
             display: "flex",
-            // backgroundColor: isSelected
-            //   ? "#d0e0fc"
-            //   : // : isHovered
-            //     // ? "#f0f0f0"
-            //     "white",
             width: totalWidth,
           }}
-          // onMouseEnter={() => setHoveredRow(item.id)}
-          // onMouseLeave={() => setHoveredRow(null)}
+          onMouseEnter={() => handleHoveredRow(index)}
+          onMouseLeave={() => handleHoveredRow(-1)}
           ref={(el) => (rowRefs.current[index] = el)}
           onClick={(e) => {
             // handleRowClick(item.id, index);
@@ -610,24 +593,36 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
     },
     [columnGroup, columns, totalWidth, selectedRows]
   );
-  const handleScroll = (scrollOffset) => {
-    setIsScrolling(true);
-    onSelectTrial(lastSelectedTrialId, null, true);
 
-    cancelAnimationFrame(scrollTimer);
-    scrollTimer = requestAnimationFrame(() => {
+  const handleScroll = useCallback(() => {
+    if (!isScrolling) {
+      setIsScrolling(true);
+      // console.log("Scrolling started");
+      onSelectTrial(null, null, true, 0);
+    }
+
+    // Clear any existing timer
+    if (scrollTimerRef.current) {
+      clearTimeout(scrollTimerRef.current);
+    }
+
+    // Set a new timer
+    scrollTimerRef.current = setTimeout(() => {
       setIsScrolling(false);
-      if (lastSelectedTrialId !== null) {
-        const index = sortedData.findIndex(
-          (item) => item.id === lastSelectedTrialId
-        );
-        if (index !== -1) {
-          // handleRowClick(lastSelectedTrialId, index);
-          updateSelectedTrials(selectedRows);
-        }
+      // console.log("Scrolling ended");
+      updateSelectedTrials(selectedRows);
+    }, 50); // Adjust this delay as needed
+  }, [isScrolling, selectedRows, onSelectTrial]);
+
+  // Clean up the timer on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
       }
-    });
-  };
+    };
+  }, []);
+
   return (
     <div style={{ height: "100%", width: "100%", position: "relative" }}>
       <Box
@@ -669,7 +664,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
               padding: "0 4px",
             }}
             ref={scrollContainerRef}
-            // onScroll={handleScroll}
+            className={"scroll-container"}
           >
             <div style={{ width: totalWidth }}>
               <div
@@ -803,9 +798,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                     width={totalWidth}
                     itemData={sortedData}
                     style={{ overflowX: "hidden" }}
-                    onScroll={({ scrollOffset }) => {
-                      handleScroll(scrollOffset);
-                    }}
+                    onScroll={handleScroll}
                   >
                     {Row}
                   </List>
