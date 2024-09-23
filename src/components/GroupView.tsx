@@ -299,8 +299,8 @@ const GroupView = () => {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
-        <Heading as="h5" size="sm" color="gray.400" p={2}>
-          Groups
+        <Heading as="h5" size="sm" color="gray.600" p={2}>
+          Group View
         </Heading>
         <Box
           display={"flex"}

@@ -48,7 +48,6 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
   const [isPreference, setIsPreference] = useState(false);
-  const [startXOffset, setStartXOffset] = useState<number>(0);
   const oneDecimalFormat = format(".1f");
   const data = useMemo(
     () =>
@@ -68,7 +67,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({
     width: 1000,
-    height: 900,
+    height: 800,
   });
 
   const [isLassoActive, setIsLassoActive] = useState(false);
@@ -82,7 +81,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   const [selected, setSelected] = useState("");
 
   // console.log(clickedHparam);
-  const margin = { top: 20, right: 30, bottom: 80, left: 40 };
+  const margin = { top: 15, right: 10, bottom: 110, left: 20 };
 
   const legendWidth = 100;
   const legendHeight = 100;
@@ -296,7 +295,10 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
         const selectedTrial = selectedRowPosition.trialId;
         if (flag === "start" && selectedRowPosition.top !== null) {
           flag = "middle";
-        } else if (flag === "middle" && selectedRowPosition.top === null) {
+        } else if (
+          (flag === "middle" && selectedRowPosition.top === null) ||
+          (flag === "start" && selectedRowPosition.order > lastViewIndex)
+        ) {
           flag = "end";
         }
 
@@ -321,9 +323,9 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
             ? tableRect.top - 15
             : flag === "middle"
             ? selectedRowPosition.top
-            : flag === "end"
+            : flag === "end" && lastViewIndex !== selectedRowPosition.order
             ? tableRect2.bottom
-            : 0;
+            : selectedRowPosition.top;
         const svgStartY =
           (top - svgRect.top + tableContainer.scrollTop) * scaleY +
           viewBox.y -
@@ -349,7 +351,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
         C ${
           (svgStartX +
             curveStrength * curveDirection +
-            100 * Math.min(0.4, Math.abs(slope))) *
+            10 * Math.min(0.4, Math.abs(slope))) *
           curveDirection
         } ${svgStartY}, 
           ${svgMidX1} ${svgMidY1}, 
@@ -360,7 +362,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
             -(
               svgEndX -
               curveStrength * curveDirection +
-              100 * Math.min(0.4, Math.abs(slope))
+              10 * Math.min(0.4, Math.abs(slope))
             ) * curveDirection
           } ${svgEndY}, 
           ${svgEndX} ${svgEndY}
@@ -428,7 +430,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
         C ${
           (svgStartX +
             curveStrength * curveDirection +
-            100 * Math.min(0.4, Math.abs(slope))) *
+            10 * Math.min(0.4, Math.abs(slope))) *
           curveDirection
         } ${svgStartY}, 
           ${svgMidX1} ${svgMidY1}, 
@@ -439,7 +441,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
             -(
               svgEndX -
               curveStrength * curveDirection +
-              100 * Math.min(0.4, Math.abs(slope))
+              10 * Math.min(0.4, Math.abs(slope))
             ) * curveDirection
           } ${svgEndY}, 
           ${svgEndX} ${svgEndY}
@@ -531,175 +533,328 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
           </FormControl>
         </Box>
       </Box>
-      {/* <Box
-        visibility={isPreference ? "visible" : "hidden"}
+      <Box
         display={"flex"}
-        width={"100%"}
-        justifyContent={"right"}
-        alignItems={"center"}
+        flexDirection={"column"}
+        overflowY={"hidden"}
+        height="calc(100% - 40px)"
       >
-        <FormControl
-          display="flex"
-          justifyContent="right"
-          alignItems="center"
-          width={"200px"}
-        >
-          <FormLabel mb={0} mr={1}>
-            <Text fontSize="xs" color="gray.600">
-              N Neighbors
-            </Text>
-          </FormLabel>
-          <Select
-            onChange={(e) => setNNeighbors(Number(e.target.value))}
-            value={nNeighbors}
-            size={"xs"}
-            width={"50%"}
+        {isPreference && (
+          <Box
+            // visibility={isPreference ? "visible" : "hidden"}
+            display={"flex"}
+            width={"100%"}
+            justifyContent={"right"}
+            alignItems={"center"}
           >
-            {[
-              ...new Set(
-                exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
-              ),
-            ]
-              .sort((a, b) => a - b)
-              .map((n_neighbor) => (
-                <option key={n_neighbor} value={n_neighbor}>
-                  {n_neighbor}
-                </option>
-              ))}
-          </Select>
-        </FormControl>
-        <FormControl
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          width={"200px"}
-        >
-          <FormLabel mb={0} mr={1}>
-            <Text fontSize="xs" color="gray.600">
-              Min Dist
-            </Text>
-          </FormLabel>
-          <Select
-            onChange={(e) => setMinDist(Number(e.target.value))}
-            value={minDist}
-            size={"xs"}
-            width={"50%"}
+            <FormControl
+              display="flex"
+              justifyContent="right"
+              alignItems="center"
+              width={"200px"}
+            >
+              <FormLabel mb={0} mr={1}>
+                <Text fontSize="xs" color="gray.600">
+                  N Neighbors
+                </Text>
+              </FormLabel>
+              <Select
+                onChange={(e) => setNNeighbors(Number(e.target.value))}
+                value={nNeighbors}
+                size={"xs"}
+                width={"50%"}
+              >
+                {[
+                  ...new Set(
+                    exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
+                  ),
+                ]
+                  .sort((a, b) => a - b)
+                  .map((n_neighbor) => (
+                    <option key={n_neighbor} value={n_neighbor}>
+                      {n_neighbor}
+                    </option>
+                  ))}
+              </Select>
+            </FormControl>
+            <FormControl
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              width={"200px"}
+            >
+              <FormLabel mb={0} mr={1}>
+                <Text fontSize="xs" color="gray.600">
+                  Min Dist
+                </Text>
+              </FormLabel>
+              <Select
+                onChange={(e) => setMinDist(Number(e.target.value))}
+                value={minDist}
+                size={"xs"}
+                width={"50%"}
+              >
+                {[
+                  ...new Set(
+                    exp.trials[0].umapPositions.map((pos) => pos.min_dist)
+                  ),
+                ]
+                  .sort((a, b) => a - b)
+                  .map((min_dist) => (
+                    <option key={min_dist} value={min_dist}>
+                      {min_dist}
+                    </option>
+                  ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
+
+        <Box bg={"white"} width={"100%"} position={"relative"}>
+          <svg
+            ref={svgRef}
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
+            preserveAspectRatio="xMidYMid meet"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
           >
-            {[
-              ...new Set(
-                exp.trials[0].umapPositions.map((pos) => pos.min_dist)
-              ),
-            ]
-              .sort((a, b) => a - b)
-              .map((min_dist) => (
-                <option key={min_dist} value={min_dist}>
-                  {min_dist}
-                </option>
-              ))}
-          </Select>
-        </FormControl>
-      </Box> */}
-
-      <Box bg={"white"} height="calc(100% - 40px)" position={"relative"}>
-        <svg
-          ref={svgRef}
-          width="100%"
-          height="100%"
-          // viewBox={`0 0 ${width} ${height}`}
-          viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
-          preserveAspectRatio="xMidYMid meet"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-        >
-          {visible && (
-            <g>
-              {densityData.map((density, i) => (
-                <path
-                  key={`contour-${i}`}
-                  d={d3.geoPath()(density)}
-                  fill={colorScale(i)}
-                  opacity={0.2}
-                  stroke="black"
-                />
-              ))}
-            </g>
-          )}
-
-          {data.map((d, i) => (
-            <circle
-              key={`circle-${i}`}
-              cx={xScale(d.x)}
-              cy={yScale(d.y)}
-              r={3}
-              fill={
-                selectedPoints.has(d.id)
-                  ? "#FC8181"
-                  : !isLassoActive && hoveredGroup.has(d.id)
-                  ? "#F6E05E"
-                  : !isLassoActive && hoveredGroup.size > 0
-                  ? "#CBD5E0"
-                  : selected === "metric"
-                  ? colorScale(metricScale(d.metric))
-                  : selected !== "" && exp?.hyperparams
-                  ? exp?.hyperparams
-                      .find((hp) => hp.name === selected)
-                      ?.getColor(i)
-                  : // : selectedTrials.includes(d.id)
-                    // ? "#2B6CB0"
-                    "#ffffff"
-              }
-              stroke={
-                selectedPoints.has(d.id)
-                  ? "#E53E3E"
-                  : !isLassoActive && hoveredGroup.has(d.id)
-                  ? "#D69E2E"
-                  : !isLassoActive && hoveredGroup.size > 0
-                  ? "#718096"
-                  : "#2D3748"
-              }
-            />
-          ))}
-          {/* {selectedTrials && selectedRowPositions && drawConnectionLine()} */}
-
-          {isLassoActive && tempLassoPoints.length > 0 && (
-            <path
-              d={`M ${tempLassoPoints
-                .map((p) => `${p.x},${p.y}`)
-                .join(" L ")} Z`}
-              fill="none"
-              stroke="#2B6CB0"
-              strokeWidth="2"
-              pointerEvents="none"
-            />
-          )}
-          {visible ||
-            (selected === "metric" && (
+            {visible && (
               <g>
-                {thresholdRanges.map((range, i) => (
-                  <React.Fragment key={`legend-${i}`}>
-                    <rect
-                      x={10}
-                      y={i * (legendHeight / numThresholds) + legendMargin.top}
-                      width={legendWidth / 5}
-                      height={legendHeight / numThresholds}
-                      fill={colorScale(i)}
-                      opacity={0.3}
-                    />
-                    <text
-                      x={legendWidth / 5 + 15}
-                      y={
-                        (i + 0.5) * (legendHeight / numThresholds) +
-                        legendMargin.top
-                      }
-                      fontSize="12"
-                      textAnchor="start"
-                      dominantBaseline="middle"
-                    >
-                      {`${range[0]} - ${range[1]}`}
-                    </text>
-                  </React.Fragment>
+                {densityData.map((density, i) => (
+                  <path
+                    key={`contour-${i}`}
+                    d={d3.geoPath()(density)}
+                    fill={colorScale(i)}
+                    opacity={0.2}
+                    stroke="black"
+                  />
                 ))}
+              </g>
+            )}
+
+            {data.map((d, i) => (
+              <circle
+                key={`circle-${i}`}
+                cx={xScale(d.x)}
+                cy={yScale(d.y)}
+                r={3}
+                fill={
+                  selectedPoints.has(d.id)
+                    ? "#FC8181"
+                    : !isLassoActive && hoveredGroup.has(d.id)
+                    ? "#F6E05E"
+                    : !isLassoActive && hoveredGroup.size > 0
+                    ? "#CBD5E0"
+                    : selected === "metric"
+                    ? colorScale(metricScale(d.metric))
+                    : selected !== "" && exp?.hyperparams
+                    ? exp?.hyperparams
+                        .find((hp) => hp.name === selected)
+                        ?.getColor(i)
+                    : // : selectedTrials.includes(d.id)
+                      // ? "#2B6CB0"
+                      "#ffffff"
+                }
+                stroke={
+                  selectedPoints.has(d.id)
+                    ? "#E53E3E"
+                    : !isLassoActive && hoveredGroup.has(d.id)
+                    ? "#D69E2E"
+                    : !isLassoActive && hoveredGroup.size > 0
+                    ? "#718096"
+                    : "#2D3748"
+                }
+              />
+            ))}
+            {/* {selectedTrials && selectedRowPositions && drawConnectionLine()} */}
+
+            {isLassoActive && tempLassoPoints.length > 0 && (
+              <path
+                d={`M ${tempLassoPoints
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" L ")} Z`}
+                fill="none"
+                stroke="#2B6CB0"
+                strokeWidth="2"
+                pointerEvents="none"
+              />
+            )}
+            {visible ||
+              (selected === "metric" && (
+                <g>
+                  {thresholdRanges.map((range, i) => (
+                    <React.Fragment key={`legend-${i}`}>
+                      <rect
+                        x={10}
+                        y={
+                          i * (legendHeight / numThresholds) + legendMargin.top
+                        }
+                        width={legendWidth / 5}
+                        height={legendHeight / numThresholds}
+                        fill={colorScale(i)}
+                        opacity={0.3}
+                      />
+                      <text
+                        x={legendWidth / 5 + 15}
+                        y={
+                          (i + 0.5) * (legendHeight / numThresholds) +
+                          legendMargin.top
+                        }
+                        fontSize="12"
+                        textAnchor="start"
+                        dominantBaseline="middle"
+                      >
+                        {`${range[0]} - ${range[1]}`}
+                      </text>
+                    </React.Fragment>
+                  ))}
+                  <text
+                    x={10}
+                    y={10}
+                    fontSize="14"
+                    textAnchor="start"
+                    fontWeight="bold"
+                  >
+                    Metric Range
+                  </text>
+                </g>
+              ))}
+
+            {selected !== "metric" && selected !== "" && (
+              <g>
+                {hyperparams
+                  .find((hp) => hp.name === selected)
+                  ?.scale.domain()
+                  .map((val, i) => (
+                    <React.Fragment key={`legend-${i}`}>
+                      {hyperparams.find((hp) => hp.name === selected) instanceof
+                        NominalHyperparam ||
+                      hyperparams.find((hp) => hp.name === selected) instanceof
+                        BinaryHyperparam ? (
+                        <>
+                          <rect
+                            x={10}
+                            y={
+                              i *
+                                (legendHeight /
+                                  hyperparams
+                                    .find((hp) => hp.name === selected)
+                                    ?.scale.domain().length) +
+                              legendMargin.top
+                            }
+                            width={legendWidth / 5}
+                            stroke={
+                              hyperparams.find(
+                                (hp) => hp.name === selected
+                              ) instanceof BinaryHyperparam && "gray"
+                            }
+                            height={
+                              legendHeight /
+                              hyperparams
+                                .find((hp) => hp.name === selected)
+                                ?.scale.domain().length
+                            }
+                            fill={hyperparams
+                              .find((hp) => hp.name === selected)
+                              ?.scale(val)}
+                            opacity={0.3}
+                          />
+                          <text
+                            x={legendWidth / 5 + 15}
+                            y={
+                              (i + 0.5) *
+                                (legendHeight /
+                                  hyperparams
+                                    .find((hp) => hp.name === selected)
+                                    ?.scale.domain().length) +
+                              legendMargin.top
+                            }
+                            fontSize="12"
+                            textAnchor="start"
+                            dominantBaseline="middle"
+                          >
+                            {val === true
+                              ? "True"
+                              : val === false
+                              ? "False"
+                              : val}
+                          </text>
+                        </>
+                      ) : hyperparams.find(
+                          (hp) => hp.name === selected
+                        ) instanceof ContinuousHyperparam ? (
+                        <g>
+                          {(() => {
+                            const hp = hyperparams.find(
+                              (hp) => hp.name === selected
+                            ) as ContinuousHyperparam;
+                            const domain = hp.scale.domain();
+                            const linearScale = d3
+                              .scaleLinear()
+                              .domain(domain)
+                              .range([0, 1]);
+
+                            return (
+                              <>
+                                <defs>
+                                  <linearGradient
+                                    id="numerical-gradient"
+                                    x1="0%"
+                                    y1="0%"
+                                    x2="100%"
+                                    y2="0%"
+                                  >
+                                    <stop
+                                      offset="0%"
+                                      stopColor={hp.scale(domain[0])}
+                                    />
+                                    <stop
+                                      offset="100%"
+                                      stopColor={hp.scale(domain[1])}
+                                    />
+                                  </linearGradient>
+                                </defs>
+                                <rect
+                                  x={10}
+                                  y={legendMargin.top}
+                                  width={legendWidth}
+                                  height={20}
+                                  fill="url(#numerical-gradient)"
+                                />
+                                {[0, 0.5, 1].map((t, i) => {
+                                  const value = linearScale.invert(t);
+                                  return (
+                                    <g key={`legend-numerical-${i}`}>
+                                      <line
+                                        x1={10 + t * legendWidth}
+                                        y1={legendMargin.top + 20}
+                                        x2={10 + t * legendWidth}
+                                        y2={legendMargin.top + 25}
+                                        stroke="black"
+                                      />
+                                      <text
+                                        x={10 + t * legendWidth}
+                                        y={legendMargin.top + 40}
+                                        fontSize="12"
+                                        textAnchor="middle"
+                                      >
+                                        {oneDecimalFormat(value)}
+                                      </text>
+                                    </g>
+                                  );
+                                })}
+                              </>
+                            );
+                          })()}
+                        </g>
+                      ) : (
+                        <>"asdf"</>
+                      )}
+                    </React.Fragment>
+                  ))}
                 <text
                   x={10}
                   y={10}
@@ -707,196 +862,53 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                   textAnchor="start"
                   fontWeight="bold"
                 >
-                  Metric Range
+                  {selected}
                 </text>
+                <g />
               </g>
-            ))}
+            )}
+          </svg>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              pointerEvents: "none",
+            }}
+          >
+            {selectedTrials && selectedRowPositions && drawConnectionLine()}
+            {selectedTrials &&
+              selectedTrials.map((trialId, i) => {
+                const selectedPoint = data.find((d) => d.id === trialId);
 
-          {selected !== "metric" && selected !== "" && (
-            <g>
-              {hyperparams
-                .find((hp) => hp.name === selected)
-                ?.scale.domain()
-                .map((val, i) => (
-                  <React.Fragment key={`legend-${i}`}>
-                    {hyperparams.find((hp) => hp.name === selected) instanceof
-                      NominalHyperparam ||
-                    hyperparams.find((hp) => hp.name === selected) instanceof
-                      BinaryHyperparam ? (
-                      <>
-                        <rect
-                          x={10}
-                          y={
-                            i *
-                              (legendHeight /
-                                hyperparams
-                                  .find((hp) => hp.name === selected)
-                                  ?.scale.domain().length) +
-                            legendMargin.top
-                          }
-                          width={legendWidth / 5}
-                          stroke={
-                            hyperparams.find(
-                              (hp) => hp.name === selected
-                            ) instanceof BinaryHyperparam && "gray"
-                          }
-                          height={
-                            legendHeight /
-                            hyperparams
-                              .find((hp) => hp.name === selected)
-                              ?.scale.domain().length
-                          }
-                          fill={hyperparams
-                            .find((hp) => hp.name === selected)
-                            ?.scale(val)}
-                          opacity={0.3}
-                        />
-                        <text
-                          x={legendWidth / 5 + 15}
-                          y={
-                            (i + 0.5) *
-                              (legendHeight /
-                                hyperparams
-                                  .find((hp) => hp.name === selected)
-                                  ?.scale.domain().length) +
-                            legendMargin.top
-                          }
-                          fontSize="12"
-                          textAnchor="start"
-                          dominantBaseline="middle"
-                        >
-                          {val === true
-                            ? "True"
-                            : val === false
-                            ? "False"
-                            : val}
-                        </text>
-                      </>
-                    ) : hyperparams.find(
-                        (hp) => hp.name === selected
-                      ) instanceof ContinuousHyperparam ? (
-                      <g>
-                        {(() => {
-                          const hp = hyperparams.find(
-                            (hp) => hp.name === selected
-                          ) as ContinuousHyperparam;
-                          const domain = hp.scale.domain();
-                          const linearScale = d3
-                            .scaleLinear()
-                            .domain(domain)
-                            .range([0, 1]);
-
-                          return (
-                            <>
-                              <defs>
-                                <linearGradient
-                                  id="numerical-gradient"
-                                  x1="0%"
-                                  y1="0%"
-                                  x2="100%"
-                                  y2="0%"
-                                >
-                                  <stop
-                                    offset="0%"
-                                    stopColor={hp.scale(domain[0])}
-                                  />
-                                  <stop
-                                    offset="100%"
-                                    stopColor={hp.scale(domain[1])}
-                                  />
-                                </linearGradient>
-                              </defs>
-                              <rect
-                                x={10}
-                                y={legendMargin.top}
-                                width={legendWidth}
-                                height={20}
-                                fill="url(#numerical-gradient)"
-                              />
-                              {[0, 0.5, 1].map((t, i) => {
-                                const value = linearScale.invert(t);
-                                return (
-                                  <g key={`legend-numerical-${i}`}>
-                                    <line
-                                      x1={10 + t * legendWidth}
-                                      y1={legendMargin.top + 20}
-                                      x2={10 + t * legendWidth}
-                                      y2={legendMargin.top + 25}
-                                      stroke="black"
-                                    />
-                                    <text
-                                      x={10 + t * legendWidth}
-                                      y={legendMargin.top + 40}
-                                      fontSize="12"
-                                      textAnchor="middle"
-                                    >
-                                      {oneDecimalFormat(value)}
-                                    </text>
-                                  </g>
-                                );
-                              })}
-                            </>
-                          );
-                        })()}
-                      </g>
-                    ) : (
-                      <>"asdf"</>
-                    )}
-                  </React.Fragment>
-                ))}
-              <text
-                x={10}
-                y={10}
-                fontSize="14"
-                textAnchor="start"
-                fontWeight="bold"
-              >
-                {selected}
-              </text>
-              <g />
-            </g>
-          )}
-        </svg>
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            pointerEvents: "none",
-          }}
-        >
-          {selectedTrials && selectedRowPositions && drawConnectionLine()}
-          {selectedTrials &&
-            selectedTrials.map((trialId, i) => {
-              const selectedPoint = data.find((d) => d.id === trialId);
-
-              return (
-                <circle
-                  key={`circle-${i}`}
-                  cx={xScale(selectedPoint.x)}
-                  cy={yScale(selectedPoint.y)}
-                  r={3}
-                  fill="#2B6CB0"
-                />
-              );
-            })}
-        </svg>
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            pointerEvents: "none",
-          }}
-        >
-          {hoveredRowPosition && drawConnectionLine2()}
-        </svg>
+                return (
+                  <circle
+                    key={`circle-${i}`}
+                    cx={xScale(selectedPoint.x)}
+                    cy={yScale(selectedPoint.y)}
+                    r={3}
+                    fill="#2B6CB0"
+                  />
+                );
+              })}
+          </svg>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              pointerEvents: "none",
+            }}
+          >
+            {hoveredRowPosition && drawConnectionLine2()}
+          </svg>
+        </Box>
       </Box>
       <Box
         position="absolute"

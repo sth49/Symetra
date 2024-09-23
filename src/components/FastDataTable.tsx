@@ -15,7 +15,6 @@ import {
   FormLabel,
   Heading,
   Icon,
-  IconButton,
   Switch,
   Text,
 } from "@chakra-ui/react";
@@ -25,7 +24,6 @@ import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
 import { debounce } from "lodash";
-import { throttle } from "lodash";
 
 interface FastDataTableProps {
   onSelectTrial: any;
@@ -44,7 +42,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
   });
   const rowRefs = useRef({});
   const [isScrolling, setIsScrolling] = useState(false);
-  let scrollTimer = null;
   const scrollTimerRef = useRef(null);
 
   const [selectedRows, setSelectedRows] = useState(new Set());
@@ -82,7 +79,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
             }}
           />
         ),
-        width: 40,
+        width: 30,
         visibility: true,
         type: "checkbox",
         hp: null,
@@ -92,7 +89,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
       {
         key: "id",
         label: "ID",
-        width: 30,
+        width: 40,
         visibility: true,
         type: "string",
         hp: null,
@@ -203,10 +200,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
           const rowElement = rowRefs.current[index];
           if (rowElement) {
             const rect = rowElement.getBoundingClientRect();
-            // console.log("Row position:", rect.top); // 디버깅: 행 위치 로깅
-            // console.log("table position:", tableRect.top);
             let top = rect.bottom;
-
             if (rect.bottom < tableRect.top - 15) {
               top = tableRect.top - 15;
             } else if (rect.bottom > tableRect2.bottom) {
@@ -372,6 +366,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
                   display: "flex",
                   justifyContent:
                     column.key === "metric" ||
+                    column.key === "id" ||
                     column.type === HyperparamTypes.Continuous ||
                     column.type === HyperparamTypes.Ordinal
                       ? "right"
@@ -797,7 +792,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
                     itemSize={15} // Adjust based on your row height
                     width={totalWidth}
                     itemData={sortedData}
-                    style={{ overflowX: "hidden" }}
+                    style={{ overflowX: "hidden", paddingBottom: "55px" }}
                     onScroll={handleScroll}
                   >
                     {Row}
@@ -813,7 +808,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
         bg="white"
         boxShadow="lg"
         borderRadius="md"
-        // top="95%"
         bottom={"0px"}
         left="50%"
         width={"50%"}

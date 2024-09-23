@@ -27,8 +27,8 @@ const Overview = () => {
       display={"flex"}
       justifyContent={"space-between"}
       alignItems={"center"}
-      pr={2}
-      pl={2}
+      // pr={1}
+      // pl={1}
     >
       {/* <Heading as="h5" size="sm" color={"blackAlpha.600"} padding={4}>
         Dataset
