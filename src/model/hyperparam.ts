@@ -84,7 +84,7 @@ export class Hyperparam {
   getEffect(): number {
     // shapValues 배열의 절대값의 합 계산
     const effect = this.shapValues.reduce(
-      (acc, currentValue) => acc + Math.abs(currentValue),
+      (acc, currentValue) => acc + currentValue,
       0
     );
     if (isNaN(effect)) {
@@ -139,7 +139,6 @@ export class ContinuousHyperparam extends Hyperparam {
   }
 
   getEffectsByValue() {
-    let bins = 5; // 구간 수
     let effectsByValue: { [key: string]: number[] } = {}; // 각 구간별 영향력 저장
     const isInt = this.valueType === "int";
 
@@ -148,12 +147,12 @@ export class ContinuousHyperparam extends Hyperparam {
     let max = Math.max(...this.values);
 
     // 구간 범위 계산
-    let step = (max - min) / bins;
-    let range = Array.from({ length: bins }, (_, i) => min + i * step);
+    let step = (max - min) / this.binCount;
+    let range = Array.from({ length: this.binCount }, (_, i) => min + i * step);
     range.push(max);
 
     // 각 구간별 영향력 저장
-    for (let i = 0; i < bins; i++) {
+    for (let i = 0; i < this.binCount; i++) {
       let start = range[i];
       let end = range[i + 1];
       effectsByValue[start] = [];

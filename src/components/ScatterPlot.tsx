@@ -267,7 +267,12 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   const drawConnectionLine = useCallback(() => {
     // console.log("is controlling?", isTableScrolling);
 
-    if (!selectedTrials || !selectedRowPositions.length || !svgRef.current) {
+    if (
+      !selectedTrials ||
+      !selectedRowPositions.length ||
+      !svgRef.current ||
+      lastViewIndex === -1
+    ) {
       return null;
     }
     let flag =
@@ -375,11 +380,11 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   }, [
     selectedTrials,
     selectedRowPositions,
+    lastViewIndex,
     data,
     xScale,
     yScale,
-    svgPosition,
-    // isTableScrolling,
+    margin.left,
   ]);
 
   // const drawConnectionLine2 = useCallback(() => {

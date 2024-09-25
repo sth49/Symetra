@@ -478,7 +478,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
   const handleScroll = useCallback(() => {
     if (!isScrolling) {
       setIsScrolling(true);
-      onSelectTrial([], [], 0);
+      onSelectTrial([], [], -1);
     }
 
     // Clear any existing timer
@@ -491,7 +491,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
       setIsScrolling(false);
       updateSelectedTrials(selectedRows);
     }, 50); // Adjust this delay as needed
-  }, [isScrolling, selectedRows, onSelectTrial]);
+  }, [isScrolling, onSelectTrial, updateSelectedTrials, selectedRows]);
 
   // Clean up the timer on unmount
   useEffect(() => {
@@ -671,6 +671,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                   </List>
                 ) : (
                   <List
+                    overscanCount={30}
                     height={visible ? height - 95 : height - 80} // Subtracting header height
                     itemCount={sortedData.length}
                     itemSize={15} // Adjust based on your row height
