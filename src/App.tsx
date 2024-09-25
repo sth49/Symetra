@@ -17,7 +17,7 @@ import theme from "./theme";
 import { ChakraProvider } from "@chakra-ui/react";
 function App() {
   // const [exp, setExp] = useState<Experiment | null>(null);
-  const { exp, setExp, setHyperparams } = useCustomStore();
+  const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
   const [selectedTrials, setSelectedTrials] = useState([]);
   const [selectedRowPositions, setSelectedRowPositions] = useState([]);
   const [isTableScrolling, setIsTableScrolling] = useState(false);
@@ -38,10 +38,21 @@ function App() {
 
   useEffect(() => {
     async function loadExperiment() {
+      if (exp !== null) {
+        return;
+      }
       try {
         // 가정: Experiment.fromJson은 비동기 함수로 데이터를 처리한다.
         const experiment = await Experiment.fromJson(configData, trialData);
         setExp(experiment);
+        if (groups.getLength() === 0) {
+          groups.addGroup(experiment?.trials); // 전체 데이터를 그룹에 추가
+          const topGroup = experiment?.trials
+            .sort((a, b) => b.metric - a.metric)
+            .slice(0, experiment.trials.length * 0.1);
+          groups.addGroup(topGroup); // 상위 10% 데이터를 그룹에 추가
+          setGroups(groups);
+        }
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);

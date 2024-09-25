@@ -16,6 +16,7 @@ import { memo } from "react";
 import { DefaultNode, Graph } from "@visx/network";
 import { performStatisticalTest } from "../model/statistic";
 import * as d3 from "d3";
+import { formatting } from "../model/utils";
 export type NetworkProps = {
   width: number;
   height: number;
@@ -133,6 +134,7 @@ const GroupView = () => {
         id: group.id,
         x: 20 + i * 65,
         y: 45,
+        length: group.getLength(),
       }),
       [groups.getLength(), hyperparams]
     );
@@ -272,7 +274,7 @@ const GroupView = () => {
           textAnchor="middle"
           fontSize={12}
         >
-          {node.id}
+          {formatting(node.length)}
         </text>
       </g>
     ),

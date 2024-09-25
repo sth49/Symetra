@@ -297,7 +297,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
           flag = "middle";
         } else if (
           (flag === "middle" && selectedRowPosition.top === null) ||
-          (flag === "start" && selectedRowPosition.order > lastViewIndex)
+          selectedRowPosition.order >= lastViewIndex
         ) {
           flag = "end";
         }
@@ -323,7 +323,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
             ? tableRect.top - 15
             : flag === "middle"
             ? selectedRowPosition.top
-            : flag === "end" && lastViewIndex !== selectedRowPosition.order
+            : flag === "end"
             ? tableRect2.bottom
             : selectedRowPosition.top;
         const svgStartY =

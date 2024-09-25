@@ -27,6 +27,10 @@ export class Groups {
 export class Group {
   constructor(public id: number, public trials: Trial[]) {}
 
+  getLength() {
+    return this.trials.length;
+  }
+
   getCoverages() {
     const coverages = this.trials.map((trial) => trial.metric);
     return coverages;
