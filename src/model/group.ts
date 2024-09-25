@@ -35,14 +35,14 @@ export class Group {
     const coverages = this.trials.map((trial) => trial.metric);
     return coverages;
   }
-  getBranches() {
-    const branches = this.trials.map((trial) =>
-      Object.values(trial.branch).map((b, index) =>
-        b === 1 ? index + 1 : null
-      )
-    );
-    return branches.map((branch) => branch.filter((b) => b !== null)).flat();
-  }
+  // getBranches() {
+  //   const branches = this.trials.map((trial) =>
+  //     Object.values(trial.branch).map((b, index) =>
+  //       b === 1 ? index + 1 : null
+  //     )
+  //   );
+  //   return branches.map((branch) => branch.filter((b) => b !== null)).flat();
+  // }
 
   getHyperparam(hyperparam: string) {
     return this.trials.map((trial) => trial.params[hyperparam]);
@@ -53,9 +53,9 @@ export class Group {
       return Math.max(...this.trials.map((trial) => trial.metric));
     }
     return parseFloat(
-      Math.max(...this.trials.map((trial) => trial.params[hyperparam])).toFixed(
-        2
-      )
+      Math.max(
+        ...this.trials.map((trial) => Number(trial.params[hyperparam]))
+      ).toFixed(2)
     );
   }
   getHparamMin(hyperparam: string) {
@@ -63,9 +63,9 @@ export class Group {
       return Math.min(...this.trials.map((trial) => trial.metric));
     }
     return parseFloat(
-      Math.min(...this.trials.map((trial) => trial.params[hyperparam])).toFixed(
-        2
-      )
+      Math.min(
+        ...this.trials.map((trial) => Number(trial.params[hyperparam]))
+      ).toFixed(2)
     );
   }
   getHparamMean(hyperparam: string) {
@@ -79,8 +79,10 @@ export class Group {
     }
     return parseFloat(
       (
-        this.trials.reduce((acc, trial) => acc + trial.params[hyperparam], 0) /
-        this.trials.length
+        this.trials.reduce(
+          (acc, trial) => acc + Number(trial.params[hyperparam]),
+          0
+        ) / this.trials.length
       ).toFixed(2)
     );
   }

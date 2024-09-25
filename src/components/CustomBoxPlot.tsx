@@ -206,7 +206,7 @@ const CustomBoxPlot = ({
     });
     const colorScale = scaleOrdinal({
       domain: keys.map((_, i) => i),
-      range: schemeCategory10,
+      range: [...schemeCategory10],
     });
     return (
       <Tooltip

@@ -30,18 +30,15 @@ import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
 interface ScatterPlotProps {
-  selectedTrials: any[];
+  selectedTrials: number[];
   selectedRowPositions: any[];
-  isTableScrolling: boolean;
   lastViewIndex: number;
-  hoveredRowPosition: any;
 }
 const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   selectedTrials,
   selectedRowPositions,
-  isTableScrolling,
+  // isTableScrolling,
   lastViewIndex,
-  hoveredRowPosition,
 }) => {
   const { exp, hyperparams, groups, setGroups, hoveredGroup } =
     useCustomStore();
@@ -382,79 +379,79 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
     xScale,
     yScale,
     svgPosition,
-    isTableScrolling,
+    // isTableScrolling,
   ]);
 
-  const drawConnectionLine2 = useCallback(() => {
-    if (!hoveredRowPosition || !svgRef.current) return null;
+  // const drawConnectionLine2 = useCallback(() => {
+  //   if (!hoveredRowPosition || !svgRef.current) return null;
 
-    const tableContainer = document.querySelector(".virtual-table");
+  //   const tableContainer = document.querySelector(".virtual-table");
 
-    const hoveredTrial = hoveredRowPosition.trialId;
+  //   const hoveredTrial = hoveredRowPosition.trialId;
 
-    const hoveredPoint = data.find((d) => d.id === hoveredTrial);
-    if (!hoveredPoint) {
-      return null;
-    }
-    const svgRect = svgRef.current.getBoundingClientRect();
-    const viewBox = svgRef.current.viewBox.baseVal;
-    const svgMidX1 = xScale(hoveredPoint.x);
-    const svgMidY1 = yScale(hoveredPoint.y) - 2;
+  //   const hoveredPoint = data.find((d) => d.id === hoveredTrial);
+  //   if (!hoveredPoint) {
+  //     return null;
+  //   }
+  //   const svgRect = svgRef.current.getBoundingClientRect();
+  //   const viewBox = svgRef.current.viewBox.baseVal;
+  //   const svgMidX1 = xScale(hoveredPoint.x);
+  //   const svgMidY1 = yScale(hoveredPoint.y) - 2;
 
-    const svgMidX2 = xScale(hoveredPoint.x);
-    const svgMidY2 = yScale(hoveredPoint.y) + 2;
+  //   const svgMidX2 = xScale(hoveredPoint.x);
+  //   const svgMidY2 = yScale(hoveredPoint.y) + 2;
 
-    const scaleY = viewBox.height / svgRect.height;
+  //   const scaleY = viewBox.height / svgRect.height;
 
-    const svgStartX = -margin.left;
+  //   const svgStartX = -margin.left;
 
-    const top = hoveredRowPosition.top;
-    const svgStartY =
-      (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y - 15;
-    const svgEndX = -margin.left;
-    const svgEndY =
-      (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
+  //   const top = hoveredRowPosition.top;
+  //   const svgStartY =
+  //     (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y - 15;
+  //   const svgEndX = -margin.left;
+  //   const svgEndY =
+  //     (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
 
-    const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
+  //   const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
-    const baseCurveStrength = 200;
-    const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
-    const curveStrength =
-      baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
+  //   const baseCurveStrength = 200;
+  //   const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
+  //   const curveStrength =
+  //     baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
 
-    // Determine the direction of the curve
-    const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
+  //   // Determine the direction of the curve
+  //   const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
 
-    const pathData = `
-        M ${svgStartX} ${svgStartY}
-        C ${
-          (svgStartX +
-            curveStrength * curveDirection +
-            10 * Math.min(0.4, Math.abs(slope))) *
-          curveDirection
-        } ${svgStartY}, 
-          ${svgMidX1} ${svgMidY1}, 
-          ${svgMidX1} ${svgMidY1}
-        L ${svgMidX2} ${svgMidY2}
-        C ${svgMidX2} ${svgMidY2}, 
-          ${
-            -(
-              svgEndX -
-              curveStrength * curveDirection +
-              10 * Math.min(0.4, Math.abs(slope))
-            ) * curveDirection
-          } ${svgEndY}, 
-          ${svgEndX} ${svgEndY}
-        Z
-      `;
+  //   const pathData = `
+  //       M ${svgStartX} ${svgStartY}
+  //       C ${
+  //         (svgStartX +
+  //           curveStrength * curveDirection +
+  //           10 * Math.min(0.4, Math.abs(slope))) *
+  //         curveDirection
+  //       } ${svgStartY},
+  //         ${svgMidX1} ${svgMidY1},
+  //         ${svgMidX1} ${svgMidY1}
+  //       L ${svgMidX2} ${svgMidY2}
+  //       C ${svgMidX2} ${svgMidY2},
+  //         ${
+  //           -(
+  //             svgEndX -
+  //             curveStrength * curveDirection +
+  //             10 * Math.min(0.4, Math.abs(slope))
+  //           ) * curveDirection
+  //         } ${svgEndY},
+  //         ${svgEndX} ${svgEndY}
+  //       Z
+  //     `;
 
-    return (
-      <>
-        <path d={pathData} fill="#f0f0f0" opacity={0.8} strokeWidth={1} />
-        <circle cx={svgMidX1} cy={svgMidY1} r={3} fill={"red"} />
-      </>
-    );
-  }, [hoveredRowPosition, data, xScale, yScale, svgPosition, isTableScrolling]);
+  //   return (
+  //     <>
+  //       <path d={pathData} fill="#f0f0f0" opacity={0.8} strokeWidth={1} />
+  //       <circle cx={svgMidX1} cy={svgMidY1} r={3} fill={"red"} />
+  //     </>
+  //   );
+  // }, [hoveredRowPosition, data, xScale, yScale, svgPosition, isTableScrolling]);
 
   return (
     <Box height={"100%"} position={"relative"} ref={containerRef}>
@@ -895,19 +892,6 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                 );
               })}
           </svg>
-          <svg
-            width="100%"
-            height="100%"
-            viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              pointerEvents: "none",
-            }}
-          >
-            {hoveredRowPosition && drawConnectionLine2()}
-          </svg>
         </Box>
       </Box>
       <Box
@@ -915,7 +899,6 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
         bg="white"
         boxShadow="lg"
         borderRadius="md"
-        // top="95%"
         bottom={"0px"}
         left="50%"
         width={"50%"}

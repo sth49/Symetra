@@ -1,18 +1,10 @@
 import * as d3 from "d3";
 import { schemeCategory10 } from "d3";
 
-import {
-  scaleLinear,
-  scaleOrdinal,
-  scaleThreshold,
-  scaleQuantile,
-} from "@visx/scale";
 import { MdCategory } from "react-icons/md";
 import { RxComponentBoolean } from "react-icons/rx";
-import { MdOutlineLeaderboard } from "react-icons/md";
 import { MdOutlineHdrStrong } from "react-icons/md";
 import { HiHashtag } from "react-icons/hi";
-import { MdTimeline } from "react-icons/md";
 
 export enum HyperparamTypes {
   Continuous,
@@ -271,7 +263,7 @@ export class BinaryHyperparam extends CategoricalHyperparam {
         "rgba(0, 0, 0, 0.2)",
         "rgba(0, 0, 0, 0.5)",
       ]) // Add the missing type arguments
-      .domain([true, false]);
+      .domain(["true", "false"]);
   }
   getColor(index: number): string | undefined {
     return this.scale(this.values[index]);

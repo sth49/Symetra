@@ -1,39 +1,26 @@
-import React, { useState, useEffect, ReactNode, useRef } from "react";
-import trialData from "./data/ParaSuit";
-import configData from "./data/config";
+import { useState, useEffect } from "react";
+import trialData from "./data/ParaSuit_without_branch.json";
+import configData from "./data/config.json";
 import { Experiment } from "./model/experiment";
-import { Icon } from "@chakra-ui/react";
-import { AiFillRocket } from "react-icons/ai";
 import "./App.css";
-import { Box, Button, Heading } from "@chakra-ui/react";
+import { Box, ChakraProvider } from "@chakra-ui/react";
 import Overview from "./components/Overview";
 import ScatterContourPlot from "./components/ScatterPlot";
 import { useCustomStore } from "./store";
 import FastDataTable from "./components/FastDataTable";
 import GroupView from "./components/GroupView";
 import FastEffectTable from "./components/FastEffectTable";
-import { RiFlowChart } from "react-icons/ri";
 import theme from "./theme";
-import { ChakraProvider } from "@chakra-ui/react";
 function App() {
-  // const [exp, setExp] = useState<Experiment | null>(null);
   const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
   const [selectedTrials, setSelectedTrials] = useState([]);
   const [selectedRowPositions, setSelectedRowPositions] = useState([]);
-  const [isTableScrolling, setIsTableScrolling] = useState(false);
   const [lastViewIndex, setLastViewIndex] = useState(0);
-  const [hoveredRowPosition, setHoveredRowPosition] = useState(null);
 
-  const handleSelectTrial = (trialIds, positions, isScrolling, index) => {
+  const handleSelectTrial = (trialIds: number[], positions: never[], index) => {
     setSelectedTrials(trialIds);
     setSelectedRowPositions(positions);
-    setIsTableScrolling(isScrolling);
     setLastViewIndex(index);
-  };
-
-  const handleHoverRow = (position) => {
-    console.log("hovered row position", position);
-    setHoveredRowPosition(position);
   };
 
   useEffect(() => {
@@ -42,7 +29,6 @@ function App() {
         return;
       }
       try {
-        // 가정: Experiment.fromJson은 비동기 함수로 데이터를 처리한다.
         const experiment = await Experiment.fromJson(configData, trialData);
         setExp(experiment);
         if (groups.getLength() === 0) {
@@ -68,7 +54,6 @@ function App() {
 
   return (
     <ChakraProvider theme={theme}>
-      {/* <AppContent /> */}
       <Box bg="gray.100" h={"100vh"} w={"100vw"}>
         <Box display={"flex"} justifyContent={"space-between"}>
           <Box
@@ -118,10 +103,7 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"70%"} bg="white" m={0.5}>
-                      <FastDataTable
-                        onSelectTrial={handleSelectTrial}
-                        onHoverTrial={handleHoverRow}
-                      />
+                      <FastDataTable onSelectTrial={handleSelectTrial} />
                     </Box>
                     <Box height={"30%"} bg="white" m={0.5} mb={1}>
                       <GroupView />
@@ -137,9 +119,7 @@ function App() {
                       <ScatterContourPlot
                         selectedTrials={selectedTrials}
                         selectedRowPositions={selectedRowPositions}
-                        isTableScrolling={isTableScrolling}
                         lastViewIndex={lastViewIndex}
-                        hoveredRowPosition={hoveredRowPosition}
                       />
                     </Box>
                   </Box>

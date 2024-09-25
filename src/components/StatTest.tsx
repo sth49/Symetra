@@ -40,7 +40,7 @@ const StatTest: React.FC<StatTestProps> = ({
     metricResult = performStatisticalTest(
       group1.getCoverages(),
       group2.getCoverages(),
-      HyperparamTypes.Numerical,
+      HyperparamTypes.Continuous,
       exp.metric
     );
     hparamResults = hyperparams.map((param) =>
@@ -62,7 +62,7 @@ const StatTest: React.FC<StatTestProps> = ({
     metricResult = performStatisticalTest(
       group1.getCoverages(),
       group2.getCoverages(),
-      HyperparamTypes.Numerical,
+      HyperparamTypes.Continuous,
       exp.metric
     );
     hparamResults = hyperparams.map((param) =>
@@ -185,7 +185,7 @@ const StatTest: React.FC<StatTestProps> = ({
                 </Tr>
                 {hparamResults
                   .filter(
-                    (result) => result.param.type === HyperparamTypes.Numerical
+                    (result) => result.param.type === HyperparamTypes.Continuous
                   )
                   .sort((a, b) => a.pValue - b.pValue)
                   .map((result, index) => (
@@ -271,7 +271,7 @@ const StatTest: React.FC<StatTestProps> = ({
               <Tbody>
                 {hparamResults
                   .filter(
-                    (result) => result.param.type === HyperparamTypes.Boolean
+                    (result) => result.param.type === HyperparamTypes.Binary
                   )
                   .sort((a, b) => a.pValue - b.pValue)
                   .map((result, index) => (
@@ -312,7 +312,8 @@ const StatTest: React.FC<StatTestProps> = ({
                 {hparamResults
                   .filter(
                     (result) =>
-                      result.param.type === HyperparamTypes.Categorical
+                      result.param.type === HyperparamTypes.Nominal ||
+                      result.param.type === HyperparamTypes.Ordinal
                   )
                   .sort((a, b) => a.pValue - b.pValue)
                   .map((result, index) => (

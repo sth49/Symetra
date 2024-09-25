@@ -15,7 +15,7 @@ export class Experiment {
     public metric: Metric // public featureOrder: string[]
   ) {}
 
-  static fromJson(configJson: ConfigJson, trialJson: TrialJson[]) {
+  static fromJson(configJson: ConfigJson, trialJson: any[]) {
     const hyperparams = [] as Hyperparam[];
     configJson["hyperparameters"].map((column: HyperparamJson) => {
       hyperparams.push(Hyperparam.fromJson(column, trialJson));
@@ -23,10 +23,8 @@ export class Experiment {
     const trials = [] as Trial[];
 
     trialJson.map((trial: TrialJson) => {
-      // console.log("trial", trial);
       trials.push(Trial.fromJson(trial));
     });
-    // console.log("trials", trials);
 
     // column 이름 추출
     return new Experiment(

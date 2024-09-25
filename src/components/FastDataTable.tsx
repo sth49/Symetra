@@ -23,17 +23,12 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
-import { debounce } from "lodash";
 
 interface FastDataTableProps {
   onSelectTrial: any;
-  onHoverTrial: any;
 }
 
-const FastDataTable: React.FC<FastDataTableProps> = ({
-  onSelectTrial,
-  onHoverTrial,
-}) => {
+const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
   const { exp, hyperparams, setGroups, groups } = useCustomStore();
   const [sortedData, setSortedData] = useState([]);
   const [sortConfig, setSortConfig] = useState({
@@ -154,45 +149,13 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
     }));
   }, []);
 
-  // const groupByColumn = (columnKey) => {
-  //   if (columnGroup && columnGroup.key === columnKey) {
-  //     setColumnGroup(null);
-  //     return;
-  //   }
-
-  //   if (columnKey === "metric") {
-  //     return;
-  //   }
-
-  //   const hp = hyperparams.find((hp) => hp.name === columnKey);
-
-  //   if (hp.type === HyperparamTypes.Numerical) {
-  //     return;
-  //   } else if (
-  //     hp.type === HyperparamTypes.Categorical ||
-  //     hp.type === HyperparamTypes.Boolean
-  //   ) {
-  //     const unqiueValues = hp.value;
-  //     console.log("unqiueValues", unqiueValues);
-
-  //     setColumnGroup({
-  //       key: columnKey,
-  //       values: unqiueValues,
-  //       groups: unqiueValues.map((value) => ({
-  //         key: value,
-  //         trials: data.filter((trial) => trial[columnKey] === value),
-  //       })),
-  //     });
-  //   }
-  // };
-
   const updateSelectedTrials = useCallback(
     (newSelectedRows: Set<string>) => {
       const selectedTrialArray = Array.from(newSelectedRows);
       const tableContainer = document.querySelector(".virtual-table");
       const tableContainer2 = document.querySelector(".scroll-container");
-      const tableRect = tableContainer.getBoundingClientRect();
-      const tableRect2 = tableContainer2.getBoundingClientRect();
+      const tableRect = tableContainer?.getBoundingClientRect();
+      const tableRect2 = tableContainer2?.getBoundingClientRect();
 
       const positions = selectedTrialArray
         .map((trialId) => {
@@ -237,12 +200,12 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
           const distance = Math.abs(rect.top - tableRect2.bottom);
           if (distance < minDistance) {
             minDistance = distance;
-            lastViewIndex = index;
+            lastViewIndex = index - 1;
           }
         }
       });
 
-      onSelectTrial(selectedTrialArray, positions, isScrolling, lastViewIndex);
+      onSelectTrial(selectedTrialArray, positions, lastViewIndex);
     },
     [sortedData, onSelectTrial]
   );
@@ -254,7 +217,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
         const trialId = sortedData[index].id;
 
         if (shiftKey && lastSelectedIndex !== null) {
-          // console.log("shiftKey");
           const start = Math.min(lastSelectedIndex, index);
           const end = Math.max(lastSelectedIndex, index);
           for (let i = start; i <= end; i++) {
@@ -262,7 +224,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
           }
           setIsMultiSelect(true);
         } else if (isMultiSelect) {
-          // console.log("isMultiSelect");
           newSelectedRows.clear();
           setIsMultiSelect(false);
         } else {
@@ -282,52 +243,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
     [sortedData, lastSelectedIndex, isMultiSelect]
   );
 
-  // const handleHoveredRow = useMemo(
-  //   () =>
-  //     throttle((index: number) => {
-  //       if (index !== -1) {
-  //         const rowElement = rowRefs.current[index];
-  //         if (rowElement) {
-  //           const rect = rowElement.getBoundingClientRect();
-  //           const position = {
-  //             trialId: sortedData[index].id,
-  //             top: rect.bottom,
-  //             left: rect.left,
-  //             height: rect.height,
-  //             width: rect.width,
-  //             order: index,
-  //           };
-  //           onHoverTrial(position);
-  //         }
-  //       } else {
-  //         onHoverTrial(null);
-  //       }
-  //     }, 100), // 약 60fps에 해당하는 시간 간격
-  //   [onHoverTrial, sortedData, rowRefs]
-  // );
-  const handleHoveredRow = useCallback(
-    debounce((index: number) => {
-      if (index !== -1) {
-        const rowElement = rowRefs.current[index];
-        if (rowElement) {
-          const rect = rowElement.getBoundingClientRect();
-          const position = {
-            trialId: sortedData[index].id,
-            top: rect.bottom,
-            left: rect.left,
-            height: rect.height,
-            width: rect.width,
-            order: index,
-          };
-          onHoverTrial(position);
-        }
-      } else {
-        onHoverTrial(null);
-      }
-    }, 90),
-    [onHoverTrial, sortedData]
-  );
-
   const Row = useCallback(
     ({ index, style }) => {
       const item = sortedData[index];
@@ -341,11 +256,8 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
             display: "flex",
             width: totalWidth,
           }}
-          onMouseEnter={() => handleHoveredRow(index)}
-          onMouseLeave={() => handleHoveredRow(-1)}
           ref={(el) => (rowRefs.current[index] = el)}
           onClick={(e) => {
-            // handleRowClick(item.id, index);
             toggleRowSelection(index, e.shiftKey);
           }}
         >
@@ -379,34 +291,10 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => {
-                      // handleRowClick(item.id, index);
                       toggleRowSelection(index, e.nativeEvent.shiftKey);
                     }}
                   />
-                ) : // column.type === HyperparamTypes.Binary ? (
-                //   <div
-                //     style={{
-                //       width: "10px",
-                //       height: "10px",
-                //       backgroundColor: item[column.key] ? "gray" : "white",
-                //       border: "1px solid gray",
-                //       display: "inline-block",
-                //       userSelect: "none",
-                //     }}
-                //   />
-                // ) : column.type === HyperparamTypes.Nominal ||
-                //   column.type === HyperparamTypes.Ordinal ? (
-                //   <div
-                //     style={{
-                //       width: "10px",
-                //       height: "10px",
-                //       backgroundColor: column.hp.getColor(index),
-                //       display: "inline-block",
-                //       userSelect: "none",
-                //     }}
-                //   />
-                // ) :
-                column.key === "metric" || column.key === "id" ? (
+                ) : column.key === "metric" || column.key === "id" ? (
                   <Text fontSize={"xs"} userSelect="none">
                     {formatting(item[column.key], "int")}
                   </Text>
@@ -435,7 +323,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
   const GroupRow = useCallback(
     ({ index, style }) => {
       const item = columnGroup?.groups[index];
-      // const isHovered = hoveredRow === item.key.toString();
       const isSelected = selectedRows.has(item.key.toString());
 
       return (
@@ -451,8 +338,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
             transition: "background-color 0.3s",
             width: totalWidth,
           }}
-          // onMouseEnter={() => setHoveredRow(item.key.toString())}
-          // onMouseLeave={() => setHoveredRow(null)}
           onClick={(e) => toggleRowSelection(index, e.shiftKey)}
         >
           {columns.map((column) => {
@@ -554,7 +439,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
                       toggleRowSelection(index, e.nativeEvent.shiftKey)
                     }
                   />
-                ) : column.type === HyperparamTypes.Boolean ? (
+                ) : column.type === HyperparamTypes.Binary ? (
                   <div
                     style={{
                       width: "10px",
@@ -565,7 +450,8 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
                       userSelect: "none",
                     }}
                   />
-                ) : column.type === HyperparamTypes.Categorical ? (
+                ) : column.type === HyperparamTypes.Nominal ||
+                  column.type === HyperparamTypes.Ordinal ? (
                   <div
                     style={{
                       width: "10px",
@@ -575,7 +461,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
                       userSelect: "none",
                     }}
                   />
-                ) : column.type === HyperparamTypes.Numerical ? (
+                ) : column.type === HyperparamTypes.Continuous ? (
                   <div style={{ userSelect: "none" }}>"numerical"</div>
                 ) : (
                   <div style={{ userSelect: "none" }}>{"columns"}</div>
@@ -592,8 +478,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
   const handleScroll = useCallback(() => {
     if (!isScrolling) {
       setIsScrolling(true);
-      // console.log("Scrolling started");
-      onSelectTrial(null, null, true, 0);
+      onSelectTrial([], [], 0);
     }
 
     // Clear any existing timer
@@ -604,7 +489,6 @@ const FastDataTable: React.FC<FastDataTableProps> = ({
     // Set a new timer
     scrollTimerRef.current = setTimeout(() => {
       setIsScrolling(false);
-      // console.log("Scrolling ended");
       updateSelectedTrials(selectedRows);
     }, 50); // Adjust this delay as needed
   }, [isScrolling, selectedRows, onSelectTrial]);
