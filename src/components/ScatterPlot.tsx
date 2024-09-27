@@ -37,7 +37,6 @@ interface ScatterPlotProps {
 const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
   selectedTrials,
   selectedRowPositions,
-  // isTableScrolling,
   lastViewIndex,
 }) => {
   const { exp, hyperparams, groups, setGroups, hoveredGroup } =
@@ -571,10 +570,13 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                     exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
                   ),
                 ]
-                  .sort((a, b) => a - b)
+                  .sort((a, b) => (a as number) - (b as number))
                   .map((n_neighbor) => (
-                    <option key={n_neighbor} value={n_neighbor}>
-                      {n_neighbor}
+                    <option
+                      key={n_neighbor as number}
+                      value={n_neighbor as number}
+                    >
+                      {n_neighbor as number}
                     </option>
                   ))}
               </Select>
@@ -601,10 +603,10 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                     exp.trials[0].umapPositions.map((pos) => pos.min_dist)
                   ),
                 ]
-                  .sort((a, b) => a - b)
+                  .sort((a, b) => (a as number) - (b as number))
                   .map((min_dist) => (
-                    <option key={min_dist} value={min_dist}>
-                      {min_dist}
+                    <option key={min_dist as number} value={min_dist as number}>
+                      {min_dist as number}
                     </option>
                   ))}
               </Select>
@@ -658,7 +660,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                         ?.getColor(i)
                     : // : selectedTrials.includes(d.id)
                       // ? "#2B6CB0"
-                      "#ffffff"
+                      "#CBD5E0"
                 }
                 stroke={
                   selectedPoints.has(d.id)
@@ -667,7 +669,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
                     ? "#D69E2E"
                     : !isLassoActive && hoveredGroup.size > 0
                     ? "#718096"
-                    : "#2D3748"
+                    : "#718096"
                 }
               />
             ))}

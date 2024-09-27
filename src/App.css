@@ -29,7 +29,45 @@ body {
 }
 
 /* SVG 스타일 */
+.node-group {
+  cursor: pointer;
+}
+
 .node {
+  fill: #faf089;
+  transition: fill 0.3s ease;
+}
+
+.node-group:hover .node,
+.node-group.selected .node {
+  fill: #ecc94b;
+}
+
+.node-group.selected .node {
+  fill: #3182ce;
+}
+
+.node-text {
+  fill: black;
+  transition: fill 0.3s ease;
+  pointer-events: none;
+}
+
+.node-group:hover .node-text,
+.node-group.selected .node-text {
+  fill: white;
+}
+
+.link {
+  fill: none;
+  stroke: #faf089;
+  transition: stroke 0.3s ease;
+}
+
+.link:hover {
+  stroke: #ecc94b;
+}
+/* .node {
   fill: #faf089;
   transition: fill 0.3s ease;
 }
@@ -60,4 +98,16 @@ body {
 
 .link:hover {
   stroke: #ecc94b;
+} */
+
+.expanded-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+}
+
+.expanded-content.show {
+  max-height: 1000px; /* Adjust this value based on your maximum expected height */
+  opacity: 1;
 }

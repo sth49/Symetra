@@ -11,6 +11,7 @@ import FastDataTable from "./components/FastDataTable";
 import GroupView from "./components/GroupView";
 import FastEffectTable from "./components/FastEffectTable";
 import theme from "./theme";
+import AnalysisView from "./components/AnalysisView";
 function App() {
   const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
   const [selectedTrials, setSelectedTrials] = useState([]);
@@ -80,7 +81,7 @@ function App() {
             <>
               <Box width="320px" height="calc(100vh - 44px)">
                 <Box
-                  height="calc(100vh - 44px - 8px)"
+                  height="calc(100vh - 44px - 6px)"
                   bg="white"
                   m={1}
                   mr={0.5}
@@ -105,13 +106,13 @@ function App() {
                     <Box height={"70%"} bg="white" m={0.5}>
                       <FastDataTable onSelectTrial={handleSelectTrial} />
                     </Box>
-                    <Box height={"30%"} bg="white" m={0.5} mb={1}>
+                    <Box height={"29%"} bg="white" m={0.5} mb={1}>
                       <GroupView />
                     </Box>
                   </Box>
                   <Box
                     width="50%"
-                    height="calc(100vh - 44px - 8px)"
+                    height="calc(100vh - 44px)"
                     display="flex"
                     flexDirection="column"
                   >
@@ -121,6 +122,9 @@ function App() {
                         selectedRowPositions={selectedRowPositions}
                         lastViewIndex={lastViewIndex}
                       />
+                    </Box>
+                    <Box height={"29%"} bg="white" m={0.5} mr={1} mb={1}>
+                      <AnalysisView />
                     </Box>
                   </Box>
                 </Box>

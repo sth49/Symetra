@@ -23,10 +23,92 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { formatting } from "../model/utils";
-
+import * as d3 from "d3";
 interface FastDataTableProps {
   onSelectTrial: any;
 }
+interface D3ScrollbarProps {
+  containerHeight: number;
+  contentHeight: number;
+  scrollOffset: number;
+  onScroll: ({ scrollOffset }: { scrollOffset: number }) => void;
+}
+
+const D3Scrollbar: React.FC<D3ScrollbarProps> = React.memo(
+  ({ containerHeight, contentHeight, scrollOffset, onScroll }) => {
+    const scrollbarRef = useRef(null);
+    const scrollbarHeight = useMemo(
+      () => (containerHeight / contentHeight) * containerHeight,
+      [containerHeight, contentHeight]
+    );
+    const maxScrollOffset = contentHeight - containerHeight;
+
+    useEffect(() => {
+      if (!scrollbarRef.current) return;
+
+      const svg = d3.select(scrollbarRef.current);
+      svg.selectAll("*").remove(); // Clear previous content
+
+      const scrollbar = svg
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 8)
+        .attr("height", scrollbarHeight)
+        .attr("rx", 4)
+        .attr("ry", 4)
+        .style("fill", "#c0c0c0");
+
+      const dragBehavior = d3.drag().on("drag", (event) => {
+        const newY = Math.max(
+          0,
+          Math.min(containerHeight - scrollbarHeight, event.y)
+        );
+        const newScrollOffset =
+          (newY / (containerHeight - scrollbarHeight)) * maxScrollOffset;
+        onScroll({ scrollOffset: newScrollOffset });
+      });
+
+      scrollbar.call(dragBehavior);
+
+      // Update scrollbar position
+      const updateScrollbar = () => {
+        const scrollbarTop =
+          (scrollOffset / maxScrollOffset) *
+          (containerHeight - scrollbarHeight);
+        scrollbar.attr("y", scrollbarTop);
+      };
+
+      updateScrollbar();
+
+      return () => {
+        scrollbar.on(".drag", null); // Remove drag behavior
+      };
+    }, [
+      containerHeight,
+      contentHeight,
+      scrollbarHeight,
+      maxScrollOffset,
+      onScroll,
+      scrollOffset,
+    ]);
+
+    return (
+      <svg
+        ref={scrollbarRef}
+        width={8}
+        height={containerHeight}
+        style={{
+          position: "absolute",
+          right: 0,
+          top: 0,
+          backgroundColor: "#f0f0f0",
+          borderRadius: "4px",
+        }}
+      />
+    );
+  }
+);
 
 const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
   const { exp, hyperparams, setGroups, groups } = useCustomStore();
@@ -70,6 +152,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                 setSelectedRows(new Set(data.map((item) => item.id)));
               } else {
                 setSelectedRows(new Set());
+                updateSelectedTrials(new Set());
               }
             }}
           />
@@ -151,6 +234,9 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
 
   const updateSelectedTrials = useCallback(
     (newSelectedRows: Set<string>) => {
+      // if (newSelectedRows.size === 0) {
+      //   return;
+      // }
       const selectedTrialArray = Array.from(newSelectedRows);
       const tableContainer = document.querySelector(".virtual-table");
       const tableContainer2 = document.querySelector(".scroll-container");
@@ -236,7 +322,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
         }
 
         setLastSelectedIndex(index);
-        updateSelectedTrials(newSelectedRows);
+        updateSelectedTrials(newSelectedRows as Set<string>);
         return newSelectedRows;
       });
     },
@@ -291,7 +377,10 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => {
-                      toggleRowSelection(index, e.nativeEvent.shiftKey);
+                      toggleRowSelection(
+                        index,
+                        (e.nativeEvent as MouseEvent).shiftKey
+                      );
                     }}
                   />
                 ) : column.key === "metric" || column.key === "id" ? (
@@ -382,10 +471,13 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                       type="checkbox"
                       checked={isSelected}
                       onChange={(e) =>
-                        toggleRowSelection(index, e.nativeEvent.shiftKey)
+                        toggleRowSelection(
+                          index,
+                          (e.nativeEvent as MouseEvent).shiftKey
+                        )
                       }
                     />
-                  ) : column.type === HyperparamTypes.Boolean ? (
+                  ) : column.type === HyperparamTypes.Binary ? (
                     <div
                       style={{
                         width: "10px",
@@ -398,7 +490,8 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                         userSelect: "none",
                       }}
                     />
-                  ) : column.type === HyperparamTypes.Categorical ? (
+                  ) : column.type === HyperparamTypes.Nominal ||
+                    column.type === HyperparamTypes.Ordinal ? (
                     <div
                       style={{
                         width: "10px",
@@ -408,7 +501,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                         userSelect: "none",
                       }}
                     />
-                  ) : column.type === HyperparamTypes.Numerical ? (
+                  ) : column.type === HyperparamTypes.Continuous ? (
                     <div style={{ userSelect: "none" }}>"numerical"</div>
                   ) : (
                     <div style={{ userSelect: "none" }}>{"columns"}</div>
@@ -436,7 +529,10 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) =>
-                      toggleRowSelection(index, e.nativeEvent.shiftKey)
+                      toggleRowSelection(
+                        index,
+                        (e.nativeEvent as MouseEvent).shiftKey
+                      )
                     }
                   />
                 ) : column.type === HyperparamTypes.Binary ? (
@@ -475,6 +571,36 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
     [columnGroup, columns, totalWidth, selectedRows]
   );
 
+  // const handleScroll = useCallback(() => {
+  //   if (!isScrolling) {
+  //     setIsScrolling(true);
+  //     onSelectTrial([], [], -1);
+  //   }
+
+  //   // Clear any existing timer
+  //   if (scrollTimerRef.current) {
+  //     clearTimeout(scrollTimerRef.current);
+  //   }
+
+  //   // Set a new timer
+  //   scrollTimerRef.current = setTimeout(() => {
+  //     setIsScrolling(false);
+  //     updateSelectedTrials(selectedRows as Set<string>);
+  //   }, 50); // Adjust this delay as needed
+  // }, [isScrolling, onSelectTrial, updateSelectedTrials, selectedRows]);
+
+  // Clean up the timer on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+    };
+  }, []);
+
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const listRef = useRef<List>(null);
+
   const handleScroll = useCallback(() => {
     if (!isScrolling) {
       setIsScrolling(true);
@@ -489,19 +615,28 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
     // Set a new timer
     scrollTimerRef.current = setTimeout(() => {
       setIsScrolling(false);
-      updateSelectedTrials(selectedRows);
+      updateSelectedTrials(selectedRows as Set<string>);
     }, 50); // Adjust this delay as needed
   }, [isScrolling, onSelectTrial, updateSelectedTrials, selectedRows]);
 
-  // Clean up the timer on unmount
-  useEffect(() => {
-    return () => {
-      if (scrollTimerRef.current) {
-        clearTimeout(scrollTimerRef.current);
+  const handleCustomScroll = useCallback(
+    ({ scrollOffset }: { scrollOffset: number }) => {
+      setScrollOffset(scrollOffset);
+      if (listRef.current) {
+        listRef.current.scrollTo(scrollOffset);
       }
-    };
-  }, []);
+      handleScroll();
+    },
+    [handleScroll]
+  );
 
+  const onListScroll = useCallback(
+    ({ scrollOffset }: { scrollOffset: number }) => {
+      setScrollOffset(scrollOffset);
+      handleScroll();
+    },
+    [handleScroll]
+  );
   return (
     <div style={{ height: "100%", width: "100%", position: "relative" }}>
       <Box
@@ -678,7 +813,8 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                     width={totalWidth}
                     itemData={sortedData}
                     style={{ overflowX: "hidden", paddingBottom: "55px" }}
-                    onScroll={handleScroll}
+                    // onScroll={handleScroll}
+                    onScroll={onListScroll}
                   >
                     {Row}
                   </List>
@@ -688,6 +824,27 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
           </div>
         )}
       </AutoSizer>
+      <Box
+        position="absolute"
+        bg="white"
+        boxShadow="lg"
+        borderRadius="md"
+        top={"60px"}
+        left="49.5%"
+        width={"50%"}
+        zIndex={10}
+      >
+        <D3Scrollbar
+          containerHeight={
+            visible
+              ? scrollContainerRef.current?.clientHeight - 55
+              : scrollContainerRef.current?.clientHeight - 25
+          }
+          contentHeight={sortedData.length * 15}
+          scrollOffset={scrollOffset}
+          onScroll={handleCustomScroll}
+        />
+      </Box>
       <Box
         position="absolute"
         bg="white"
@@ -718,6 +875,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
             );
             setGroups(groups);
             setSelectedRows(new Set());
+            onSelectTrial([], [], -1);
           }}
         >
           Create Trial Group

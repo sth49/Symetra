@@ -25,6 +25,7 @@ type TooltipData = {
 };
 import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 import { formatting, generateBinnedData } from "../model/utils";
+import { HyperparamTypes } from "../model/hyperparam";
 const FastEffectTable = () => {
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     scroll: true,
@@ -40,7 +41,7 @@ const FastEffectTable = () => {
 
   const { exp, hyperparams, setHyperparams } = useCustomStore();
 
-  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
     null
   );
@@ -68,6 +69,7 @@ const FastEffectTable = () => {
           effect: hp.getEffect(),
           effctsByValue: hp.getEffectsByValue(),
           dist: hp.name,
+          type: hp.type,
         })),
 
     [exp]
@@ -160,6 +162,30 @@ const FastEffectTable = () => {
     setLastSelectedIndex(index);
   };
 
+  const toggleRowExpansion = useCallback((id, e) => {
+    e.stopPropagation();
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const toggleVisibilityForSelected = (visible) => {
+    const newHyperparams = hyperparams.map((hp, index) => {
+      if (selectedRows.has(index)) {
+        hp.visible = visible;
+      }
+      return hp;
+    });
+    setHyperparams([...newHyperparams]);
+    setSelectedRows(new Set());
+  };
+
   const Row = useCallback(
     ({ item, index }) => {
       // const isHovered = hoveredRow === item.id;
@@ -204,7 +230,10 @@ const FastEffectTable = () => {
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) =>
-                      toggleRowSelection(index, e.nativeEvent.shiftKey)
+                      toggleRowSelection(
+                        index,
+                        (e.nativeEvent as MouseEvent).shiftKey
+                      )
                     }
                   />
                 ) : column.key === "visible" ? (
@@ -323,114 +352,75 @@ const FastEffectTable = () => {
                     </Text>
                   </Box>
                 </Box>
-                {Object.keys(item.effctsByValue).map((key) => {
-                  console.log(key);
-                  const { binData, xScale } = generateBinnedData(
-                    item.effctsByValue[key],
-                    100,
-                    30,
-                    "x"
-                  );
-                  return (
-                    <Box display={"flex"} width={"100%"} alignItems={"center"}>
-                      <Box width={"20%"}>
-                        <Text fontSize={"xs"} align="center">
-                          {key}
-                        </Text>
-                      </Box>
-                      <Box width={"15%"}>
-                        <Text fontSize={"xs"} align="right">
-                          {formatting(item.effctsByValue[key].length, "int")}
-                        </Text>
-                      </Box>
-                      <Box width={"15%"}>
-                        <Text fontSize={"xs"} align="right">
-                          {formatting(
-                            item.effctsByValue[key].reduce((a, b) => a + b, 0) /
-                              item.effctsByValue[key].length,
-                            "float"
-                          )}
-                        </Text>
-                      </Box>
+                {Object.keys(item.effctsByValue)
+                  .sort(
+                    item.type === HyperparamTypes.Ordinal
+                      ? (a, b) => Number(a) - Number(b)
+                      : item.type === HyperparamTypes.Continuous
+                      ? (a, b) =>
+                          Number(a.split(" ~ ")[0]) - Number(b.split(" ~ ")[0])
+                      : (a, b) => a.localeCompare(b)
+                  )
+                  .map((key) => {
+                    const { binData, xScale } = generateBinnedData(
+                      item.effctsByValue[key],
+                      100,
+                      30,
+                      "x"
+                    );
+                    return (
                       <Box
-                        width={"50%"}
                         display={"flex"}
-                        justifyContent={"center"}
+                        width={"100%"}
+                        alignItems={"center"}
+                        mb={1.5}
                       >
-                        <svg width={100} height={36}>
-                          <ViolinPlot
-                            data={binData}
-                            valueScale={xScale}
-                            width={25}
-                            height={100}
-                            horizontal={true}
-                            left={0}
-                            top={4}
-                            // stroke={"black"}
-                            fill="grey"
-                            // strokeWidth={1}
-                          ></ViolinPlot>
-                        </svg>
+                        <Box width={"20%"}>
+                          <Text
+                            fontSize={"xs"}
+                            align="center"
+                            whiteSpace="pre-line"
+                          >
+                            {key}
+                          </Text>
+                        </Box>
+                        <Box width={"15%"}>
+                          <Text fontSize={"xs"} align="right">
+                            {formatting(item.effctsByValue[key].length, "int")}
+                          </Text>
+                        </Box>
+                        <Box width={"15%"}>
+                          <Text fontSize={"xs"} align="right">
+                            {formatting(
+                              item.effctsByValue[key].reduce(
+                                (a, b) => a + b,
+                                0
+                              ),
+                              "float"
+                            )}
+                          </Text>
+                        </Box>
+                        <Box
+                          width={"50%"}
+                          display={"flex"}
+                          justifyContent={"center"}
+                        >
+                          <svg width={100} height={36}>
+                            <ViolinPlot
+                              data={binData}
+                              valueScale={xScale}
+                              width={25}
+                              height={100}
+                              horizontal={true}
+                              left={0}
+                              top={4}
+                              fill="grey"
+                            ></ViolinPlot>
+                          </svg>
+                        </Box>
                       </Box>
-                    </Box>
-                  );
-                })}
-                {/* {Object.keys(item.shapValues).map((key) => {
-                  const hp = hyperparams.find(
-                    (hp) => hp.displayName === item.name
-                  );
-
-                  let filterFunction;
-                  if (hp.type === HyperparamTypes.Continuous) {
-                    // console.log("continuous", key);
-                    const [min, max] = key.split("~").map(Number);
-                    console.log("min, max:", min, max);
-                    filterFunction = (trial) => {
-                      const value = trial.params[item.fullName];
-                      return value >= min && value <= max;
-                    };
-                  } else {
-                    const keyString = key.toString();
-                    filterFunction = (trial) =>
-                      trial.params[item.fullName].toString() === keyString;
-                    console.log(hp?.getEffectsByValue());
-                  }
-
-                  const trials = exp?.trials.filter(filterFunction);
-                  // console.log("trials:", trials);
-                  return (
-                    <Box
-                      key={key}
-                      width={"100%"}
-                      display={"flex"}
-                      alignItems={"center"}
-                    >
-                      <Box width={"40%"}>
-                        <Text fontSize={"xs"} align="center">
-                          {key}
-                        </Text>
-                        <Text fontSize={"xs"} align="center">
-                          ({formatting(trials?.length, "int")})
-                        </Text>
-                      </Box>
-                      <Box
-                        width={"20%"}
-                        height={"100%"}
-                        // border={"1px solid #ffffff"}
-                        bg={shapleyColorScale(item.shapValues[key])}
-                        color={
-                          Math.abs(item.shapValues[key]) < 0.5
-                            ? "black"
-                            : "white"
-                        }
-                      >
-                        <Text fontSize={"xs"} align="right">
-                          {item.shapValues[key].toFixed(3)}
-                        </Text>
-                      </Box>
-                    </Box>
-                  );
-                })} */}
+                    );
+                  })}
               </Box>
               {/* Add more expanded content here */}
             </div>
@@ -480,40 +470,21 @@ const FastEffectTable = () => {
         </>
       );
     },
-    [columns, totalWidth, selectedRows, expandedRows]
+    [
+      selectedRows,
+      expandedRows,
+      hyperparams,
+      totalWidth,
+      columns,
+      data,
+      toggleRowSelection,
+      hideTooltip,
+      setHyperparams,
+      showTooltip,
+      toggleRowExpansion,
+      toggleVisibilityForSelected,
+    ]
   );
-
-  const shapleyColorScale = useMemo(
-    () => d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]),
-    []
-  );
-
-  const toggleRowExpansion = useCallback((id, e) => {
-    e.stopPropagation();
-    setExpandedRows((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const toggleVisibilityForSelected = (visible) => {
-    // console.log("clicked, visible:", visible);
-    // console.log("selectedRows:", selectedRows);
-
-    const newHyperparams = hyperparams.map((hp, index) => {
-      if (selectedRows.has(index)) {
-        hp.visible = visible;
-      }
-      return hp;
-    });
-    setHyperparams([...newHyperparams]);
-    setSelectedRows(new Set());
-  };
 
   const handleScroll = () => {
     if (scrollContainerRef.current && headerRef.current) {
@@ -523,7 +494,6 @@ const FastEffectTable = () => {
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      {/* <style>{tableStyles}</style> */}
       <Box
         display={"flex"}
         justifyContent={"space-between"}
@@ -534,32 +504,6 @@ const FastEffectTable = () => {
           {hyperparams.length} Visible)
         </Heading>
       </Box>
-
-      {/* <Box
-        display={"flex"}
-        width={"100%"}
-        justifyContent={"space-around"}
-        p={"2px"}
-        visibility={selectedRows.size === 0 ? "hidden" : "visible"}
-      >
-        <Button
-          size={"xs"}
-          isDisabled={selectedRows.size === 0}
-          onClick={() => toggleVisibilityForSelected(true)}
-          colorScheme="blue"
-        >
-          Show {selectedRows.size} Hyperparameters
-        </Button>
-        <Button
-          size={"xs"}
-          isDisabled={selectedRows.size === 0}
-          onClick={() => toggleVisibilityForSelected(false)}
-          colorScheme="blue"
-          variant={"outline"}
-        >
-          Hide {selectedRows.size} Hyperparameters
-        </Button>
-      </Box> */}
 
       <AutoSizer>
         {({ height, width }) => (
@@ -609,29 +553,6 @@ const FastEffectTable = () => {
                       {column.label}
                     </Text>
                     {(column.key === "name" || column.key === "effect") && (
-                      // <IconButton
-                      //   size={"xs"}
-                      //   icon={
-                      //     sortConfig.key === column.key ? (
-                      //       sortConfig.direction === "ascending" ? (
-                      //         <Icon as={FaSortUp} color={"gray.500"} />
-                      //       ) : (
-                      //         <Icon as={FaSortDown} color={"gray.500"} />
-                      //       )
-                      //     ) : (
-                      //       <Icon as={FaSort} color={"gray.500"} />
-                      //     )
-                      //   }
-                      //   onClick={() => {
-                      //     if (
-                      //       column.key === "name" ||
-                      //       column.key === "effect"
-                      //     ) {
-                      //       requestSort(column.key);
-                      //     }
-                      //   }}
-                      //   aria-label={""}
-                      // />
                       <Icon
                         color={"gray"}
                         width={2}

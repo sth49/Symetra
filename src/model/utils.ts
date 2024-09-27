@@ -18,6 +18,8 @@ export const generateBinnedData = (
   const IQR = thirdQuartile - firstQuartile;
   let min = Math.min(...points);
   let max = Math.max(...points);
+  console.log("min", min);
+  console.log("max", max);
 
   const outliers = points.filter((p) => p < min || p > max);
   if (outliers.length === 0) {
@@ -26,6 +28,7 @@ export const generateBinnedData = (
   }
   const binWidth = 2 * IQR * (sampleSize - outliers.length) ** (-1 / 3) || 1;
   const binNum = Math.round((max - min) / binWidth);
+  console.log("binNum", binNum);
   const actualBinWidth = (max - min) / binNum;
   const bins: number[] = new Array(binNum + 2).fill(0);
   const values: number[] = new Array(binNum + 2).fill(min);

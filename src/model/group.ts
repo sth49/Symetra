@@ -35,6 +35,18 @@ export class Group {
     const coverages = this.trials.map((trial) => trial.metric);
     return coverages;
   }
+  getStats() {
+    const avg =
+      this.trials.reduce((acc, trial) => acc + trial.metric, 0) /
+      this.trials.length;
+    const max = Math.max(...this.trials.map((trial) => trial.metric));
+    const min = Math.min(...this.trials.map((trial) => trial.metric));
+    return {
+      avg: avg,
+      max: max,
+      min: min,
+    };
+  }
   // getBranches() {
   //   const branches = this.trials.map((trial) =>
   //     Object.values(trial.branch).map((b, index) =>

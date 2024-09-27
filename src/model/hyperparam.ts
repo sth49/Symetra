@@ -6,6 +6,8 @@ import { RxComponentBoolean } from "react-icons/rx";
 import { MdOutlineHdrStrong } from "react-icons/md";
 import { HiHashtag } from "react-icons/hi";
 
+import { scaleLinear } from "@visx/scale";
+import { formatting } from "./utils";
 export enum HyperparamTypes {
   Continuous,
   // Discrete,
@@ -92,9 +94,7 @@ export class Hyperparam {
     }
     return effect;
   }
-  getEffectByValue() {
-    throw new Error("Method not implemented.");
-  }
+
   toggleVisible() {
     // console.log("toggleVisible");
     this.visible = !this.visible;
@@ -139,31 +139,68 @@ export class ContinuousHyperparam extends Hyperparam {
   }
 
   getEffectsByValue() {
-    let effectsByValue: { [key: string]: number[] } = {}; // 각 구간별 영향력 저장
-    const isInt = this.valueType === "int";
+    const effectsByValue: { [key: string]: number[] } = {}; // 각 구간별 영향력 저장
+    const isInteger = this.values.every(Number.isInteger);
+    const isSame = this.values.every((val, i, arr) => val === arr[0]);
 
     // 값들의 최소/최대값 계산
-    let min = Math.min(...this.values);
-    let max = Math.max(...this.values);
+    const xMin = Math.min(...this.values);
+    const xMax =
+      isInteger && isSame
+        ? Math.max(...this.values) + 10
+        : isSame
+        ? xMin + 0.5
+        : Math.max(...this.values);
+
+    const xScale = scaleLinear({
+      domain: [xMin, xMax],
+      range: [0, 1],
+      nice: true,
+    });
+
+    const [niceXMin, niceXMax] = xScale.domain();
+    const xRange = niceXMax - niceXMin;
+    const binSize = xRange / this.binCount;
 
     // 구간 범위 계산
-    let step = (max - min) / this.binCount;
-    let range = Array.from({ length: this.binCount }, (_, i) => min + i * step);
-    range.push(max);
+    const bins = Array.from({ length: this.binCount }, (_, i) => ({
+      x0: isInteger
+        ? Math.floor(xMin + i * binSize)
+        : (xMin + i * binSize).toFixed(2),
+      x1: isInteger
+        ? Math.floor(xMin + (i + 1) * binSize)
+        : (xMin + (i + 1) * binSize).toFixed(2),
+      count: 0,
+    }));
+
+    this.values.forEach((value, i) => {
+      const binIndex = Math.floor((value - niceXMin) / binSize);
+      if (binIndex >= 0 && binIndex < this.binCount) {
+        bins[binIndex].count += 1;
+      } else if (value === xMax) {
+        bins[this.binCount - 1].count += 1;
+      }
+    });
 
     // 각 구간별 영향력 저장
-    for (let i = 0; i < this.binCount; i++) {
-      let start = range[i];
-      let end = range[i + 1];
-      effectsByValue[start] = [];
-      this.shapValues.forEach((val, index) => {
-        let value = this.values[index];
-        if (value >= start && value < end) {
-          effectsByValue[start].push(val);
+
+    bins.forEach((bin, i) => {
+      const binShapValues = [];
+      this.values.forEach((value, j) => {
+        if (
+          (value >= bin.x0 && value < bin.x1) ||
+          (i === this.binCount - 1 && value === xMax)
+        ) {
+          binShapValues.push(this.shapValues[j]);
         }
       });
-    }
-    // console.log(effectsByValue);
+      effectsByValue[
+        `${formatting(Number(bin.x0), this.valueType)} ~ ${formatting(
+          Number(bin.x1),
+          this.valueType
+        )}`
+      ] = binShapValues;
+    });
     return effectsByValue;
   }
 
@@ -218,14 +255,13 @@ export class CategoricalHyperparam extends Hyperparam {
     }
   }
   getColor(index: number) {
-    // return this.scale(value);
     return this.scale(this.values[index]);
   }
   getColorByValue(value: any): string {
     return this.scale(value);
   }
   getEffectsByValue() {
-    let effectsByValue: { [key: string]: number[] } = {};
+    const effectsByValue: { [key: string]: number[] } = {};
     this.values.forEach((value) => {
       effectsByValue[value] = [];
       this.shapValues.forEach((val, index) => {
@@ -235,21 +271,6 @@ export class CategoricalHyperparam extends Hyperparam {
       });
     });
     return effectsByValue;
-  }
-  getEffectByValue() {
-    let effectByValue: { [key: string]: number } = {};
-    this.values.map((value) => {
-      effectByValue[value] = 0;
-      let count = 0;
-      this.shapValues.map((val, index) => {
-        if (this.values[index] === value) {
-          effectByValue[value] += val;
-          count++;
-        }
-      });
-      effectByValue[value] /= count;
-    });
-    return effectByValue;
   }
 }
 export class BinaryHyperparam extends CategoricalHyperparam {
@@ -267,7 +288,7 @@ export class BinaryHyperparam extends CategoricalHyperparam {
   getColor(index: number): string | undefined {
     return this.scale(this.values[index]);
   }
-  getColorByValue(value: boolean): string {
+  getColorByValue(value: any): string {
     return this.scale(value);
   }
 }
@@ -280,7 +301,7 @@ export class NominalHyperparam extends CategoricalHyperparam {
       .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
       .domain(this.values);
   }
-  getColorByValue(value: string): string {
+  getColorByValue(value: any): string {
     return this.scale(value);
   }
 }
@@ -303,7 +324,7 @@ export class OrdinalHyperparam extends CategoricalHyperparam {
       .scaleSequential(d3.interpolateGreys)
       .domain([Math.min(...value) - 1, Math.max(...value) + 1]);
   }
-  getColorByValue(value: string): string {
+  getColorByValue(value: any): string {
     return this.scale(value);
   }
 }

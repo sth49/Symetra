@@ -10,10 +10,8 @@ import {
   OrdinalHyperparam,
 } from "../model/hyperparam";
 
-import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
-import { Pattern, PatternLines } from "@visx/pattern";
-import { schemeCategory10 } from "d3";
-import { scaleLog } from "@visx/vendor/d3-scale";
+import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { PatternLines } from "@visx/pattern";
 import { formatting } from "../model/utils";
 type TooltipData = {
   key: string; // hparam name
@@ -25,15 +23,10 @@ interface BarChartProps {
   dist: string;
   width: number;
   height: number;
-  margin: { top: number; right: number; bottom: number; left: number };
+  // margin: { top: number; right: number; bottom: number; left: number };
 }
 
-const BarChart = ({
-  dist,
-  width = 50,
-  height = 40,
-  margin = { top: 2, right: 2, bottom: 2, left: 2 },
-}: BarChartProps) => {
+const BarChart = ({ dist, width = 50, height = 40 }: BarChartProps) => {
   const {
     tooltipOpen,
     tooltipLeft,
@@ -42,6 +35,7 @@ const BarChart = ({
     hideTooltip,
     showTooltip,
   } = useTooltip<TooltipData>();
+  const margin = { top: 2, right: 2, bottom: 2, left: 2 };
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     // TooltipInPortal is rendered in a separate child of <body /> and positioned
@@ -53,7 +47,9 @@ const BarChart = ({
   const { exp, hyperparams, setClickedHparamValue, clickedHparamValue } =
     useCustomStore();
 
-  const data = exp?.trials.map((trial) => trial.params[dist]);
+  const data = exp?.trials.map((trial) => trial.params[dist]) as
+    | string[]
+    | number[];
   const hparam = hyperparams.find((hparam) => hparam.name === dist);
   //   console.log(data);
   //   console.log(hparam?.name);
@@ -69,7 +65,7 @@ const BarChart = ({
         : undefined
     );
     const count = data.reduce((acc, cur) => {
-      acc[cur] = (acc[cur] || 0) + 1;
+      acc[cur as keyof typeof acc] = (acc[cur as keyof typeof acc] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
@@ -81,14 +77,9 @@ const BarChart = ({
 
     const xScale = scaleBand({
       domain: bins.map((bin) => bin.x0),
-      range: [margin.left, width - margin.right],
+      range: [0, width],
       padding: 0.1,
     });
-
-    // data?.forEach((d) => {
-    //   const binIndex = d ? 1 : 0;
-    //   bins[binIndex].count++;
-    // });
 
     const yScale = scaleLinear({
       domain: [0, Math.max(...bins.map((bin) => bin.count))],
@@ -122,10 +113,6 @@ const BarChart = ({
       });
     };
     const bins2 = calculateOverlayBins();
-    // const colorScale = scaleOrdinal({
-    //   domain: keys.map((_, i) => i),
-    //   range: schemeCategory10,
-    // });
 
     return (
       <Box display="flex" justifyContent="center" alignItems="center">
@@ -138,7 +125,6 @@ const BarChart = ({
                 y={yScale(Number(bin.count))}
                 width={xScale.bandwidth()}
                 height={height - margin.bottom - yScale(Number(bin.count))}
-                // fill={colorScale(i)}
                 fill={hparam.getColorByValue(bin.x0)}
                 opacity={1}
               />
@@ -238,9 +224,13 @@ const BarChart = ({
     const binCount = 5;
     const isInteger = data.every(Number.isInteger);
     const isSame = data.every((val, i, arr) => val === arr[0]);
-    const xMin = Math.min(...data);
+    const xMin = Math.min(...(data as number[]));
     const xMax =
-      isInteger && isSame ? xMin + 10 : isSame ? xMin + 0.5 : Math.max(...data);
+      isInteger && isSame
+        ? xMin + 10
+        : isSame
+        ? xMin + 0.5
+        : Math.max(...(data as number[]));
 
     const xScale = scaleLinear({
       domain: [xMin, xMax],
@@ -282,8 +272,8 @@ const BarChart = ({
       return bins.map((bin) => {
         const relevantTrials = exp?.trials.filter(
           (trial) =>
-            trial.params[dist] >= Number(bin.x0) &&
-            trial.params[dist] < Number(bin.x1)
+            Number(trial.params[dist]) >= Number(bin.x0) &&
+            Number(trial.params[dist]) < Number(bin.x1)
         );
         // const overlayCount =
         //   relevantTrials?.filter(
@@ -322,7 +312,9 @@ const BarChart = ({
                 key={i}
                 x={xScale(Number(bin.x0))}
                 y={yScale(Number(bin.count))}
-                width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
+                width={
+                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - margin.left
+                }
                 height={height - margin.bottom - yScale(Number(bin.count))}
                 // fill={"#48BB78"}
                 fill={hparam.getColorByValue(
@@ -338,7 +330,13 @@ const BarChart = ({
                   showTooltip({
                     tooltipData: {
                       key: hparam.displayName,
-                      value: `${bin.x0} - ${bin.x1}`,
+                      value: `${formatting(
+                        Number(bin.x0),
+                        isInteger ? "int" : "float"
+                      )} ~ ${formatting(
+                        Number(bin.x1),
+                        isInteger ? "int" : "float"
+                      )}`,
                       count: bin.count,
                     },
                     tooltipLeft: event.clientX,

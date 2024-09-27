@@ -1,22 +1,22 @@
 import { Box, Button, Heading, Text, useDisclosure } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-} from "@chakra-ui/react";
 import StatTest from "./StatTest";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { memo } from "react";
-import { DefaultNode, Graph } from "@visx/network";
+import { Graph } from "@visx/network";
 import { performStatisticalTest } from "../model/statistic";
 import * as d3 from "d3";
 import { formatting } from "../model/utils";
+
+import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+type TooltipData = {
+  key: string; // hparam name
+  value: any; // hparam value
+  count: number; // trial count
+  stats: { avg: number; max: number; min: number };
+};
+
 export type NetworkProps = {
   width: number;
   height: number;
@@ -58,83 +58,35 @@ const GroupView = () => {
     setHoveredGroup,
     selectedGroup,
     hyperparams,
-    exp,
     setSelectedGroup,
   } = useCustomStore();
+
+  const {
+    tooltipOpen,
+    tooltipLeft,
+    tooltipTop,
+    tooltipData,
+    hideTooltip,
+    showTooltip,
+  } = useTooltip<TooltipData>();
+  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+    scroll: true,
+  });
 
   const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
   const [hoveredLink, setHoveredLink] = useState<CustomLink | null>(null);
 
-  // const [nodes, setNodes] = useState<CustomNode[]>([]);
-  // const [links, setLinks] = useState<CustomLink[]>([]);
-  // const [graph, setGraph] = useState({});
-
-  // useEffect(() => {
-  //   const nodes = groups.groups.map((group, i) => ({
-  //     id: group.id.toString(),
-  //     x: 10 + i * 30,
-  //     y: 30,
-  //   }));
-  //   for (let i = 0; i < nodes.length; i++) {
-  //     for (let j = i + 1; j < nodes.length; j++) {
-  //       let hparamResult = hyperparams.map((param) => {
-  //         let group1 = groups.groups[i].getHyperparam(param.name);
-  //         let group2 = groups.groups[j].getHyperparam(param.name);
-  //         return performStatisticalTest(group1, group2, param.type, param);
-  //       });
-  //       const weight = hparamResult
-  //         .map((r) => {
-  //           return r.pValue > 0.01 ? 0 : 1;
-  //         })
-  //         .reduce((a, b) => a + b, 0);
-
-  //       links.push({
-  //         source: nodes[i].id,
-  //         target: nodes[j].id,
-  //         weight: weight,
-  //       });
-  //     }
-  //   }
-
-  //   setNodes(nodes);
-  //   setLinks(links);
-  //   setGraph({ nodes, links });
-  //   console.log("node and link", nodes, links);
-  // }, [groups.getLength()]);
-
-  const boxRef = useRef(null);
   const width = groups.groups.length * 120;
 
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     if (boxRef.current) {
-  //       const newWidth = boxRef.current.offsetWidth;
-  //       setWidth(newWidth);
-  //     }
-  //     setHeight(window.innerHeight * 0.8); // 80vh에 해당
-  //   };
-
-  //   const resizeObserver = new ResizeObserver(handleResize);
-  //   if (boxRef.current) {
-  //     resizeObserver.observe(boxRef.current);
-  //   }
-
-  //   handleResize(); // 초기 로드 시 실행
-
-  //   return () => {
-  //     if (boxRef.current) {
-  //       resizeObserver.unobserve(boxRef.current);
-  //     }
-  //   };
-  // }, []);
-
   const { nodes, links } = useMemo(() => {
+    console.log("GroupView rendering");
     const nodes = groups.groups.map(
       (group, i) => ({
         id: group.id,
         x: 20 + i * 65,
         y: 45,
         length: group.getLength(),
+        stats: group.getStats(),
       }),
       [groups.getLength(), hyperparams]
     );
@@ -193,92 +145,74 @@ const GroupView = () => {
   );
 
   const handleNodeClick = useCallback(
-    (nodeId) => {
-      setSelectedGroup((prevSelected) => {
-        const newSelected = new Set(prevSelected);
-        if (newSelected.has(nodeId)) {
-          newSelected.delete(nodeId);
-        } else {
-          if (newSelected.size === 2) {
-            newSelected.delete(newSelected.values().next().value);
-          }
-          newSelected.add(nodeId);
-        }
-        return newSelected;
-      });
+    (id) => {
+      const newSelectedGroup = new Set(selectedGroup);
+      console.log("Clicked group", id);
+      console.log(selectedGroup);
+      if (newSelectedGroup.has(id)) {
+        newSelectedGroup.delete(id);
+      } else {
+        newSelectedGroup.add(id);
+      }
+      setSelectedGroup(newSelectedGroup);
     },
-    [setSelectedGroup]
+    [selectedGroup, setSelectedGroup]
   );
-
-  // const NodeComponent = ({ node, onHover, onClick, isSelected, isHovered }) => (
-  //   <g>
-  //     <circle
-  //       onMouseEnter={() => onHover(node)}
-  //       onClick={() => onClick(node)}
-  //       r={30}
-  //       fill={isSelected ? "#3182CE" : isHovered ? "#ECC94B" : "#FAF089"}
-  //       cx={node.x}
-  //       cy={node.y}
-  //     />
-  //     <text
-  //       style={{ cursor: "pointer" }}
-  //       x={node.x}
-  //       y={node.y + 5}
-  //       textAnchor="middle"
-  //       fill={isSelected ? "white" : isHovered ? "white" : "black"}
-  //       fontSize={12}
-  //     >
-  //       {node.id}
-  //     </text>
-  //   </g>
-  // );
-
-  // const LinkComponent = ({
-  //   link,
-  //   nodes,
-  //   weightScale,
-  //   isHovered,
-  //   isLinkHovered,
-  // }) => {
-  //   const source = nodes.find((n) => n.id === link.source)!;
-  //   const target = nodes.find((n) => n.id === link.target)!;
-  //   const arcHeight = Math.abs(source.x - target.x) * 0.22;
-
-  //   return (
-  //     <path
-  //       d={createArcPath(source, target, arcHeight)}
-  //       fill="none"
-  //       onMouseEnter={() => isLinkHovered(link)}
-  //       stroke={isHovered ? "#ECC94B" : isHovered ? "#FAF089" : "#FAF089"}
-  //       strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
-  //     />
-  //   );
-  // };
 
   const NodeComponent = useCallback(
     ({ node }) => (
-      <g>
+      <g
+        key={node.id}
+        className={`node-group ${selectedGroup.has(node.id) ? "selected" : ""}`}
+        onMouseEnter={() => handleNodeHover(node)}
+        onMouseMove={(event) => {
+          showTooltip({
+            tooltipData: {
+              key: "Group",
+              value: node.id,
+              count: node.length,
+              stats: node.stats,
+            },
+            tooltipLeft: event.clientX,
+            tooltipTop: event.clientY,
+          });
+        }}
+        onMouseLeave={() => {
+          handleNodeHover(null);
+          hideTooltip();
+        }}
+        onClick={() => handleNodeClick(node.id)}
+      >
         <circle
           className={`node ${selectedGroup.has(node.id) ? "selected" : ""}`}
-          onMouseEnter={() => handleNodeHover(node)}
-          onMouseLeave={() => handleNodeHover(null)}
-          onClick={() => handleNodeClick(node.id)}
           r={30}
           cx={node.x}
           cy={node.y}
         />
         <text
+          style={{ userSelect: "none" }}
           className="node-text"
           x={node.x}
-          y={node.y + 5}
+          y={node.y - 3}
           textAnchor="middle"
           fontSize={12}
+          fontWeight={"bold"}
         >
-          {formatting(node.length)}
+          Group {node.id}
+        </text>
+
+        <text
+          className="node-text"
+          x={node.x}
+          y={node.y + 13}
+          textAnchor="middle"
+          fontSize={10}
+        >
+          {formatting(node.length, "int")}
         </text>
       </g>
     ),
-    [selectedGroup, handleNodeHover, handleNodeClick]
+    [selectedGroup, handleNodeHover, showTooltip, hideTooltip, handleNodeClick]
   );
 
   const LinkComponent = useCallback(
@@ -329,7 +263,7 @@ const GroupView = () => {
           </Button>
         </Box>
       </Box>
-      <Modal
+      {/* <Modal
         isOpen={isOpen}
         onClose={() => {
           setSelectedGroup(new Set());
@@ -380,7 +314,7 @@ const GroupView = () => {
             <Button variant="ghost">Secondary Action</Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </Modal> */}
 
       {groups?.getLength() > 0 ? (
         <Box
@@ -398,7 +332,6 @@ const GroupView = () => {
               <rect
                 width={width}
                 height={"100%"}
-                // rx={14}
                 fill={"white"}
                 onMouseEnter={() => {
                   setHoverGroup(null);
@@ -413,103 +346,6 @@ const GroupView = () => {
                 graph={graphMemo}
                 nodeComponent={NodeComponent}
                 linkComponent={LinkComponent}
-                // nodeComponent={({ node }) => (
-                //   <g>
-                //     <circle
-                //       className={`node ${
-                //         selectedGroup.has(node.id) ? "selected" : ""
-                //       }`}
-                //       onMouseEnter={() => {
-                //         setHoveredLink(null);
-                //         setHoverGroup(groups.getGroup(Number(node.id)));
-                //       }}
-                //       onMouseLeave={() => {
-                //         setHoverGroup(null);
-                //       }}
-                //       r={30}
-                //       cx={node.x}
-                //       cy={node.y}
-                //     />
-                //     <text
-                //       onClick={() => {
-                //         console.log("click", node.id);
-                //         if (selectedGroup.has(node.id)) {
-                //           selectedGroup.delete(node.id);
-                //         } else {
-                //           if (selectedGroup.size === 2) {
-                //             selectedGroup.delete(
-                //               selectedGroup.values().next().value
-                //             );
-                //           }
-                //           selectedGroup.add(node.id);
-                //         }
-                //         setSelectedGroup(selectedGroup);
-                //         console.log(selectedGroup);
-                //       }}
-                //       style={{ cursor: "pointer" }}
-                //       x={node.x}
-                //       y={node.y + 5}
-                //       textAnchor="middle"
-                //       fill={
-                //         selectedGroup.has(node.id)
-                //           ? "white"
-                //           : hoveredGroupId === Number(node.id)
-                //           ? "white"
-                //           : "black"
-                //       }
-                //       fontSize={12}
-                //     >
-                //       {node.id}
-                //     </text>
-                //   </g>
-                // )}
-                // linkComponent={({ link }) => {
-                //   const source = nodes.find((n) => n.id === link.source)!;
-                //   const target = nodes.find((n) => n.id === link.target)!;
-                //   const arcHeight = Math.abs(source.x - target.x) * 0.22;
-                //   // console.log(createArcPath(source, target, arcHeight));
-                //   return (
-                //     <path
-                //       d={createArcPath(source, target, arcHeight)}
-                //       fill="none"
-                //       onMouseEnter={() => {
-                //         setHoverGroup(null);
-
-                //         setHoveredLink(link);
-                //       }}
-                //       onClick={() => {
-                //         console.log("click", link);
-                //       }}
-                //       stroke={
-                //         hoveredLink !== null &&
-                //         hoveredLink.source === link.source &&
-                //         hoveredLink.target === link.target
-                //           ? "#ECC94B"
-                //           : hoveredGroupId !== null &&
-                //             (hoveredGroupId === Number(link.source) ||
-                //               hoveredGroupId === Number(link.target))
-                //           ? "#ECC94B"
-                //           : "#FAF089"
-                //         // hoveredGroupId !== null &&
-                //         // (hoveredGroupId === Number(link.source) ||
-                //         //   hoveredGroupId === Number(link.target))
-                //         //   ? "#ECC94B"
-                //         //   : "#FAF089"
-                //       }
-                //       strokeWidth={
-                //         link.weight === 0 ? 1 : weightScale(link.weight)
-                //       }
-                //       // strokeOpacity={0.5}
-                //       // strokeOpacity={
-                //       //   hoveredGroupId !== null &&
-                //       //   (hoveredGroupId === Number(link.source) ||
-                //       //     hoveredGroupId === Number(link.target))
-                //       //     ? 0.6
-                //       //     : 0.1
-                //       // }
-                //     />
-                //   );
-                // }}
               />
             </svg>
           </Box>
@@ -525,51 +361,31 @@ const GroupView = () => {
         >
           There are no groups to display. Please create a group by clicking the
           "Add Group" button.
-          {/* <svg width={width} height={height}>
-            <rect width={width} height={height} rx={14} fill={"white"} />
-            <Graph<CustomLink, CustomNode>
-              graph={graph}
-              nodeComponent={({ node }) => (
-                <g>
-                  <circle
-                    r={15}
-                    fill={node.color || "#999"}
-                    cx={node.x}
-                    cy={node.y}
-                  />
-                  <text
-                    x={node.x}
-                    y={node.y + 25}
-                    textAnchor="middle"
-                    fill="#black"
-                    fontSize={12}
-                  >
-                    {node.id}
-                  </text>
-                </g>
-              )}
-              linkComponent={({ link }) => {
-                const source = nodes.find((n) => n.id === link.source)!;
-                const target = nodes.find((n) => n.id === link.target)!;
-                const arcHeight = Math.abs(source.x - target.x) * 0.2;
-                console.log(createArcPath(source, target, arcHeight));
-                return (
-                  <path
-                    d={createArcPath(source, target, arcHeight)}
-                    fill="none"
-                    stroke="red"
-                    strokeWidth={link.weight}
-                    strokeOpacity={0.6}
-                    strokeDasharray={link.dashed ? "8,4" : undefined}
-                  />
-                );
-              }}
-            />
-          </svg> */}
         </Box>
+      )}
+      {tooltipOpen && tooltipData && (
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
+          <Box>
+            <Text fontWeight={"bold"} align={"left"} mb={2}>
+              {tooltipData.key} {tooltipData.value}
+            </Text>
+            <Text align={"left"} mb={1} fontSize={"12px"}>
+              {formatting(tooltipData.count, "int")} trials
+            </Text>
+            <Text align={"left"} mb={1} fontSize={"12px"}>
+              Max: {formatting(tooltipData.stats.max, "float")}
+            </Text>
+            <Text align={"left"} mb={1} fontSize={"12px"}>
+              Avg: {formatting(tooltipData.stats.avg, "float")}
+            </Text>
+            <Text align={"left"} mb={1} fontSize={"12px"}>
+              Min: {formatting(tooltipData.stats.min, "float")}
+            </Text>
+          </Box>
+        </TooltipInPortal>
       )}
     </div>
   );
 };
 
-export default memo(GroupView);
+export default GroupView;
