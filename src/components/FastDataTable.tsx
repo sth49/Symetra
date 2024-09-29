@@ -176,8 +176,8 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
       },
       {
         key: "metric",
-        label: "Coverage",
-        width: 60,
+        label: "CVRG",
+        width: 50,
         visibility: true,
         type: "numerical",
         hp: null,

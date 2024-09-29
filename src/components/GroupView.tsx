@@ -52,13 +52,8 @@ function createArcPath(
 }
 
 const GroupView = () => {
-  const {
-    groups,
-    setHoveredGroup,
-    selectedGroup,
-    hyperparams,
-    setSelectedGroup,
-  } = useCustomStore();
+  const { groups, setHoveredGroup, hyperparams, setSelectedGroup } =
+    useCustomStore();
 
   const {
     tooltipOpen,
@@ -72,7 +67,6 @@ const GroupView = () => {
     scroll: true,
   });
 
-  const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
   const [hoveredLink, setHoveredLink] = useState<CustomLink | null>(null);
   const [localSelectedGroup, setLocalSelectedGroup] = useState<Set<number>>(
     new Set()
@@ -101,7 +95,7 @@ const GroupView = () => {
           const group2 = groups.groups[j].getHyperparam(param.name);
           return performStatisticalTest(group1, group2, param.type, param);
         });
-        const weight = hparamResult.filter((r) => r.pValue <= 0.01).length;
+        const weight = hparamResult.filter((r) => r.pValue <= 0.05).length;
 
         links.push({
           source: nodes[i].id,
@@ -116,16 +110,6 @@ const GroupView = () => {
 
   const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 
-  const setHoverGroup = (group) => {
-    if (!group) {
-      setHoveredGroup(new Set());
-      setHoveredGroupId(null);
-      return;
-    }
-    const selected = new Set(group.trials.map((trial) => trial.id));
-    setHoveredGroup(selected);
-    setHoveredGroupId(group.id);
-  };
   const weightScale = useMemo(() => {
     return d3
       .scaleLinear()
@@ -137,8 +121,8 @@ const GroupView = () => {
     (node) => {
       if (node) {
         const group = groups.getGroup(Number(node.id));
-        const selected = new Set(group.trials.map((trial) => trial.id));
-        setHoveredGroup(selected);
+        const hovered = new Set(group.trials.map((trial) => trial.id));
+        setHoveredGroup(hovered);
       } else {
         setHoveredGroup(new Set());
       }
@@ -148,25 +132,31 @@ const GroupView = () => {
 
   const handleNodeClick = useCallback(
     (id) => {
-      const newSelectedGroup = new Set(selectedGroup);
       console.log("Clicked group", id);
-      console.log(selectedGroup);
-      if (newSelectedGroup.has(id)) {
-        newSelectedGroup.delete(id);
+      console.log(localSelectedGroup);
+      const newLocalSelectedGroup = new Set(localSelectedGroup);
+      if (newLocalSelectedGroup.has(id)) {
+        newLocalSelectedGroup.delete(id);
       } else {
-        newSelectedGroup.add(id);
+        newLocalSelectedGroup.add(id);
       }
-      setSelectedGroup(newSelectedGroup);
+      setLocalSelectedGroup(newLocalSelectedGroup);
     },
-    [selectedGroup, setSelectedGroup]
+    [localSelectedGroup]
   );
 
   const NodeComponent = useCallback(
     ({ node }) => (
       <g
         key={node.id}
-        className={`node-group ${selectedGroup.has(node.id) ? "selected" : ""}`}
+        className={`node-group ${
+          localSelectedGroup.has(node.id) ? "selected" : ""
+        }`}
         onMouseEnter={() => handleNodeHover(node)}
+        onMouseOut={() => {
+          handleNodeHover(null);
+          hideTooltip();
+        }}
         onMouseMove={(event) => {
           showTooltip({
             tooltipData: {
@@ -186,7 +176,9 @@ const GroupView = () => {
         onClick={() => handleNodeClick(node.id)}
       >
         <circle
-          className={`node ${selectedGroup.has(node.id) ? "selected" : ""}`}
+          className={`node ${
+            localSelectedGroup.has(node.id) ? "selected" : ""
+          }`}
           r={30}
           cx={node.x}
           cy={node.y}
@@ -214,7 +206,13 @@ const GroupView = () => {
         </text>
       </g>
     ),
-    [selectedGroup, handleNodeHover, showTooltip, hideTooltip, handleNodeClick]
+    [
+      localSelectedGroup,
+      handleNodeHover,
+      showTooltip,
+      hideTooltip,
+      handleNodeClick,
+    ]
   );
 
   const LinkComponent = useCallback(
@@ -224,11 +222,39 @@ const GroupView = () => {
       const arcHeight = Math.abs(source.x - target.x) * 0.22;
 
       return (
-        <path
-          className="link"
-          d={createArcPath(source, target, arcHeight)}
-          strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
-        />
+        <g>
+          <path
+            className="link"
+            d={createArcPath(source, target, arcHeight)}
+            strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
+          />
+          <path
+            className="link2"
+            d={createArcPath(source, target, arcHeight)}
+            strokeWidth={10}
+            stroke="transparent"
+            fill="none"
+            onMouseMove={(event) => {
+              showTooltip({
+                tooltipData: {
+                  key: "Link",
+                  value: `${source.id} - ${target.id}`,
+                  count: link.weight,
+                  stats: {
+                    avg: 0,
+                    max: 0,
+                    min: 0,
+                  },
+                },
+                tooltipLeft: event.clientX,
+                tooltipTop: event.clientY,
+              });
+            }}
+            onMouseLeave={() => {
+              hideTooltip();
+            }}
+          />
+        </g>
       );
     },
     [nodes, weightScale]
@@ -248,15 +274,20 @@ const GroupView = () => {
         >
           <Button
             size={"xs"}
-            isDisabled={selectedGroup.size === 0}
+            isDisabled={localSelectedGroup.size === 0}
             colorScheme="blue"
             onClick={() => {
-              if (selectedGroup.size === 0) {
+              if (localSelectedGroup.size === 0) {
                 return;
-              } else if (selectedGroup.size === 1) {
+              } else if (localSelectedGroup.size === 1) {
                 console.log("Single group selected");
-              } else if (selectedGroup.size === 2) {
+
+                setSelectedGroup(new Set([...localSelectedGroup, 0].sort()));
+                setLocalSelectedGroup(new Set());
+              } else if (localSelectedGroup.size === 2) {
                 console.log("Two groups selected");
+                setSelectedGroup(new Set([...localSelectedGroup].sort()));
+                setLocalSelectedGroup(new Set());
               }
             }}
           >
@@ -264,58 +295,6 @@ const GroupView = () => {
           </Button>
         </Box>
       </Box>
-      {/* <Modal
-        isOpen={isOpen}
-        onClose={() => {
-          setSelectedGroup(new Set());
-          onClose();
-        }}
-        size={"full"}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            <Text fontSize="lg">Analysis</Text>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Box>
-              <Text fontWeight={"bold"}>
-                {selectedGroup.size === 1
-                  ? "Group " + Array.from(selectedGroup)[0] + " vs Others"
-                  : "Group " +
-                    Array.from(selectedGroup)[0] +
-                    " vs Group" +
-                    Array.from(selectedGroup)[1]}
-              </Text>
-              <Text></Text>
-              <Text></Text>
-              <Text></Text>
-            </Box>
-            <StatTest
-              isOpen={isOpen}
-              selectedGroup={selectedGroup}
-              groups={groups}
-              hyperparams={hyperparams}
-              exp={exp}
-            />
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={() => {
-                setSelectedGroup(new Set());
-                onClose();
-              }}
-            >
-              Close
-            </Button>
-            <Button variant="ghost">Secondary Action</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal> */}
 
       {groups?.getLength() > 0 ? (
         <Box

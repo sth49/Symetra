@@ -3,22 +3,24 @@ import { Box, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { Group } from "../model/group";
 import { performStatisticalTest } from "../model/statistic";
 import { HyperparamTypes } from "../model/hyperparam";
+import { useCustomStore } from "../store";
 
 interface StatTestProps {
   isOpen: boolean;
   selectedGroup: Set<string>;
-  groups: any; // 정확한 타입을 지정해야 합니다
-  hyperparams: any[]; // 정확한 타입을 지정해야 합니다
-  exp: any; // 정확한 타입을 지정해야 합니다
+  // groups: any; // 정확한 타입을 지정해야 합니다
+  // hyperparams: any[]; // 정확한 타입을 지정해야 합니다
+  // exp: any; // 정확한 타입을 지정해야 합니다
 }
 
 const StatTest: React.FC<StatTestProps> = ({
   isOpen,
   selectedGroup,
-  groups,
-  hyperparams,
-  exp,
+  // groups,
+  // hyperparams,
+  // exp,
 }) => {
+  const { groups, hyperparams, exp } = useCustomStore();
   if (!isOpen || selectedGroup.size === 0) {
     return <Text fontSize="md">Please select one or more groups</Text>;
   }
@@ -73,71 +75,6 @@ const StatTest: React.FC<StatTestProps> = ({
         param
       )
     );
-    // return (
-    //   <>
-    //     <Text>Numerical : T-Test</Text>
-    //     <Box display={"flex"} overflow={"auto"}>
-    //       <Box pr={2} mr={2} borderRight={"0.5px solid gray"}>
-    //         <Text>Name</Text>
-    //         <Text>p-val</Text>
-    //         <Text> statistic</Text>
-    //       </Box>
-    //       <Box pr={2} mr={2} borderRight={"0.5px solid gray"}>
-    //         <Text>{exp.metric.displayName}</Text>
-    //         <Text>{Number(metricResult.pValue).toFixed(2)}</Text>
-    //         <Text> {Number(metricResult.statistic).toFixed(2)}</Text>
-    //       </Box>
-
-    //       {hparamResults
-    //         .filter((result) => result.param.type === HyperparamTypes.Numerical)
-    //         .sort((a, b) => a.pValue - b.pValue)
-    //         .map((result, index) => (
-    //           <Box pr={2} mr={2} borderRight={"0.5px solid gray"} key={index}>
-    //             <Text>{result.param.displayName}</Text>
-    //             <Text>{Number(result.pValue).toFixed(2)}</Text>
-    //             <Text> {Number(result.statistic).toFixed(2)}</Text>
-    //           </Box>
-    //         ))}
-    //     </Box>
-
-    //     <Text>Boolean: Fisher Exact Test</Text>
-    //     <Box display={"flex"} overflow={"auto"}>
-    //       <Box pr={2} mr={2} borderRight={"0.5px solid gray"}>
-    //         <Text>Name</Text>
-    //         <Text>p-val</Text>
-    //       </Box>
-    //       {hparamResults
-    //         .filter((result) => result.param.type === HyperparamTypes.Boolean)
-    //         .sort((a, b) => a.pValue - b.pValue)
-    //         .map((result, index) => (
-    //           <Box key={index} pr={2} mr={2} borderRight={"0.5px solid gray"}>
-    //             <Text key={index}>{result.param.displayName}</Text>
-    //             <Text key={index}>{Number(result.pValue).toFixed(2)}</Text>
-    //           </Box>
-    //         ))}
-    //     </Box>
-    //     <Text>Categorical : Chi-Square Test</Text>
-    //     <Box display={"flex"} overflow={"auto"}>
-    //       <Box pr={2} mr={2} borderRight={"0.5px solid gray"}>
-    //         <Text>Name</Text>
-    //         <Text>p-val</Text>
-    //         <Text> statistic</Text>
-    //       </Box>
-    //       {hparamResults
-    //         .filter(
-    //           (result) => result.param.type === HyperparamTypes.Categorical
-    //         )
-    //         .sort((a, b) => a.pValue - b.pValue)
-    //         .map((result, index) => (
-    //           <Box pr={2} mr={2} borderRight={"0.5px solid gray"} key={index}>
-    //             <Text>{result.param.displayName}</Text>
-    //             <Text>{Number(result.pValue).toFixed(2)}</Text>
-    //             <Text> {Number(result.statistic).toFixed(2)}</Text>
-    //           </Box>
-    //         ))}
-    //     </Box>
-    //   </>
-    // );
   }
   if (metricResult === undefined || hparamResults === undefined) {
     return <Text fontSize="md">Please select only one or two groups</Text>;
@@ -215,45 +152,6 @@ const StatTest: React.FC<StatTestProps> = ({
                   ))}
               </Tbody>
             </Table>
-
-            {/* {hparamResults
-          .filter((result) => result.param.type === HyperparamTypes.Numerical)
-          .sort((a, b) => a.pValue - b.pValue)
-          .map((result, index) => (
-            <Box pr={2} mr={2} borderRight={"0.5px solid gray"} key={index}>
-              <Text align={"center"}> {result.param.displayName}</Text>
-              <Box display={"flex"}>
-                <Text borderRight="1px solid gray" mr={1} pr={1}>
-                  {Array.from(selectedGroup)[0]}
-                </Text>
-                <Text>
-                  {selectedGroup.size === 2
-                    ? Array.from(selectedGroup)[1]
-                    : "others"}
-                </Text>
-              </Box>
-              <Box display={"flex"}>
-                <Text borderRight="1px solid gray" mr={1} pr={1}>
-                  {group1.getHparamMax(result.param.name)}
-                </Text>
-                <Text>{group2.getHparamMax(result.param.name)}</Text>
-              </Box>
-              <Box display={"flex"}>
-                <Text borderRight="1px solid gray" mr={1} pr={1}>
-                  {group1.getHparamMean(result.param.name)}
-                </Text>
-                <Text>{group2.getHparamMean(result.param.name)}</Text>
-              </Box>
-              <Box display={"flex"}>
-                <Text borderRight="1px solid gray" mr={1} pr={1}>
-                  {group1.getHparamMin(result.param.name)}
-                </Text>
-                <Text>{group2.getHparamMin(result.param.name)}</Text>
-              </Box>
-              <Text>{Number(result.pValue).toFixed(2)}</Text>
-              <Text>{Number(result.statistic).toFixed(2)}</Text>
-            </Box>
-          ))} */}
           </Box>
         </Box>
         <Box borderLeft={"1px solid #E2E8F0"}>
@@ -337,25 +235,11 @@ const StatTest: React.FC<StatTestProps> = ({
                   ))}
               </Tbody>
             </Table>
-
-            {/* {hparamResults
-              .filter(
-                (result) => result.param.type === HyperparamTypes.Categorical
-              )
-              .sort((a, b) => a.pValue - b.pValue)
-              .map((result, index) => (
-                <Box pr={2} mr={2} borderRight={"0.5px solid gray"} key={index}>
-                  <Text>{result.param.displayName}</Text>
-                  <Text>{Number(result.pValue).toFixed(2)}</Text>
-                  <Text> {Number(result.statistic).toFixed(2)}</Text>
-                </Box>
-              ))} */}
           </Box>
         </Box>
       </Box>
     </>
   );
-  //   return <Text fontSize="md">Please select only one or two groups</Text>;
 };
 
 export default StatTest;

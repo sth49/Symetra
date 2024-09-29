@@ -43,6 +43,12 @@ body {
   fill: #ecc94b;
 }
 
+.link2:hover,
+.link {
+  fill: none;
+  stroke: #ecc94b;
+}
+
 .node-group.selected .node {
   fill: #3182ce;
 }
