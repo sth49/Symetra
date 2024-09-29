@@ -51,9 +51,9 @@ const D3Scrollbar: React.FC<D3ScrollbarProps> = React.memo(
 
       const scrollbar = svg
         .append("rect")
-        .attr("x", 0)
+        .attr("x", 1)
         .attr("y", 0)
-        .attr("width", 8)
+        .attr("width", 10)
         .attr("height", scrollbarHeight)
         .attr("rx", 4)
         .attr("ry", 4)
@@ -96,7 +96,7 @@ const D3Scrollbar: React.FC<D3ScrollbarProps> = React.memo(
     return (
       <svg
         ref={scrollbarRef}
-        width={8}
+        width={13}
         height={containerHeight}
         style={{
           position: "absolute",
@@ -392,7 +392,11 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                     {column.hp.formatting(item[column.key])}
                   </Text>
                 ) : (
-                  <Text fontSize={"xs"} userSelect="none">
+                  <Text
+                    fontSize={"xs"}
+                    userSelect="none"
+                    textOverflow={"ellipsis"}
+                  >
                     {item[column.key] === true
                       ? "T"
                       : item[column.key] === false
@@ -806,7 +810,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                   </List>
                 ) : (
                   <List
-                    overscanCount={30}
+                    overscanCount={60}
                     height={visible ? height - 95 : height - 80} // Subtracting header height
                     itemCount={sortedData.length}
                     itemSize={15} // Adjust based on your row height

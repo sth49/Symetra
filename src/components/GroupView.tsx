@@ -52,7 +52,6 @@ function createArcPath(
 }
 
 const GroupView = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     groups,
     setHoveredGroup,
@@ -69,12 +68,15 @@ const GroupView = () => {
     hideTooltip,
     showTooltip,
   } = useTooltip<TooltipData>();
-  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+  const { TooltipInPortal } = useTooltipInPortal({
     scroll: true,
   });
 
   const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
   const [hoveredLink, setHoveredLink] = useState<CustomLink | null>(null);
+  const [localSelectedGroup, setLocalSelectedGroup] = useState<Set<number>>(
+    new Set()
+  );
 
   const width = groups.groups.length * 120;
 
@@ -253,9 +255,8 @@ const GroupView = () => {
                 return;
               } else if (selectedGroup.size === 1) {
                 console.log("Single group selected");
-                onOpen();
               } else if (selectedGroup.size === 2) {
-                onOpen();
+                console.log("Two groups selected");
               }
             }}
           >
@@ -328,20 +329,21 @@ const GroupView = () => {
             width={width} // 뷰포트 높이에서 적절한 값을 뺀 높이
             height={"100%"}
           >
-            <svg width={width} height={"100%"}>
-              <rect
-                width={width}
-                height={"100%"}
-                fill={"white"}
-                onMouseEnter={() => {
-                  setHoverGroup(null);
-                  setHoveredLink(null);
-                }}
-                onMouseLeave={() => {
-                  setHoverGroup(null);
-                  setHoveredLink(null);
-                }}
-              />
+            <svg
+              width={width}
+              height={"100%"}
+              onMouseEnter={() => {
+                handleNodeHover(null);
+                hideTooltip();
+                setHoveredLink(null);
+              }}
+              onMouseLeave={() => {
+                handleNodeHover(null);
+                hideTooltip();
+                setHoveredLink(null);
+              }}
+            >
+              {/* <rect width={width} height={"100%"} fill={"white"} /> */}
               <Graph<CustomLink, CustomNode>
                 graph={graphMemo}
                 nodeComponent={NodeComponent}
