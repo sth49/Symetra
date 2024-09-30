@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import trialData from "./data/ParaSuit_without_branch.json";
+import trialData from "./data/ParaSuit_encoded.json";
 import configData from "./data/config.json";
 import { Experiment } from "./model/experiment";
 import "./App.css";

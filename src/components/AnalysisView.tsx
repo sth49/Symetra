@@ -1,4 +1,4 @@
-import { Box, Heading, Text } from "@chakra-ui/react";
+import { Box, Heading, Icon, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { memo, useMemo } from "react";
 import StatTest from "./StatTest";
@@ -21,7 +21,7 @@ const AnalysisView = () => {
       .map((param) =>
         performStatisticalTest(
           analysisGroups[0].getHyperparam(param.name),
-          analysisGroups[0].getHyperparam(param.name),
+          analysisGroups[1].getHyperparam(param.name),
           param.type,
           param
         )
@@ -87,11 +87,13 @@ const AnalysisView = () => {
                 pb={2}
               >
                 <Box width={"20%"}>
-                  <Text fontSize={"sm"}>Trials</Text>
+                  <Text fontSize={"xs"} fontWeight={"bold"}>
+                    Count
+                  </Text>
                 </Box>
                 {analysisGroups.map((group) => (
                   <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"sm"}>
+                    <Text align="center" fontSize={"xs"}>
                       {formatting(group.trials.length, "int")}
                     </Text>
                   </Box>
@@ -105,11 +107,13 @@ const AnalysisView = () => {
                 pb={2}
               >
                 <Box width={"20%"}>
-                  <Text fontSize={"sm"}>Max</Text>
+                  <Text fontSize={"xs"} fontWeight={"bold"}>
+                    Max. CVRG
+                  </Text>
                 </Box>
                 {analysisGroups.map((group) => (
                   <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"sm"}>
+                    <Text align="center" fontSize={"xs"}>
                       {formatting(group.getStats().max, "int")}
                     </Text>
                   </Box>
@@ -123,11 +127,13 @@ const AnalysisView = () => {
                 pb={2}
               >
                 <Box width={"20%"}>
-                  <Text fontSize={"sm"}>Avg</Text>
+                  <Text fontSize={"xs"} fontWeight={"bold"}>
+                    Avg. CVRG
+                  </Text>
                 </Box>
                 {analysisGroups.map((group) => (
                   <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"sm"}>
+                    <Text align="center" fontSize={"xs"}>
                       {formatting(group.getStats().avg, "float")}
                     </Text>
                   </Box>
@@ -141,11 +147,13 @@ const AnalysisView = () => {
                 pb={2}
               >
                 <Box width={"20%"}>
-                  <Text fontSize={"sm"}>Min</Text>
+                  <Text fontSize={"xs"} fontWeight={"bold"}>
+                    Min. CVRG
+                  </Text>
                 </Box>
                 {analysisGroups.map((group) => (
                   <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"sm"}>
+                    <Text align="center" fontSize={"xs"}>
                       {formatting(group.getStats().min, "int")}
                     </Text>
                   </Box>
@@ -192,13 +200,18 @@ const AnalysisView = () => {
                     pb={2}
                     key={index}
                   >
-                    <Box width={"50%"}>
-                      <Text align={"center"} fontSize={"sm"}>
+                    <Box width={"50%"} display={"flex"} pl={2}>
+                      <Text align={"center"} fontSize={"xs"}>
+                        <Icon
+                          as={result.param.icon}
+                          color={"gray.600"}
+                          mr={1}
+                        />
                         {result.param.displayName}
                       </Text>
                     </Box>
                     <Box width={"50%"}>
-                      <Text align={"center"} fontSize={"sm"}>
+                      <Text align={"center"} fontSize={"xs"}>
                         {formatting(result.pValue, "float")}
                       </Text>
                     </Box>

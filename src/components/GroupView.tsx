@@ -11,9 +11,10 @@ import { formatting } from "../model/utils";
 
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 type TooltipData = {
-  key: string; // hparam name
-  value: any; // hparam value
-  count: number; // trial count
+  key: string;
+  type: string;
+  value: any;
+  count: number;
   stats: { avg: number; max: number; min: number };
 };
 
@@ -161,6 +162,7 @@ const GroupView = () => {
           showTooltip({
             tooltipData: {
               key: "Group",
+              type: "node",
               value: node.id,
               count: node.length,
               stats: node.stats,
@@ -238,6 +240,7 @@ const GroupView = () => {
               showTooltip({
                 tooltipData: {
                   key: "Link",
+                  type: "link",
                   value: `${source.id} - ${target.id}`,
                   count: link.weight,
                   stats: {
@@ -350,18 +353,28 @@ const GroupView = () => {
             <Text fontWeight={"bold"} align={"left"} mb={2}>
               {tooltipData.key} {tooltipData.value}
             </Text>
-            <Text align={"left"} mb={1} fontSize={"12px"}>
-              {formatting(tooltipData.count, "int")} trials
-            </Text>
-            <Text align={"left"} mb={1} fontSize={"12px"}>
-              Max: {formatting(tooltipData.stats.max, "float")}
-            </Text>
-            <Text align={"left"} mb={1} fontSize={"12px"}>
-              Avg: {formatting(tooltipData.stats.avg, "float")}
-            </Text>
-            <Text align={"left"} mb={1} fontSize={"12px"}>
-              Min: {formatting(tooltipData.stats.min, "float")}
-            </Text>
+            {tooltipData.type === "node" ? (
+              <>
+                <Text align={"left"} mb={1} fontSize={"12px"}>
+                  Count: {formatting(tooltipData.count, "int")}
+                </Text>
+                <Text align={"left"} mb={1} fontSize={"12px"}>
+                  Max: {formatting(tooltipData.stats.max, "float")}
+                </Text>
+                <Text align={"left"} mb={1} fontSize={"12px"}>
+                  Avg: {formatting(tooltipData.stats.avg, "float")}
+                </Text>
+                <Text align={"left"} mb={1} fontSize={"12px"}>
+                  Min: {formatting(tooltipData.stats.min, "float")}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text align={"left"} mb={1} fontSize={"12px"}>
+                  Weight: {formatting(tooltipData.count, "int")}
+                </Text>
+              </>
+            )}
           </Box>
         </TooltipInPortal>
       )}
