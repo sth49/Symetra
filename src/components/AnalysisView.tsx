@@ -223,6 +223,37 @@ const AnalysisView = () => {
               <Text fontWeight={"bold"} fontSize={"sm"}>
                 Expected Coverage
               </Text>
+              {/* <Text fontSize={"sm"}>{analysisGroups[1].getUnion()}</Text> */}
+              <Box display={"flex"}>
+                <Text fontSize={"xs"} mr={2} width={"50%"}>
+                  Group {analysisGroups[0].id}
+                </Text>
+                <Text fontSize={"xs"} width={"50%"}>
+                  {formatting(analysisGroups[0].getUnion().size, "int")}
+                </Text>
+              </Box>
+              <Box display={"flex"}>
+                <Text fontSize={"xs"} mr={2} width={"50%"}>
+                  Group {analysisGroups[1].id}
+                </Text>
+                <Text fontSize={"xs"} width={"50%"}>
+                  {formatting(analysisGroups[1].getUnion().size, "int")}
+                </Text>
+              </Box>
+              <Box display={"flex"}>
+                <Text fontSize={"xs"} mr={2} width={"50%"}>
+                  Combined
+                </Text>
+                <Text fontSize={"xs"} width={"50%"}>
+                  {formatting(
+                    new Set([
+                      ...analysisGroups[0].getUnion(),
+                      ...analysisGroups[1].getUnion(),
+                    ]).size,
+                    "int"
+                  )}
+                </Text>
+              </Box>
             </Box>
           </Box>
         )}

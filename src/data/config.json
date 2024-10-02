@@ -443,6 +443,7 @@
   ],
   "metric": {
     "name": "Coverage",
-    "displayName": "CVRG"
+    "displayName": "CVRG",
+    "length": 3365
   }
 }

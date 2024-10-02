@@ -73,3 +73,8 @@ export const formatting = (value: number, valueType: string) => {
     return formatter.format(value);
   }
 };
+
+export function decimalToBinary(decimal: bigint, bitLength: number): string {
+  const binary = decimal.toString(2);
+  return binary.padStart(bitLength, "0");
+}

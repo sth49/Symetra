@@ -10,7 +10,7 @@ export interface TrialJson {
   umap_positions: { [name: string]: unknown };
   umap_x: number;
   umap_y: number;
-  branch: number;
+  branch: number[];
 }
 
 export class Trial {
@@ -20,7 +20,7 @@ export class Trial {
     public metric: number,
     public shapValues: ParamDict,
     public umapPositions: ParamDict,
-    public branch: number
+    public branch: Set<number>
   ) {}
   static fromJson(json: TrialJson) {
     return new Trial(
@@ -29,7 +29,7 @@ export class Trial {
       json.metric,
       json.shap_values,
       json.umap_positions,
-      json.branch
+      new Set(json.branch)
     );
   }
 }

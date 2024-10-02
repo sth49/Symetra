@@ -47,6 +47,14 @@ export class Group {
       min: min,
     };
   }
+
+  getUnion() {
+    const unionSet = new Set<number>();
+    for (const trial of this.trials) {
+      trial.branch.forEach((b) => unionSet.add(b));
+    }
+    return unionSet;
+  }
   // getBranches() {
   //   const branches = this.trials.map((trial) =>
   //     Object.values(trial.branch).map((b, index) =>
