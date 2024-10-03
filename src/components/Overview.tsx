@@ -14,12 +14,13 @@ import { formatting } from "../model/utils";
 import { AiFillRocket } from "react-icons/ai";
 import { useCustomStore } from "../store";
 import { IoMdSettings } from "react-icons/io";
+import { useConstDataStore } from "./store/constDataStore";
 const Overview = () => {
   // console.log(
   //   data.data.hyperparams.filter((hp) => hp.type === HyperparamTypes.Boolean)
   //     .length
   // );
-  const { exp } = useCustomStore();
+  const { exp } = useConstDataStore();
   return (
     <Box
       w={"100%"}

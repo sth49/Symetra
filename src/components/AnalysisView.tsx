@@ -1,14 +1,15 @@
 import { Box, Heading, Icon, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { memo, useMemo } from "react";
-import StatTest from "./StatTest";
 import { formatting } from "../model/utils";
-import React from "react";
-import { Group } from "../model/group";
 import { performStatisticalTest } from "../model/statistic";
-import { HyperparamTypes } from "../model/hyperparam";
+import { useConstDataStore } from "./store/constDataStore";
 const AnalysisView = () => {
-  const { selectedGroup, groups, hyperparams, exp } = useCustomStore();
+  const { hyperparams } = useConstDataStore();
+
+  // const { selectedGroup, groups } = useCustomStore();
+  const selectedGroup = useCustomStore((state) => state.selectedGroup);
+  const groups = useCustomStore((state) => state.groups);
   const analysisGroups = useMemo(() => {
     return groups.groups.filter((group) => selectedGroup.has(group.id));
   }, [groups.groups, selectedGroup]);

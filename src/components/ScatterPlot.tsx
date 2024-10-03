@@ -29,18 +29,31 @@ import {
 import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
-interface ScatterPlotProps {
-  selectedTrials: number[];
-  selectedRowPositions: any[];
-  lastViewIndex: number;
-}
-const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
-  selectedTrials,
-  selectedRowPositions,
-  lastViewIndex,
-}) => {
-  const { exp, hyperparams, groups, setGroups, hoveredGroup } =
-    useCustomStore();
+import { useConstDataStore } from "./store/constDataStore";
+// interface ScatterPlotProps {
+//   selectedTrials: number[];
+//   selectedRowPositions: any[];
+//   lastViewIndex: number;
+// }
+const ScatterContourPlot: React.FC = () => {
+  // const {
+  //   groups,
+  //   setGroups,
+  //   hoveredGroup,
+  //   selectedTrials,
+  //   selectedRowPositions,
+  //   lastViewIndex,
+  // } = useCustomStore();
+
+  const groups = useCustomStore((state) => state.groups);
+  const setGroups = useCustomStore((state) => state.setGroups);
+  const hoveredGroup = useCustomStore((state) => state.hoveredGroup);
+  const selectedTrials = useCustomStore((state) => state.selectedTrials);
+  const selectedRowPositions = useCustomStore(
+    (state) => state.selectedRowPositions
+  );
+  const lastViewIndex = useCustomStore((state) => state.lastViewIndex);
+  const { exp, hyperparams } = useConstDataStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
   const [isPreference, setIsPreference] = useState(false);
@@ -908,7 +921,7 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
         borderRadius="md"
         bottom={"0px"}
         left="50%"
-        width={"50%"}
+        width={"60%"}
         transform="translate(-50%, -50%)" // Center the box
         p={1}
         zIndex={10}
@@ -917,7 +930,9 @@ const ScatterContourPlot: React.FC<ScatterPlotProps> = ({
         alignItems="center"
       >
         <Text fontSize={"xs"} color="gray.600" p={2}>
-          Choose trials to create a group
+          Choose trials to create a trial group ({selectedPoints.size} trial
+          {selectedPoints.size > 1 ? "s " : ""}
+          selected)
         </Text>
         <Box display={"flex"}>
           <IconButton

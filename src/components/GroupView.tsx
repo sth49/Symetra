@@ -10,6 +10,7 @@ import * as d3 from "d3";
 import { formatting } from "../model/utils";
 
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { useConstDataStore } from "./store/constDataStore";
 type TooltipData = {
   key: string;
   type: string;
@@ -53,8 +54,12 @@ function createArcPath(
 }
 
 const GroupView = () => {
-  const { groups, setHoveredGroup, hyperparams, setSelectedGroup } =
-    useCustomStore();
+  const { hyperparams } = useConstDataStore();
+  const groups = useCustomStore((state) => state.groups);
+  const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
+  const setSelectedGroup = useCustomStore((state) => state.setSelectedGroup);
+
+  // const { groups, setHoveredGroup, setSelectedGroup } = useCustomStore();
 
   const {
     tooltipOpen,

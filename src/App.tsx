@@ -12,17 +12,10 @@ import GroupView from "./components/GroupView";
 import FastEffectTable from "./components/FastEffectTable";
 import theme from "./theme";
 import AnalysisView from "./components/AnalysisView";
+import { useConstDataStore } from "./components/store/constDataStore";
 function App() {
-  const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
-  const [selectedTrials, setSelectedTrials] = useState([]);
-  const [selectedRowPositions, setSelectedRowPositions] = useState([]);
-  const [lastViewIndex, setLastViewIndex] = useState(0);
-
-  const handleSelectTrial = (trialIds: number[], positions: never[], index) => {
-    setSelectedTrials(trialIds);
-    setSelectedRowPositions(positions);
-    setLastViewIndex(index);
-  };
+  // const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
+  const { exp, setExp, setHyperparams } = useConstDataStore();
 
   useEffect(() => {
     async function loadExperiment() {
@@ -32,14 +25,14 @@ function App() {
       try {
         const experiment = await Experiment.fromJson(configData, trialData);
         setExp(experiment);
-        if (groups.getLength() === 0) {
-          groups.addGroup(experiment?.trials); // 전체 데이터를 그룹에 추가
-          const topGroup = experiment?.trials
-            .sort((a, b) => b.metric - a.metric)
-            .slice(0, experiment.trials.length * 0.1);
-          groups.addGroup(topGroup); // 상위 10% 데이터를 그룹에 추가
-          setGroups(groups);
-        }
+        // if (groups.getLength() === 0) {
+        //   groups.addGroup(experiment?.trials); // 전체 데이터를 그룹에 추가
+        //   const topGroup = experiment?.trials
+        //     .sort((a, b) => b.metric - a.metric)
+        //     .slice(0, experiment.trials.length * 0.1);
+        //   groups.addGroup(topGroup); // 상위 10% 데이터를 그룹에 추가
+        //   setGroups(groups);
+        // } => group view로 옮기기
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
@@ -80,13 +73,7 @@ function App() {
           {exp ? (
             <>
               <Box width="320px" height="calc(100vh - 44px)">
-                <Box
-                  height="calc(100vh - 44px - 6px)"
-                  bg="white"
-                  m={1}
-                  mr={0.5}
-                  mt={0.5}
-                >
+                <Box height="99%" bg="white" m={1} mr={0.5} mt={0.5}>
                   <FastEffectTable />
                 </Box>
               </Box>
@@ -98,32 +85,38 @@ function App() {
               >
                 <Box display="flex" width="100%">
                   <Box
-                    width="50%"
+                    width="35%"
                     height="calc(100vh - 44px)"
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"70%"} bg="white" m={0.5}>
-                      <FastDataTable onSelectTrial={handleSelectTrial} />
-                    </Box>
-                    <Box height={"29%"} bg="white" m={0.5} mb={1}>
-                      <GroupView />
+                    <Box height={"99%"} bg="white" m={0.5}>
+                      <FastDataTable />
                     </Box>
                   </Box>
                   <Box
-                    width="50%"
+                    width="35%"
                     height="calc(100vh - 44px)"
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"70%"} m={0.5} bg="white" mr={1}>
-                      <ScatterContourPlot
-                        selectedTrials={selectedTrials}
-                        selectedRowPositions={selectedRowPositions}
-                        lastViewIndex={lastViewIndex}
-                      />
+                    <Box height={"99%"} m={0.5} bg="white">
+                      <ScatterContourPlot />
                     </Box>
-                    <Box height={"29%"} bg="white" m={0.5} mr={1} mb={1}>
+                    {/* <Box height={"29%"} bg="white" m={0.5} mr={1} mb={1}>
+                      <AnalysisView />
+                    </Box> */}
+                  </Box>
+                  <Box
+                    width="30%"
+                    height="calc(100vh - 44px)"
+                    display="flex"
+                    flexDirection="column"
+                  >
+                    <Box height={"20%"} m={0.5} bg="white" mr={1}>
+                      <GroupView />
+                    </Box>
+                    <Box height={"calc(79% - 4px)"} m={0.5} bg="white" mr={1}>
                       <AnalysisView />
                     </Box>
                   </Box>

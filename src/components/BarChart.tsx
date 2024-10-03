@@ -13,6 +13,7 @@ import {
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { PatternLines } from "@visx/pattern";
 import { formatting } from "../model/utils";
+import { useConstDataStore } from "./store/constDataStore";
 type TooltipData = {
   key: string; // hparam name
   value: any; // hparam value
@@ -44,8 +45,15 @@ const BarChart = ({ dist, width = 50, height = 40 }: BarChartProps) => {
     scroll: true,
   });
 
-  const { exp, hyperparams, setClickedHparamValue, clickedHparamValue } =
-    useCustomStore();
+  const { exp, hyperparams } = useConstDataStore();
+  const setClickedHparamValue = useCustomStore(
+    (state) => state.setClickedHparamValue
+  );
+  const clickedHparamValue = useCustomStore(
+    (state) => state.clickedHparamValue
+  );
+
+  // const { setClickedHparamValue, clickedHparamValue } = useCustomStore();
 
   const data = exp?.trials.map((trial) => trial.params[dist]) as
     | string[]

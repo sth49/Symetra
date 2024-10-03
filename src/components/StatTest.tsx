@@ -4,6 +4,7 @@ import { Group } from "../model/group";
 import { performStatisticalTest } from "../model/statistic";
 import { HyperparamTypes } from "../model/hyperparam";
 import { useCustomStore } from "../store";
+import { useConstDataStore } from "./store/constDataStore";
 
 interface StatTestProps {
   isOpen: boolean;
@@ -20,7 +21,8 @@ const StatTest: React.FC<StatTestProps> = ({
   // hyperparams,
   // exp,
 }) => {
-  const { groups, hyperparams, exp } = useCustomStore();
+  const { exp, hyperparams } = useConstDataStore();
+  const { groups } = useCustomStore();
   if (!isOpen || selectedGroup.size === 0) {
     return <Text fontSize="md">Please select one or more groups</Text>;
   }

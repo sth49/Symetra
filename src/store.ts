@@ -13,11 +13,11 @@ interface CustomStore {
   clickedHparam: string | null;
   setClickedHparam: (column: string | null) => void;
 
-  exp: Experiment | null;
-  setExp: (experiment: Experiment) => void;
+  // exp: Experiment | null;
+  // setExp: (experiment: Experiment) => void;
 
-  hyperparams: Hyperparam[];
-  setHyperparams: (hyperparams: Hyperparam[]) => void;
+  // hyperparams: Hyperparam[];
+  // setHyperparams: (hyperparams: Hyperparam[]) => void;
 
   groups: Groups;
   setGroups: (groups: Groups) => void;
@@ -33,17 +33,26 @@ interface CustomStore {
 
   trialPathModel: TrialPathModel;
   setTrialPathModel: (trialPathModel: TrialPathModel) => void;
+
+  selectedTrials: number[];
+  setSelectedTrials: (selectedTrials: number[]) => void;
+
+  selectedRowPositions: any[];
+  setSelectedRowPositions: (selectedRowPositions: any[]) => void;
+
+  lastViewIndex: number;
+  setLastViewIndex: (index: number) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
   clickedHparam: null,
   setClickedHparam: (hparam) => set({ clickedHparam: hparam }),
 
-  exp: null,
-  setExp: (exp) => set({ exp }),
+  // exp: null,
+  // setExp: (exp) => set({ exp }),
 
-  hyperparams: [],
-  setHyperparams: (hyperparams) => set({ hyperparams }),
+  // hyperparams: [],
+  // setHyperparams: (hyperparams) => set({ hyperparams }),
 
   groups: new Groups(),
   setGroups: (groups) => set({ groups }),
@@ -59,4 +68,14 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   trialPathModel: new TrialPathModel(),
   setTrialPathModel: (trialPathModel) => set({ trialPathModel }),
+
+  selectedTrials: [],
+  setSelectedTrials: (selectedTrials) => set({ selectedTrials }),
+
+  selectedRowPositions: [],
+  setSelectedRowPositions: (selectedRowPositions) =>
+    set({ selectedRowPositions }),
+
+  lastViewIndex: 0,
+  setLastViewIndex: (lastViewIndex) => set({ lastViewIndex }),
 }));

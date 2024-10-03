@@ -5,14 +5,11 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { useCustomStore } from "../store";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { Box, Button, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
-import * as d3 from "d3";
 import BarChart from "./BarChart";
-import { FaAngleLeft } from "react-icons/fa6";
 import { FaAngleUp } from "react-icons/fa6";
 import { FaAngleDown } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
@@ -26,6 +23,7 @@ type TooltipData = {
 import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 import { formatting, generateBinnedData } from "../model/utils";
 import { HyperparamTypes } from "../model/hyperparam";
+import { useConstDataStore } from "./store/constDataStore";
 const FastEffectTable = () => {
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     scroll: true,
@@ -39,7 +37,7 @@ const FastEffectTable = () => {
     showTooltip,
   } = useTooltip<TooltipData>();
 
-  const { exp, hyperparams, setHyperparams } = useCustomStore();
+  const { exp, hyperparams, setHyperparams } = useConstDataStore();
 
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(

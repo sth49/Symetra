@@ -22,6 +22,14 @@ export class Groups {
   getLength() {
     return this.groups.length;
   }
+  clone() {
+    const clone = new Groups();
+    clone.lastGroupId = this.lastGroupId;
+    clone.groups = this.groups.map((group) => {
+      return new Group(group.id, group.trials);
+    });
+    return clone;
+  }
 }
 
 export class Group {
