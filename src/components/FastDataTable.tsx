@@ -634,13 +634,13 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
     [handleScroll]
   );
 
-  const onListScroll = useCallback(
-    ({ scrollOffset }: { scrollOffset: number }) => {
-      setScrollOffset(scrollOffset);
-      handleScroll();
-    },
-    [handleScroll]
-  );
+  // const onListScroll = useCallback(
+  //   ({ scrollOffset }: { scrollOffset: number }) => {
+  //     setScrollOffset(scrollOffset);
+  //     handleScroll();
+  //   },
+  //   [handleScroll]
+  // );
   return (
     <div style={{ height: "100%", width: "100%", position: "relative" }}>
       <Box
@@ -818,7 +818,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
                     itemData={sortedData}
                     style={{ overflowX: "hidden", paddingBottom: "55px" }}
                     // onScroll={handleScroll}
-                    onScroll={onListScroll}
+                    onScroll={handleScroll}
                   >
                     {Row}
                   </List>
@@ -828,7 +828,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
           </div>
         )}
       </AutoSizer>
-      <Box
+      {/* <Box
         position="absolute"
         bg="white"
         boxShadow="lg"
@@ -848,7 +848,7 @@ const FastDataTable: React.FC<FastDataTableProps> = ({ onSelectTrial }) => {
           scrollOffset={scrollOffset}
           onScroll={handleCustomScroll}
         />
-      </Box>
+      </Box> */}
       <Box
         position="absolute"
         bg="white"
