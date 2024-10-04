@@ -10,8 +10,12 @@ body {
   --hover-color: #f0f0f0;
   --selected-color: #d0e0fc;
   outline: none;
+  user-select: none;
+  white-space: nowrap;
 }
-
+.virtual-table-row {
+  font-size: small;
+}
 .virtual-table-row.selected {
   background-color: var(--selected-color);
 }
@@ -116,4 +120,21 @@ body {
 .expanded-content.show {
   max-height: 1000px; /* Adjust this value based on your maximum expected height */
   opacity: 1;
+}
+
+:root {
+  --pseudo-height: 0px;
+}
+
+.virtual-table::after {
+  content: "";
+  display: block;
+  height: var(--pseudo-height);
+}
+
+.virtual-table-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background-color: white;
 }

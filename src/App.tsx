@@ -13,6 +13,7 @@ import FastEffectTable from "./components/FastEffectTable";
 import theme from "./theme";
 import AnalysisView from "./components/AnalysisView";
 import { useConstDataStore } from "./components/store/constDataStore";
+import TrialView from "./components/TrialView";
 function App() {
   // const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
   const { exp, setExp, setHyperparams } = useConstDataStore();
@@ -91,7 +92,7 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"99%"} bg="white" m={0.5}>
-                      <FastDataTable />
+                      {/* <FastDataTable /> */}
                     </Box>
                   </Box>
                   <Box
@@ -101,7 +102,8 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"99%"} m={0.5} bg="white">
-                      <ScatterContourPlot />
+                      {/* <ScatterContourPlot /> */}
+                      <TrialView />
                     </Box>
                     {/* <Box height={"29%"} bg="white" m={0.5} mr={1} mb={1}>
                       <AnalysisView />

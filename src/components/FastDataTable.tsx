@@ -844,7 +844,6 @@ const FastDataTable: React.FC = () => {
                     itemData={sortedData}
                     style={{ overflowX: "hidden", paddingBottom: "55px" }}
                     onScroll={handleScroll}
-                    // onScroll={handleScroll}
                   >
                     {Row}
                   </List>
