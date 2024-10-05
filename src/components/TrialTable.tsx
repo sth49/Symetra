@@ -9,6 +9,8 @@ import {
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Box, Button, Icon, Text } from "@chakra-ui/react";
+import { useCustomStore } from "../store";
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
 
@@ -30,87 +32,119 @@ const TrialTable = () => {
   const data = useMemo(
     () =>
       exp?.trials.map((trial) => ({
-        id: trial.id,
+        id: Number(trial.id),
         metric: trial.metric,
         ...trial.params,
       })) || [],
     [exp]
   );
 
-  //   console.log(data);
+  const [columnVisibility, setColumnVisibility] = useState({});
 
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+
+  useEffect(() => {
+    const visibility = {};
+    hyperparams.forEach((param) => {
+      visibility[param.name] = param.visible;
+    });
+    setColumnVisibility(visibility);
+  }, [hyperparams]);
   const columns = useMemo(() => {
     return [
       {
         header: "",
         accessorKey: "check",
-        cell: <input type="checkbox" />,
+        cell: (info) => {
+          return (
+            <input
+              type="checkbox"
+              checked={info.row.getIsSelected()}
+              onChange={info.row.getToggleSelectedHandler()}
+            />
+          );
+        },
         meta: {
           align: "center",
         },
-        size: 50,
+        size: 30,
       },
       {
         header: "ID",
         accessorKey: "id",
         cell: (info) => info.getValue(),
-        // size: 100,
+        size: 50,
         meta: {
           align: "right",
         },
-        size: 100,
       },
       {
-        header: "Metric",
+        header: "CVRG",
         accessorKey: "metric",
         cell: (info) => formatting(info.getValue(), "int"),
         meta: {
           align: "right",
         },
-        size: 100,
       },
       ...hyperparams.map((param) => {
         return {
-          header: param.displayName,
+          header: () => (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Icon as={param.icon} mr={1} color={"gray.600"}></Icon>
+              {param.displayName}
+            </div>
+          ),
           type: param.type,
           accessorKey: param.name,
-          cell: (info) =>
-            info.getValue() === true
+          cell: (info) => {
+            return info.getValue() === true
               ? "T"
               : info.getValue() === false
               ? "F"
               : //   : info.getColumn().columnDef.type === "string" ?
-                info.getValue(),
-          // info.getValue() === true
-          //   ? "T"
-          //   : info.getValue() === false
-          //   ? "F"
-          //   : //   : info.getColumn().columnDef.type === "string" ?
-          //     info.getValue(),
-          //   formatting(
-          //       info.getValue(),
-          //       info.getColumn().columnDef.type === "int" ? "int" : "float"
-          //     ),
-          //   width: 100,
-          meta: {
-            align: "center",
+              info.column.columnDef.meta.type === "string"
+              ? info.getValue()
+              : formatting(
+                  info.getValue(),
+                  info.column.columnDef.meta.type === "int" ? "int" : "float"
+                );
           },
-          size: 100,
+
+          width: 300,
+          meta: {
+            align: param.valueType === "int" ? "right" : "center",
+            type: param.valueType,
+          },
         };
       }),
     ];
   }, []);
-  const [sorting, setSorting] = useState<SortingState>([]);
+
   const table = useReactTable({
     data,
     columns,
+    columnResizeMode: "onChange",
+    columnResizeDirection: "ltr",
     state: {
       sorting,
+      rowSelection,
+      columnVisibility,
     },
+    onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onRowSelectionChange: setRowSelection,
     debugTable: true,
+    defaultColumn: {
+      minSize: 30,
+      size: 50,
+      maxSize: 300,
+    },
+    enableRowSelection: true,
   });
   const { rows } = table.getRowModel();
 
@@ -125,28 +159,69 @@ const TrialTable = () => {
     estimateSize: () => 20,
     overscan: 20,
   });
-
+  const {
+    setGroups,
+    groups,
+    selectedTrials,
+    setSelectedRowPositions,
+    setSelectedTrials,
+    setLastViewIndex,
+  } = useCustomStore();
   const virtualItems = virtualizer.getVirtualItems();
   const virtualSize = virtualizer.getTotalSize();
 
-  // callback to adjust the height of the pseudo element
-  const handlePseudoResize = useCallback(() => {
-    return adjustTableHeight(tableRef, virtualSize);
-  }, [tableRef, virtualSize]);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimerRef = useRef(null);
 
-  // callback to handle scrolling, checking if we are near the bottom
+  const BOTTOM_PADDING = 100;
+  const paddedTotalSize = virtualSize + BOTTOM_PADDING;
+  const handlePseudoResize = useCallback(() => {
+    return adjustTableHeight(tableRef, paddedTotalSize);
+  }, [tableRef, paddedTotalSize]);
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+    };
+  }, []);
+  const lastScrollTopRef = useRef(0);
+
   const handleScroll = useCallback(() => {
     if (parentRef.current) {
-      const scrollPosition = parentRef.current?.scrollTop;
-      const visibleHeight = parentRef.current?.clientHeight;
-      setIsScrollNearBottom(
-        scrollPosition > virtualSize * 0.95 - visibleHeight
-      );
-    }
-  }, [parentRef, virtualSize]);
+      const currentScrollTop = parentRef.current.scrollTop;
 
-  // add an event listener on the scrollable parent container and resize the
-  // pseudo element whenever the table renders with new data
+      if (currentScrollTop !== lastScrollTopRef.current) {
+        if (!isScrolling && Object.keys(rowSelection).length > 0) {
+          setIsScrolling(true);
+          setSelectedTrials([]);
+          setSelectedRowPositions([]);
+          setLastViewIndex(-1);
+        }
+
+        if (scrollTimerRef.current) {
+          clearTimeout(scrollTimerRef.current);
+        }
+
+        scrollTimerRef.current = setTimeout(() => {
+          setIsScrolling(false);
+          if (Object.keys(rowSelection).length > 0) {
+            updateSelectedTrials(
+              new Set(Object.keys(rowSelection).map(Number))
+            );
+          }
+        }, 150);
+
+        const visibleHeight = parentRef.current.clientHeight;
+        setIsScrollNearBottom(
+          currentScrollTop > paddedTotalSize * 0.95 - visibleHeight
+        );
+
+        lastScrollTopRef.current = currentScrollTop;
+      }
+    }
+  }, [parentRef, paddedTotalSize, isScrolling, rowSelection]);
+
   useEffect(() => {
     const scrollable = parentRef.current;
     if (scrollable) scrollable.addEventListener("scroll", handleScroll);
@@ -157,114 +232,301 @@ const TrialTable = () => {
     };
   }, [data, handleScroll, handlePseudoResize]);
 
-  // if we are near the bottom of the table, resize the pseudo element each time
-  // the length of virtual items changes (which is effectively the number of table
-  // rows rendered to the DOM). This ensures we don't scroll too far or too short.
   useEffect(() => {
     if (isScrollNearBottom) handlePseudoResize();
   }, [isScrollNearBottom, virtualItems.length, handlePseudoResize]);
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+    };
+  }, []);
+
+  const rowRefs = useRef({});
+  const updateSelectedTrials = useCallback(
+    (newSelectedRows: Set<number>) => {
+      const selectedTrialArray = Array.from(newSelectedRows);
+      const tableContainer = document.querySelector(".virtual-table");
+      const tableRect = tableContainer?.getBoundingClientRect();
+
+      const positions = selectedTrialArray
+        .map((trialId) => {
+          const index = rows.findIndex((item) => Number(item.id) === trialId);
+          const rowElement = rowRefs.current[index];
+          if (rowElement) {
+            const rect = rowElement.getBoundingClientRect();
+            let top = rect.bottom;
+            if (rect.bottom < tableRect.top - 15) {
+              top = tableRect.top - 15;
+            } else if (rect.bottom > tableRect.bottom) {
+              top = tableRect.bottom;
+            }
+
+            return {
+              trialId: trialId,
+              top: top,
+              left: rect.left,
+              height: rect.height,
+              width: rect.width,
+              order: index,
+            };
+          }
+          return {
+            trialId: trialId,
+            top: null,
+            left: null,
+            height: null,
+            width: null,
+            order: index,
+          };
+        })
+        .filter((position) => position !== null);
+      let lastViewIndex = -1;
+      let minDistance = Infinity;
+
+      rows.forEach((item, index) => {
+        const rowElement = rowRefs.current[index];
+        if (rowElement) {
+          const rect = rowElement.getBoundingClientRect();
+          const distance = Math.abs(rect.top - tableRect.bottom);
+          if (distance < minDistance) {
+            minDistance = distance;
+            lastViewIndex = index - 1;
+          }
+        }
+      });
+      setSelectedTrials(selectedTrialArray);
+      setSelectedRowPositions(positions);
+      setLastViewIndex(lastViewIndex);
+    },
+    [rows]
+  );
+
+  const toggleRowSelection = useCallback(
+    (index: number, shiftKey: boolean) => {
+      setRowSelection((prevRowSelection) => {
+        const newSelection = { ...prevRowSelection };
+        const trialId = rows[index].id;
+        if (shiftKey && lastSelectedIndex !== null) {
+          const start = Math.min(lastSelectedIndex, index);
+          const end = Math.max(lastSelectedIndex, index);
+          for (let i = start; i <= end; i++) {
+            newSelection[rows[i].id] = true;
+          }
+          setIsMultiSelect(true);
+        } else if (isMultiSelect) {
+          for (let i = 0; i < rows.length; i++) {
+            delete newSelection[rows[i].id];
+          }
+          setIsMultiSelect(false);
+        } else {
+          if (newSelection[trialId]) {
+            delete newSelection[trialId];
+          } else {
+            newSelection[trialId] = true;
+          }
+        }
+        setLastSelectedIndex(index);
+        updateSelectedTrials(new Set(Object.keys(newSelection).map(Number)));
+        return newSelection;
+      });
+    },
+    [rows, lastSelectedIndex, isMultiSelect]
+  );
+
   return (
     <div
-      ref={parentRef}
-      className="container"
       style={{
-        overflow: "auto",
         height: "100%",
+        width: "100%",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       <div
-        ref={scrollableRef}
+        ref={parentRef}
+        className="container"
         style={{
-          position: "relative",
-          height: `${virtualizer.getTotalSize()}px`,
+          overflow: "auto",
+          height: "100%",
         }}
       >
-        <table ref={tableRef} className="virtual-table">
-          <thead
-          // style={{
-          //   position: "sticky",
-          //   top: 0,
-          //   zIndex: 10,
-          //   backgroundColor: "white",
-          // }}
+        <div
+          ref={scrollableRef}
+          style={{
+            position: "relative",
+            height: `${virtualizer.getTotalSize()}px`,
+          }}
+        >
+          <table
+            ref={tableRef}
+            className="virtual-table"
+            {...{
+              style: {
+                width: table.getCenterTotalSize(),
+                tableLayout: "fixed",
+              },
+            }}
           >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="virtual-table-sticky-header">
-                {headerGroup.headers.map((header) => {
-                  const { column } = header;
-                  return (
-                    <th
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      style={{
-                        width: column.getSize(),
-                        position: "sticky",
-                        top: 0,
-                      }}
-                    >
-                      {header.isPlaceholder ? null : (
-                        <div
-                          {...{
-                            className: header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : "",
-                            onClick: header.column.getToggleSortingHandler(),
-                          }}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          {{
-                            asc: " 🔼",
-                            desc: " 🔽",
-                          }[header.column.getIsSorted() as string] ?? null}
-                        </div>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {virtualizer.getVirtualItems().map((virtualRow, index) => {
-              const row = rows[virtualRow.index];
-              return (
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
                 <tr
-                  key={row.id}
-                  style={{
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${
-                      virtualRow.start - index * virtualRow.size
-                    }px)`,
-                  }}
-                  className="virtual-table-row"
+                  key={headerGroup.id}
+                  className="virtual-table-sticky-header"
                 >
-                  {row.getVisibleCells().map((cell) => {
-                    const { column } = cell;
+                  {headerGroup.headers.map((header) => {
+                    // const { column } = header;
                     return (
-                      <td
-                        key={cell.id}
+                      <th
+                        key={header.id}
+                        colSpan={header.colSpan}
                         style={{
-                          width: column.getSize(),
-                          textAlign: cell.column.columnDef.meta.align,
-                          padding: "0 8px",
+                          width: `${header.getSize()}px`,
+                          position: "sticky",
+                          top: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          padding: "8px 8px",
                         }}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
+                        {header.isPlaceholder ? null : (
+                          <div
+                            {...{
+                              className: header.column.getCanSort()
+                                ? "cursor-pointer select-none"
+                                : "",
+                              onClick: header.column.getToggleSortingHandler(),
+                            }}
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                            {/* {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )} */}
+                            {{
+                              asc: " 🔼",
+                              desc: " 🔽",
+                            }[header.column.getIsSorted() as string] ?? null}
+                          </div>
                         )}
-                      </td>
+                        <div
+                          {...{
+                            onDoubleClick: () => header.column.resetSize(),
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            className: `resizer ${
+                              table.options.columnResizeDirection
+                            } ${
+                              header.column.getIsResizing() ? "isResizing" : ""
+                            }`,
+                          }}
+                        />
+                      </th>
                     );
                   })}
                 </tr>
+              ))}
+            </thead>
+            <tbody>
+              {virtualizer.getVirtualItems().map((virtualRow, index) => {
+                const row = rows[virtualRow.index];
+                return (
+                  <tr
+                    ref={(el) => (rowRefs.current[virtualRow.index] = el)}
+                    key={row.id}
+                    style={{
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${
+                        virtualRow.start - index * virtualRow.size
+                      }px)`,
+                    }}
+                    className={`virtual-table-row ${
+                      row.getIsSelected() ? "selected" : ""
+                    }`}
+                    onClick={(e) => {
+                      toggleRowSelection(virtualRow.index, e.shiftKey);
+                      row.getToggleSelectedHandler()(e);
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const { column } = cell;
+                      return (
+                        <td
+                          key={cell.id}
+                          style={{
+                            width: column.getSize(),
+                            textAlign: cell.column.columnDef.meta.align,
+                            padding: "0 8px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            alignItems: "center",
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <Box
+          position="absolute"
+          bg="white"
+          boxShadow="lg"
+          borderRadius="md"
+          bottom={"0px"}
+          left="50%"
+          width={"90%"}
+          transform="translate(-50%, -50%)" // Center the box
+          p={1}
+          zIndex={10}
+          display={"flex"}
+          justifyContent={"space-between"}
+          alignItems="center"
+        >
+          <Text fontSize={"xs"} color="gray.600" p={2}>
+            Choose trials to create a trial group ({selectedTrials.length} trial
+            {selectedTrials.length > 1 ? "s " : " "}
+            selected)
+          </Text>
+          <Button
+            size={"xs"}
+            colorScheme={"blue"}
+            variant={"solid"}
+            isDisabled={selectedTrials.length === 0}
+            mr={1}
+            onClick={() => {
+              const updatedGroups = groups.clone();
+              updatedGroups.addGroup(
+                exp?.trials.filter((trial) =>
+                  selectedTrials.includes(trial.id)
+                ) ?? []
               );
-            })}
-          </tbody>
-        </table>
+              setGroups(updatedGroups);
+              setRowSelection({});
+              setSelectedRowPositions([]);
+              setLastViewIndex(-1);
+              setSelectedTrials([]);
+            }}
+          >
+            Create Trial Group
+          </Button>
+        </Box>
       </div>
     </div>
   );

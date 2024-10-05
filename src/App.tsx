@@ -93,6 +93,7 @@ function App() {
                   >
                     <Box height={"99%"} bg="white" m={0.5}>
                       {/* <FastDataTable /> */}
+                      <ScatterContourPlot />
                     </Box>
                   </Box>
                   <Box
@@ -102,7 +103,6 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"99%"} m={0.5} bg="white">
-                      {/* <ScatterContourPlot /> */}
                       <TrialView />
                     </Box>
                     {/* <Box height={"29%"} bg="white" m={0.5} mr={1} mb={1}>

@@ -275,129 +275,124 @@ const ScatterContourPlot: React.FC = () => {
     window.addEventListener("resize", updateSvgRect);
     return () => window.removeEventListener("resize", updateSvgRect);
   }, [margin.left]);
+  // previouse version - r: Coverage View l: Trial View
+  // const drawConnectionLine = useCallback(() => {
+  //   if (
+  //     !selectedTrials ||
+  //     !selectedRowPositions.length ||
+  //     !svgRef.current ||
+  //     lastViewIndex === -1
+  //   ) {
+  //     console.log("return null");
+  //     return null;
+  //   }
+  //   let flag =
+  //     selectedRowPositions.length &&
+  //     selectedRowPositions[0].order < lastViewIndex
+  //       ? "start"
+  //       : "end";
 
-  const drawConnectionLine = useCallback(() => {
-    // console.log("is controlling?", isTableScrolling);
+  //   const tableContainer = document.querySelector(".virtual-table");
+  //   const tableRect = tableContainer.getBoundingClientRect();
+  //   console.log(selectedRowPositions);
+  //   // console.log("selectedTrial", selectedTrials);
+  //   return selectedRowPositions
+  //     .sort((a, b) => a.order - b.order)
+  //     .map((selectedRowPosition, i) => {
+  //       const selectedTrial = selectedRowPosition.trialId;
+  //       if (flag === "start" && selectedRowPosition.top !== null) {
+  //         flag = "middle";
+  //       } else if (
+  //         (flag === "middle" && selectedRowPosition.top === null) ||
+  //         selectedRowPosition.order >= lastViewIndex
+  //       ) {
+  //         flag = "end";
+  //       }
 
-    if (
-      !selectedTrials ||
-      !selectedRowPositions.length ||
-      !svgRef.current ||
-      lastViewIndex === -1
-    ) {
-      return null;
-    }
-    let flag =
-      selectedRowPositions.length &&
-      selectedRowPositions[0].order < lastViewIndex
-        ? "start"
-        : "end";
+  //       const selectedPoint = data.find((d) => d.id === selectedTrial);
+  //       console.log("selectedPoint", selectedPoint);
 
-    // console.log("start flag", flag);
-    // console.log("lastViewIndex", lastViewIndex);
-    // 테이블 컨테이너의 위치를 가져옵니다.
-    const tableContainer = document.querySelector(".virtual-table");
-    const tableContainer2 = document.querySelector(".scroll-container");
+  //       if (!selectedPoint) {
+  //         return null;
+  //       }
+  //       const svgRect = svgRef.current.getBoundingClientRect();
+  //       const viewBox = svgRef.current.viewBox.baseVal;
+  //       const svgMidX1 = xScale(selectedPoint.x);
+  //       const svgMidY1 = yScale(selectedPoint.y) - 2;
 
-    const tableRect = tableContainer.getBoundingClientRect();
-    const tableRect2 = tableContainer2.getBoundingClientRect();
+  //       const svgMidX2 = xScale(selectedPoint.x);
+  //       const svgMidY2 = yScale(selectedPoint.y) + 2;
 
-    // console.log("selectedTrial", selectedTrials);
-    return selectedRowPositions
-      .sort((a, b) => a.order - b.order)
-      .map((selectedRowPosition, i) => {
-        const selectedTrial = selectedRowPosition.trialId;
-        if (flag === "start" && selectedRowPosition.top !== null) {
-          flag = "middle";
-        } else if (
-          (flag === "middle" && selectedRowPosition.top === null) ||
-          selectedRowPosition.order >= lastViewIndex
-        ) {
-          flag = "end";
-        }
+  //       const scaleY = viewBox.height / svgRect.height;
 
-        const selectedPoint = data.find((d) => d.id === selectedTrial);
-        if (!selectedPoint) {
-          return null;
-        }
-        const svgRect = svgRef.current.getBoundingClientRect();
-        const viewBox = svgRef.current.viewBox.baseVal;
-        const svgMidX1 = xScale(selectedPoint.x);
-        const svgMidY1 = yScale(selectedPoint.y) - 2;
+  //       const svgStartX = flag === "start" ? -margin.left : 0;
+  //       const svgEndX = -margin.left;
 
-        const svgMidX2 = xScale(selectedPoint.x);
-        const svgMidY2 = yScale(selectedPoint.y) + 2;
+  //       const top =
+  //         flag === "start"
+  //           ? tableRect.top - 15
+  //           : flag === "middle"
+  //           ? selectedRowPosition.top
+  //           : flag === "end"
+  //           ? tableRect.bottom
+  //           : selectedRowPosition.top;
+  //       const svgStartY =
+  //         (top - svgRect.top + tableContainer.scrollTop) * scaleY +
+  //         viewBox.y -
+  //         15;
+  //       const svgEndY =
+  //         (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
 
-        const scaleY = viewBox.height / svgRect.height;
+  //       // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
+  //       // Calculate the slope
+  //       const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
-        const svgStartX = -margin.left;
+  //       const baseCurveStrength = 200;
+  //       const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
+  //       const curveStrength =
+  //         baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
 
-        const top =
-          flag === "start"
-            ? tableRect.top - 15
-            : flag === "middle"
-            ? selectedRowPosition.top
-            : flag === "end"
-            ? tableRect2.bottom
-            : selectedRowPosition.top;
-        const svgStartY =
-          (top - svgRect.top + tableContainer.scrollTop) * scaleY +
-          viewBox.y -
-          15;
-        const svgEndX = -margin.left;
-        const svgEndY =
-          (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
+  //       // Determine the direction of the curve
+  //       const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
 
-        // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
-        // Calculate the slope
-        const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
+  //       const pathData = `
+  //       M ${svgStartX} ${svgStartY}
+  //       C ${
+  //         (svgStartX +
+  //           curveStrength * curveDirection +
+  //           10 * Math.min(0.4, Math.abs(slope))) *
+  //         curveDirection
+  //       } ${svgStartY},
+  //         ${svgMidX1} ${svgMidY1},
+  //         ${svgMidX1} ${svgMidY1}
+  //       L ${svgMidX2} ${svgMidY2}
+  //       C ${svgMidX2} ${svgMidY2},
+  //         ${
+  //           -(
+  //             svgEndX -
+  //             curveStrength * curveDirection +
+  //             10 * Math.min(0.4, Math.abs(slope))
+  //           ) * curveDirection
+  //         } ${svgEndY},
+  //         ${svgEndX} ${svgEndY}
+  //       Z
+  //     `;
 
-        const baseCurveStrength = 200;
-        const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
-        const curveStrength =
-          baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
-
-        // Determine the direction of the curve
-        const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
-
-        const pathData = `
-        M ${svgStartX} ${svgStartY}
-        C ${
-          (svgStartX +
-            curveStrength * curveDirection +
-            10 * Math.min(0.4, Math.abs(slope))) *
-          curveDirection
-        } ${svgStartY}, 
-          ${svgMidX1} ${svgMidY1}, 
-          ${svgMidX1} ${svgMidY1}
-        L ${svgMidX2} ${svgMidY2}
-        C ${svgMidX2} ${svgMidY2}, 
-          ${
-            -(
-              svgEndX -
-              curveStrength * curveDirection +
-              10 * Math.min(0.4, Math.abs(slope))
-            ) * curveDirection
-          } ${svgEndY}, 
-          ${svgEndX} ${svgEndY}
-        Z
-      `;
-
-        return (
-          <>
-            <path d={pathData} fill="#d0e0fc" opacity={0.8} strokeWidth={1} />
-          </>
-        );
-      });
-  }, [
-    selectedTrials,
-    selectedRowPositions,
-    lastViewIndex,
-    data,
-    xScale,
-    yScale,
-    margin.left,
-  ]);
+  //       return (
+  //         <>
+  //           <path d={pathData} fill="#d0e0fc" opacity={0.8} strokeWidth={1} />
+  //         </>
+  //       );
+  //     });
+  // }, [
+  //   selectedTrials,
+  //   selectedRowPositions,
+  //   lastViewIndex,
+  //   data,
+  //   xScale,
+  //   yScale,
+  //   margin.left,
+  // ]);
 
   // const drawConnectionLine2 = useCallback(() => {
   //   if (!hoveredRowPosition || !svgRef.current) return null;
@@ -469,7 +464,110 @@ const ScatterContourPlot: React.FC = () => {
   //     </>
   //   );
   // }, [hoveredRowPosition, data, xScale, yScale, svgPosition, isTableScrolling]);
+  const drawConnectionLine = useCallback(() => {
+    if (
+      !selectedTrials ||
+      !selectedRowPositions.length ||
+      !svgRef.current ||
+      lastViewIndex === -1
+    ) {
+      console.log("return null");
+      return null;
+    }
+    let flag =
+      selectedRowPositions.length &&
+      selectedRowPositions[0].order < lastViewIndex
+        ? "start"
+        : "end";
 
+    const tableContainer = document.querySelector(".virtual-table");
+    const tableRect = tableContainer.getBoundingClientRect();
+    console.log(selectedRowPositions);
+    return selectedRowPositions
+      .sort((a, b) => a.order - b.order)
+      .map((selectedRowPosition, i) => {
+        const selectedTrial = selectedRowPosition.trialId;
+        if (flag === "start" && selectedRowPosition.top !== null) {
+          flag = "middle";
+        } else if (
+          (flag === "middle" && selectedRowPosition.top === null) ||
+          selectedRowPosition.order >= lastViewIndex
+        ) {
+          flag = "end";
+        }
+
+        const selectedPoint = data.find((d) => d.id === selectedTrial);
+        console.log("selectedPoint", selectedPoint);
+
+        if (!selectedPoint) {
+          return null;
+        }
+        const svgRect = svgRef.current.getBoundingClientRect();
+        const viewBox = svgRef.current.viewBox.baseVal;
+        const svgMidX1 = xScale(selectedPoint.x);
+        const svgMidY1 = yScale(selectedPoint.y) - 2;
+
+        const svgMidX2 = xScale(selectedPoint.x);
+        const svgMidY2 = yScale(selectedPoint.y) + 2;
+
+        const scaleY = viewBox.height / svgRect.height;
+
+        const svgStartX = svgRect.width;
+        const svgEndX = svgRect.width;
+
+        const top =
+          flag === "start"
+            ? tableRect.top - 20
+            : flag === "middle"
+            ? selectedRowPosition.top
+            : flag === "end"
+            ? tableRect.bottom
+            : selectedRowPosition.top;
+        const svgStartY =
+          (top - svgRect.top + tableContainer.scrollTop) * scaleY +
+          viewBox.y -
+          20;
+        const svgEndY =
+          (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
+
+        // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
+        // Calculate the slope
+        const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
+
+        const baseCurveStrength = 100;
+        const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
+        const curveStrength =
+          baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
+
+        // Determine the direction of the curve
+
+        const pathData = `
+        M ${svgStartX} ${svgStartY}
+        C ${svgStartX - curveStrength} ${svgStartY}, 
+          ${svgMidX1} ${svgMidY1}, 
+          ${svgMidX1} ${svgMidY1}
+        L ${svgMidX2} ${svgMidY2}
+        C ${svgMidX2} ${svgMidY2}, 
+          ${svgEndX - curveStrength} ${svgEndY}, 
+          ${svgEndX} ${svgEndY}
+        Z
+      `;
+
+        return (
+          <>
+            <path d={pathData} fill="#d0e0fc" opacity={0.8} strokeWidth={1} />
+          </>
+        );
+      });
+  }, [
+    selectedTrials,
+    selectedRowPositions,
+    lastViewIndex,
+    data,
+    xScale,
+    yScale,
+    margin.left,
+  ]);
   return (
     <Box height={"100%"} position={"relative"} ref={containerRef}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -512,7 +610,7 @@ const ScatterContourPlot: React.FC = () => {
             justifyContent="right"
             alignItems="center"
             mr={2}
-            width="170px"
+            width="120px"
           >
             <FormLabel htmlFor="metric-switch" mb={0} mr={1}>
               <Text fontSize="xs" color="gray.600">
@@ -530,7 +628,7 @@ const ScatterContourPlot: React.FC = () => {
             display="flex"
             justifyContent="right"
             alignItems="center"
-            width="150px"
+            width="120px"
             pr={2}
           >
             <FormLabel htmlFor="perference-switch" mb={0} mr={1}>
@@ -921,7 +1019,7 @@ const ScatterContourPlot: React.FC = () => {
         borderRadius="md"
         bottom={"0px"}
         left="50%"
-        width={"60%"}
+        width={"90%"}
         transform="translate(-50%, -50%)" // Center the box
         p={1}
         zIndex={10}
@@ -931,7 +1029,7 @@ const ScatterContourPlot: React.FC = () => {
       >
         <Text fontSize={"xs"} color="gray.600" p={2}>
           Choose trials to create a trial group ({selectedPoints.size} trial
-          {selectedPoints.size > 1 ? "s " : ""}
+          {selectedPoints.size > 1 ? "s " : " "}
           selected)
         </Text>
         <Box display={"flex"}>
