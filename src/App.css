@@ -4,7 +4,34 @@ body {
   font-family: "Roboto", sans-serif;
 }
 
-/* 특정 요소에 다른 폰트를 적용하고 싶다면 아래와 같이 추가할 수 있습니다 */
+/* hyperparameter view */
+.hyperparameter-table {
+  --hover-color: #f0f0f0;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.hyperparameter-table-row {
+  font-size: smaller;
+}
+.hyperparameter-table-row.selected {
+  background-color: var(--selected-color);
+}
+
+.hyperparameter-table-row.selected:hover {
+  background-color: var(--selected-color);
+}
+
+.hyperparameter-table:hover .hyperparameter-table-row:not(.selected):hover {
+  background-color: var(--hover-color);
+}
+
+.hyperparameter-table * {
+  outline: none;
+}
+
+/* trial view */
 .virtual-table {
   --row-height: 15px;
   --hover-color: #f0f0f0;
@@ -30,6 +57,72 @@ body {
 
 .virtual-table * {
   outline: none;
+}
+
+.expanded-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+}
+
+.expanded-content.show {
+  max-height: 1000px; /* Adjust this value based on your maximum expected height */
+  opacity: 1;
+}
+
+:root {
+  --pseudo-height: 0px;
+}
+
+.virtual-table::after {
+  content: "";
+  display: block;
+  height: var(--pseudo-height);
+}
+
+.virtual-table-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background-color: white;
+  /* border-bottom: 1px solid #ddd; */
+  box-shadow: inset 0 -1px 0 #ddd;
+  font-size: smaller;
+}
+
+.resizer {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+.resizer.ltr {
+  right: 0;
+}
+
+.resizer.rtl {
+  left: 0;
+}
+
+.resizer.isResizing {
+  background: #3182ce;
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .resizer {
+    opacity: 0;
+  }
+
+  *:hover > .resizer {
+    opacity: 1;
+  }
 }
 
 /* SVG 스타일 */
@@ -109,69 +202,3 @@ body {
 .link:hover {
   stroke: #ecc94b;
 } */
-
-.expanded-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-  opacity: 0;
-}
-
-.expanded-content.show {
-  max-height: 1000px; /* Adjust this value based on your maximum expected height */
-  opacity: 1;
-}
-
-:root {
-  --pseudo-height: 0px;
-}
-
-.virtual-table::after {
-  content: "";
-  display: block;
-  height: var(--pseudo-height);
-}
-
-.virtual-table-sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 99;
-  background-color: white;
-  /* border-bottom: 1px solid #ddd; */
-  box-shadow: inset 0 -1px 0 #ddd;
-  font-size: smaller;
-}
-
-.resizer {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 5px;
-  background: rgba(0, 0, 0, 0.5);
-  cursor: col-resize;
-  user-select: none;
-  touch-action: none;
-}
-
-.resizer.ltr {
-  right: 0;
-}
-
-.resizer.rtl {
-  left: 0;
-}
-
-.resizer.isResizing {
-  background: blue;
-  opacity: 1;
-}
-
-@media (hover: hover) {
-  .resizer {
-    opacity: 0;
-  }
-
-  *:hover > .resizer {
-    opacity: 1;
-  }
-}

@@ -60,11 +60,21 @@ const TrialTable = () => {
         accessorKey: "check",
         cell: (info) => {
           return (
-            <input
-              type="checkbox"
-              checked={info.row.getIsSelected()}
-              onChange={info.row.getToggleSelectedHandler()}
-            />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={info.row.getIsSelected()}
+                onChange={info.row.getToggleSelectedHandler()}
+              />
+            </div>
           );
         },
         meta: {
@@ -76,7 +86,7 @@ const TrialTable = () => {
         header: "ID",
         accessorKey: "id",
         cell: (info) => info.getValue(),
-        size: 50,
+        size: 40,
         meta: {
           align: "right",
         },
@@ -88,6 +98,7 @@ const TrialTable = () => {
         meta: {
           align: "right",
         },
+        size: 70,
       },
       ...hyperparams.map((param) => {
         return {
@@ -142,7 +153,7 @@ const TrialTable = () => {
     defaultColumn: {
       minSize: 30,
       size: 50,
-      maxSize: 300,
+      maxSize: 100,
     },
     enableRowSelection: true,
   });
@@ -400,21 +411,26 @@ const TrialTable = () => {
                                 : "",
                               onClick: header.column.getToggleSortingHandler(),
                             }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              width: "100%",
+                              height: "100%",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
                           >
+                            {{
+                              asc: " 🔼",
+                              desc: " 🔽",
+                            }[header.column.getIsSorted() as string] ?? null}
                             {header.isPlaceholder
                               ? null
                               : flexRender(
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            {/* {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )} */}
-                            {{
-                              asc: " 🔼",
-                              desc: " 🔽",
-                            }[header.column.getIsSorted() as string] ?? null}
                           </div>
                         )}
                         <div
@@ -500,9 +516,9 @@ const TrialTable = () => {
           alignItems="center"
         >
           <Text fontSize={"xs"} color="gray.600" p={2}>
-            Choose trials to create a trial group ({selectedTrials.length} trial
-            {selectedTrials.length > 1 ? "s " : " "}
-            selected)
+            Choose trials to create a trial group (
+            {formatting(Object.keys(rowSelection).length, "int")} {" / "}
+            {formatting(data.length, "int")} Selected)
           </Text>
           <Button
             size={"xs"}

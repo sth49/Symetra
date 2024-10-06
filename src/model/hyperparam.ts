@@ -86,7 +86,7 @@ export class Hyperparam {
   getEffect(): number {
     // shapValues 배열의 절대값의 합 계산
     const effect = this.shapValues.reduce(
-      (acc, currentValue) => acc + currentValue,
+      (acc, currentValue) => acc + Math.abs(currentValue),
       0
     );
     if (isNaN(effect)) {
@@ -191,7 +191,8 @@ export class ContinuousHyperparam extends Hyperparam {
           (value >= bin.x0 && value < bin.x1) ||
           (i === this.binCount - 1 && value === xMax)
         ) {
-          binShapValues.push(this.shapValues[j]);
+          // binShapValues.push(this.shapValues[j]);
+          binShapValues.push(Math.abs(this.shapValues[j]));
         }
       });
       effectsByValue[
@@ -201,6 +202,7 @@ export class ContinuousHyperparam extends Hyperparam {
         )}`
       ] = binShapValues;
     });
+
     return effectsByValue;
   }
 
@@ -266,7 +268,7 @@ export class CategoricalHyperparam extends Hyperparam {
       effectsByValue[value] = [];
       this.shapValues.forEach((val, index) => {
         if (this.values[index] === value) {
-          effectsByValue[value].push(val);
+          effectsByValue[value].push(Math.abs(val));
         }
       });
     });

@@ -30,21 +30,8 @@ import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
 import { useConstDataStore } from "./store/constDataStore";
-// interface ScatterPlotProps {
-//   selectedTrials: number[];
-//   selectedRowPositions: any[];
-//   lastViewIndex: number;
-// }
+import { formatting } from "../model/utils";
 const ScatterContourPlot: React.FC = () => {
-  // const {
-  //   groups,
-  //   setGroups,
-  //   hoveredGroup,
-  //   selectedTrials,
-  //   selectedRowPositions,
-  //   lastViewIndex,
-  // } = useCustomStore();
-
   const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
   const hoveredGroup = useCustomStore((state) => state.hoveredGroup);
@@ -596,7 +583,7 @@ const ScatterContourPlot: React.FC = () => {
               size="xs"
             >
               <option value="">None</option>
-              <option value="metric">METRIC</option>
+              <option value="metric">CVRG</option>
               {exp.hyperparams.map((hp) => (
                 <option key={hp.name} value={hp.name}>
                   {hp.displayName}
@@ -1028,9 +1015,10 @@ const ScatterContourPlot: React.FC = () => {
         alignItems="center"
       >
         <Text fontSize={"xs"} color="gray.600" p={2}>
-          Choose trials to create a trial group ({selectedPoints.size} trial
-          {selectedPoints.size > 1 ? "s " : " "}
-          selected)
+          Choose trials to create a trial group (
+          {formatting(selectedPoints.size, "int")} {" / "}
+          {formatting(data.length, "int")}
+          {" Selected"})
         </Text>
         <Box display={"flex"}>
           <IconButton

@@ -16,6 +16,7 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { ViolinPlot, BoxPlot } from "@visx/stats";
+import { Axis, Orientation, SharedAxisProps, AxisScale } from "@visx/axis";
 type TooltipData = {
   key: string;
   value: number;
@@ -186,7 +187,6 @@ const FastEffectTable = () => {
 
   const Row = useCallback(
     ({ item, index }) => {
-      // const isHovered = hoveredRow === item.id;
       const isSelected = selectedRows.has(item.id);
       const isExpanded = expandedRows.has(item.id);
       const isLastSelected =
@@ -200,7 +200,9 @@ const FastEffectTable = () => {
       return (
         <>
           <div
-            className={`virtual-table-row ${isSelected ? "selected" : ""}`}
+            className={`hyperparameter-table-row ${
+              isSelected ? "selected" : ""
+            }`}
             style={{
               display: "flex",
               width: totalWidth,
@@ -222,20 +224,8 @@ const FastEffectTable = () => {
                   justifyContent: column.align,
                 }}
               >
-                {column.key === "checked" ? (
-                  <input
-                    style={{ marginLeft: "8px" }}
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={(e) =>
-                      toggleRowSelection(
-                        index,
-                        (e.nativeEvent as MouseEvent).shiftKey
-                      )
-                    }
-                  />
-                ) : column.key === "visible" ? (
-                  <Text fontSize={"xs"}>
+                {column.key === "visible" ? (
+                  <Text fontSize={"smaller"}>
                     <IconButton
                       size={"xs"}
                       icon={
@@ -246,7 +236,6 @@ const FastEffectTable = () => {
                           <Icon as={FaEyeSlash} color={"gray.500"} />
                         )
                       }
-                      // colorScheme="blue"
                       onClick={(e) => {
                         e.stopPropagation();
                         const newHyperparams = hyperparams.map((hp, i) => {
@@ -277,7 +266,6 @@ const FastEffectTable = () => {
                   >
                     <Text
                       userSelect={"none"}
-                      fontSize={"xs"}
                       display={"flex"}
                       alignItems={"center"}
                     >
@@ -286,9 +274,7 @@ const FastEffectTable = () => {
                     </Text>
                   </Box>
                 ) : column.key === "effect" ? (
-                  <Text userSelect={"none"} fontSize={"xs"}>
-                    {item[column.key].toFixed(1)}
-                  </Text>
+                  <Text userSelect={"none"}>{item[column.key].toFixed(1)}</Text>
                 ) : column.key === "expander" ? (
                   <IconButton
                     size={"xs"}
@@ -299,7 +285,6 @@ const FastEffectTable = () => {
                         <Icon as={FaAngleUp} color={"gray.500"} />
                       )
                     }
-                    // colorScheme="blue"
                     onClick={(e) => toggleRowExpansion(item.id, e)}
                     aria-label={""}
                   />
@@ -351,16 +336,31 @@ const FastEffectTable = () => {
                   </Box>
                 </Box>
                 {Object.keys(item.effctsByValue)
-                  .sort(
-                    item.type === HyperparamTypes.Ordinal
-                      ? (a, b) => Number(a) - Number(b)
-                      : item.type === HyperparamTypes.Continuous
-                      ? (a, b) =>
-                          Number(a.split(" ~ ")[0]) - Number(b.split(" ~ ")[0])
-                      : (a, b) => a.localeCompare(b)
-                  )
+                  .sort((a, b) => {
+                    const aSum = item.effctsByValue[a].reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    const bSum = item.effctsByValue[b].reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    return bSum - aSum;
+                  })
+
                   .map((key) => {
-                    const { binData, xScale } = generateBinnedData(
+                    console.log(item.effctsByValue[key]);
+                    // scale from all data
+                    const allEffectByValue = Object.values(
+                      item.effctsByValue
+                    ).flat() as number[];
+                    const { a, xScale } = generateBinnedData(
+                      allEffectByValue,
+                      100,
+                      30,
+                      "x"
+                    );
+                    const { binData, b } = generateBinnedData(
                       item.effctsByValue[key],
                       100,
                       30,
@@ -403,17 +403,46 @@ const FastEffectTable = () => {
                           display={"flex"}
                           justifyContent={"center"}
                         >
-                          <svg width={100} height={36}>
-                            <ViolinPlot
-                              data={binData}
-                              valueScale={xScale}
-                              width={25}
-                              height={100}
-                              horizontal={true}
-                              left={0}
-                              top={4}
-                              fill="grey"
-                            ></ViolinPlot>
+                          <svg width={120} height={36}>
+                            <g transform="translate(10, 0)">
+                              {" "}
+                              <ViolinPlot
+                                data={binData}
+                                valueScale={xScale}
+                                width={26}
+                                height={100}
+                                horizontal={true}
+                                top={5}
+                                fill="grey"
+                              />
+                              <Axis
+                                scale={xScale}
+                                orientation={Orientation.bottom}
+                                top={18}
+                                numTicks={2}
+                                tickValues={[
+                                  xScale.domain()[0],
+                                  xScale.domain()[1],
+                                ]}
+                              />
+                              {(() => {
+                                const medianValue = allEffectByValue.sort(
+                                  (a, b) => a - b
+                                )[Math.floor(allEffectByValue.length / 2)];
+                                const medianX = xScale(medianValue);
+                                return (
+                                  <line
+                                    x1={medianX}
+                                    y1={4} // ViolinPlot의 top 값
+                                    x2={medianX}
+                                    y2={32} // Axis의 top 값
+                                    stroke="red"
+                                    strokeWidth={1}
+                                    strokeDasharray="2,2"
+                                  />
+                                );
+                              })()}
+                            </g>
                           </svg>
                         </Box>
                       </Box>
@@ -540,6 +569,7 @@ const FastEffectTable = () => {
                       justifyContent: column.align,
                       alignItems: "center",
                       height: "35px",
+                      fontSize: "smaller",
                     }}
                     onClick={() => {
                       if (column.key === "name" || column.key === "effect") {
@@ -547,9 +577,7 @@ const FastEffectTable = () => {
                       }
                     }}
                   >
-                    <Text fontSize={"xs"} fontWeight={"bold"}>
-                      {column.label}
-                    </Text>
+                    <Text fontWeight={"bold"}>{column.label}</Text>
                     {(column.key === "name" || column.key === "effect") && (
                       <Icon
                         color={"gray"}
@@ -569,7 +597,7 @@ const FastEffectTable = () => {
               </div>
             </div>
             <div
-              className={`virtual-table`}
+              className={`hyperparameter-table`}
               style={{
                 height: height - 75,
                 overflowY: "scroll",
