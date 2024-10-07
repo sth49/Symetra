@@ -39,7 +39,6 @@ const ScatterContourPlot: React.FC = () => {
   const selectedRowPositions = useCustomStore(
     (state) => state.selectedRowPositions
   );
-  const lastViewIndex = useCustomStore((state) => state.lastViewIndex);
   const { exp, hyperparams } = useConstDataStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
@@ -452,36 +451,39 @@ const ScatterContourPlot: React.FC = () => {
   //   );
   // }, [hoveredRowPosition, data, xScale, yScale, svgPosition, isTableScrolling]);
   const drawConnectionLine = useCallback(() => {
-    if (
-      !selectedTrials ||
-      !selectedRowPositions.length ||
-      !svgRef.current ||
-      lastViewIndex === -1
-    ) {
+    if (!selectedTrials || !selectedRowPositions.length || !svgRef.current) {
       console.log("return null");
       return null;
     }
-    let flag =
-      selectedRowPositions.length &&
-      selectedRowPositions[0].order < lastViewIndex
-        ? "start"
-        : "end";
+    // let flag =
+    //   selectedRowPositions.length &&
+    //   selectedRowPositions[0].order < lastViewIndex
+    //     ? "start"
+    //     : "end";
 
     const tableContainer = document.querySelector(".virtual-table");
-    const tableRect = tableContainer.getBoundingClientRect();
-    console.log(selectedRowPositions);
+    const tableHeaderContainer = document.querySelector(
+      ".virtual-table-sticky-header"
+    );
+    const tableHeaderRect = tableHeaderContainer.getBoundingClientRect();
+    const tableBottomContainer = document.querySelector(
+      ".virtual-table-bottom"
+    );
+    const tableBottomRect = tableBottomContainer.getBoundingClientRect();
+
+    // const
     return selectedRowPositions
       .sort((a, b) => a.order - b.order)
       .map((selectedRowPosition, i) => {
         const selectedTrial = selectedRowPosition.trialId;
-        if (flag === "start" && selectedRowPosition.top !== null) {
-          flag = "middle";
-        } else if (
-          (flag === "middle" && selectedRowPosition.top === null) ||
-          selectedRowPosition.order >= lastViewIndex
-        ) {
-          flag = "end";
-        }
+        // if (flag === "start" && selectedRowPosition.top !== null) {
+        //   flag = "middle";
+        // } else if (
+        //   (flag === "middle" && selectedRowPosition.top === null) ||
+        //   selectedRowPosition.order >= lastViewIndex
+        // ) {
+        //   flag = "end";
+        // }
 
         const selectedPoint = data.find((d) => d.id === selectedTrial);
         console.log("selectedPoint", selectedPoint);
@@ -502,14 +504,23 @@ const ScatterContourPlot: React.FC = () => {
         const svgStartX = svgRect.width;
         const svgEndX = svgRect.width;
 
+        // const top = tableHeaderRect.top + 35;
         const top =
-          flag === "start"
-            ? tableRect.top - 20
-            : flag === "middle"
+          selectedRowPosition.top > tableHeaderRect.bottom &&
+          selectedRowPosition.top < tableBottomRect.bottom + 5
             ? selectedRowPosition.top
-            : flag === "end"
-            ? tableRect.bottom
-            : selectedRowPosition.top;
+            : selectedRowPosition.top < tableHeaderRect.bottom
+            ? tableHeaderRect.bottom
+            : tableBottomRect.bottom + 5;
+
+        // const top =
+        //   flag === "start"
+        //     ? tableRect.top - 20
+        //     : flag === "middle"
+        //     ? selectedRowPosition.top
+        //     : flag === "end"
+        //     ? tableRect.bottom
+        //     : selectedRowPosition.top;
         const svgStartY =
           (top - svgRect.top + tableContainer.scrollTop) * scaleY +
           viewBox.y -
@@ -546,15 +557,7 @@ const ScatterContourPlot: React.FC = () => {
           </>
         );
       });
-  }, [
-    selectedTrials,
-    selectedRowPositions,
-    lastViewIndex,
-    data,
-    xScale,
-    yScale,
-    margin.left,
-  ]);
+  }, [selectedTrials, selectedRowPositions, data, xScale, yScale, margin.left]);
   return (
     <Box height={"100%"} position={"relative"} ref={containerRef}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -999,6 +1002,7 @@ const ScatterContourPlot: React.FC = () => {
           </svg>
         </Box>
       </Box>
+
       <Box
         position="absolute"
         bg="white"

@@ -176,7 +176,6 @@ const TrialTable = () => {
     selectedTrials,
     setSelectedRowPositions,
     setSelectedTrials,
-    setLastViewIndex,
   } = useCustomStore();
   const virtualItems = virtualizer.getVirtualItems();
   const virtualSize = virtualizer.getTotalSize();
@@ -207,7 +206,6 @@ const TrialTable = () => {
           setIsScrolling(true);
           setSelectedTrials([]);
           setSelectedRowPositions([]);
-          setLastViewIndex(-1);
         }
 
         if (scrollTimerRef.current) {
@@ -294,23 +292,9 @@ const TrialTable = () => {
           };
         })
         .filter((position) => position !== null);
-      let lastViewIndex = -1;
-      let minDistance = Infinity;
 
-      rows.forEach((item, index) => {
-        const rowElement = rowRefs.current[index];
-        if (rowElement) {
-          const rect = rowElement.getBoundingClientRect();
-          const distance = Math.abs(rect.top - tableRect.bottom);
-          if (distance < minDistance) {
-            minDistance = distance;
-            lastViewIndex = index - 1;
-          }
-        }
-      });
       setSelectedTrials(selectedTrialArray);
       setSelectedRowPositions(positions);
-      setLastViewIndex(lastViewIndex);
     },
     [rows]
   );
@@ -500,6 +484,19 @@ const TrialTable = () => {
             </tbody>
           </table>
         </div>
+        <div
+          className="virtual-table-bottom"
+          style={{
+            position: "absolute",
+            width: "100%",
+            // transform: "translate(-50%, -50%)",
+            zIndex: 10,
+            bottom: "0px",
+            // left: "10%",
+            // fill: "red",
+            height: "30px",
+          }}
+        ></div>
         <Box
           position="absolute"
           bg="white"
@@ -536,7 +533,6 @@ const TrialTable = () => {
               setGroups(updatedGroups);
               setRowSelection({});
               setSelectedRowPositions([]);
-              setLastViewIndex(-1);
               setSelectedTrials([]);
             }}
           >

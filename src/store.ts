@@ -39,9 +39,6 @@ interface CustomStore {
 
   selectedRowPositions: any[];
   setSelectedRowPositions: (selectedRowPositions: any[]) => void;
-
-  lastViewIndex: number;
-  setLastViewIndex: (index: number) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -75,7 +72,4 @@ export const useCustomStore = create<CustomStore>((set) => ({
   selectedRowPositions: [],
   setSelectedRowPositions: (selectedRowPositions) =>
     set({ selectedRowPositions }),
-
-  lastViewIndex: 0,
-  setLastViewIndex: (lastViewIndex) => set({ lastViewIndex }),
 }));
