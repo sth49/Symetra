@@ -354,13 +354,13 @@ const FastEffectTable = () => {
                     const allEffectByValue = Object.values(
                       item.effctsByValue
                     ).flat() as number[];
-                    const { a, xScale } = generateBinnedData(
+                    const { xScale } = generateBinnedData(
                       allEffectByValue,
                       100,
                       30,
                       "x"
                     );
-                    const { binData, b } = generateBinnedData(
+                    const { binData } = generateBinnedData(
                       item.effctsByValue[key],
                       100,
                       30,

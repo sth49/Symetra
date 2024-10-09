@@ -33,7 +33,7 @@ const StatTest: React.FC<StatTestProps> = ({
 
   if (selectedGroup.size === 1) {
     const groupName = Array.from(selectedGroup)[0];
-    group1 = groups.getGroup(groupName);
+    group1 = groups.getGroup(Number(groupName));
     const group1Trials = group1.trials;
     group2 = new Group(
       -1,
@@ -60,8 +60,8 @@ const StatTest: React.FC<StatTestProps> = ({
   if (selectedGroup.size === 2) {
     const groupName1 = Array.from(selectedGroup)[0];
     const groupName2 = Array.from(selectedGroup)[1];
-    group1 = groups.getGroup(groupName1);
-    group2 = groups.getGroup(groupName2);
+    group1 = groups.getGroup(Number(groupName1));
+    group2 = groups.getGroup(Number(groupName2));
 
     metricResult = performStatisticalTest(
       group1.getCoverages(),

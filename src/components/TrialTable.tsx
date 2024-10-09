@@ -11,6 +11,7 @@ import { formatting } from "../model/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, Button, Icon, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
+
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
 
@@ -463,6 +464,7 @@ const TrialTable = () => {
                           key={cell.id}
                           style={{
                             width: column.getSize(),
+                            // @ts-ignore
                             textAlign: cell.column.columnDef.meta.align,
                             padding: "0 8px",
                             overflow: "hidden",

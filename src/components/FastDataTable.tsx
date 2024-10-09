@@ -111,13 +111,8 @@ const D3Scrollbar: React.FC<D3ScrollbarProps> = React.memo(
 );
 
 const FastDataTable: React.FC = () => {
-  const {
-    setGroups,
-    groups,
-    setSelectedRowPositions,
-    setSelectedTrials,
-    setLastViewIndex,
-  } = useCustomStore();
+  const { setGroups, groups, setSelectedRowPositions, setSelectedTrials } =
+    useCustomStore();
   const { exp, hyperparams } = useConstDataStore();
   const [sortedData, setSortedData] = useState([]);
   const [sortConfig, setSortConfig] = useState({
@@ -297,9 +292,8 @@ const FastDataTable: React.FC = () => {
           }
         }
       });
-      setSelectedTrials(selectedTrialArray);
+      setSelectedTrials(selectedTrialArray.map(Number));
       setSelectedRowPositions(positions);
-      setLastViewIndex(lastViewIndex);
       // onSelectTrial(selectedTrialArray, positions, lastViewIndex);
     },
     [sortedData]
@@ -635,7 +629,6 @@ const FastDataTable: React.FC = () => {
       setIsScrolling(true);
       setSelectedTrials([]);
       setSelectedRowPositions([]);
-      setLastViewIndex(-1);
     }
 
     // Clear any existing timer
@@ -912,7 +905,6 @@ const FastDataTable: React.FC = () => {
             setGroups(groups);
             setSelectedRows(new Set());
             setSelectedRowPositions([]);
-            setLastViewIndex(-1);
             setSelectedTrials([]);
           }}
         >

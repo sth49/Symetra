@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import trialData from "./data/ParaSuit_encoded.json";
 import configData from "./data/config.json";
 import { Experiment } from "./model/experiment";
@@ -6,16 +6,14 @@ import "./App.css";
 import { Box, ChakraProvider } from "@chakra-ui/react";
 import Overview from "./components/Overview";
 import ScatterContourPlot from "./components/ScatterPlot";
-import { useCustomStore } from "./store";
-import FastDataTable from "./components/FastDataTable";
 import GroupView from "./components/GroupView";
 import FastEffectTable from "./components/FastEffectTable";
 import theme from "./theme";
-import AnalysisView from "./components/AnalysisView";
+import GroupDetailView from "./components/GroupDetailView";
 import { useConstDataStore } from "./components/store/constDataStore";
 import TrialView from "./components/TrialView";
+import GroupComparisonView from "./components/GroupComparisonView";
 function App() {
-  // const { exp, setExp, setHyperparams, setGroups, groups } = useCustomStore();
   const { exp, setExp, setHyperparams } = useConstDataStore();
 
   useEffect(() => {
@@ -26,18 +24,9 @@ function App() {
       try {
         const experiment = await Experiment.fromJson(configData, trialData);
         setExp(experiment);
-        // if (groups.getLength() === 0) {
-        //   groups.addGroup(experiment?.trials); // 전체 데이터를 그룹에 추가
-        //   const topGroup = experiment?.trials
-        //     .sort((a, b) => b.metric - a.metric)
-        //     .slice(0, experiment.trials.length * 0.1);
-        //   groups.addGroup(topGroup); // 상위 10% 데이터를 그룹에 추가
-        //   setGroups(groups);
-        // } => group view로 옮기기
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
-        // 여기서 추가적인 비동기 로직 처리 가능
         console.log("Loaded experiment:", experiment);
       } catch (error) {
         console.error("Failed to load the experiment data:", error);
@@ -92,7 +81,6 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"99%"} bg="white" m={0.5}>
-                      {/* <FastDataTable /> */}
                       <ScatterContourPlot />
                     </Box>
                   </Box>
@@ -105,9 +93,6 @@ function App() {
                     <Box height={"99%"} m={0.5} bg="white">
                       <TrialView />
                     </Box>
-                    {/* <Box height={"29%"} bg="white" m={0.5} mr={1} mb={1}>
-                      <AnalysisView />
-                    </Box> */}
                   </Box>
                   <Box
                     width="30%"
@@ -118,8 +103,11 @@ function App() {
                     <Box height={"20%"} m={0.5} bg="white" mr={1}>
                       <GroupView />
                     </Box>
-                    <Box height={"calc(79% - 4px)"} m={0.5} bg="white" mr={1}>
-                      <AnalysisView />
+                    <Box height={"20%"} m={0.5} bg="white" mr={1}>
+                      <GroupDetailView />
+                    </Box>
+                    <Box height={"calc(59% - 8px)"} m={0.5} bg="white" mr={1}>
+                      <GroupComparisonView />
                     </Box>
                   </Box>
                 </Box>

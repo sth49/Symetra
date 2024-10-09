@@ -48,12 +48,18 @@ const ScatterContourPlot: React.FC = () => {
     () =>
       exp?.trials.map((trial) => ({
         id: trial.id,
-        x: trial.umapPositions.filter(
-          (pos) => pos.n_neighbors === nNeighbors && pos.min_dist === minDist
-        )[0].x,
-        y: trial.umapPositions.filter(
-          (pos) => pos.n_neighbors === nNeighbors && pos.min_dist === minDist
-        )[0].y,
+        x: Array.isArray(trial.umapPositions)
+          ? trial.umapPositions.filter(
+              (pos) =>
+                pos.n_neighbors === nNeighbors && pos.min_dist === minDist
+            )[0]?.x
+          : undefined,
+        y: Array.isArray(trial.umapPositions)
+          ? trial.umapPositions.filter(
+              (pos) =>
+                pos.n_neighbors === nNeighbors && pos.min_dist === minDist
+            )[0]?.y
+          : undefined,
         metric: trial.metric,
       })) || [],
     [exp, nNeighbors, minDist]
@@ -153,9 +159,9 @@ const ScatterContourPlot: React.FC = () => {
 
   const densityData = useMemo(() => {
     const densityGenerator = d3
-      .contourDensity()
-      .x((d) => xScale(d.x))
-      .y((d) => yScale(d.y))
+      .contourDensity() // @ts-ignore
+      .x((d) => xScale(d.x)) // @ts-ignore
+      .y((d) => yScale(d.y)) // @ts-ignore
       .weight((d) => metricScale(d.metric))
       .size([
         containerSize.width - margin.left - margin.right,
@@ -163,7 +169,7 @@ const ScatterContourPlot: React.FC = () => {
       ])
       .bandwidth(10)
       .thresholds(numThresholds);
-
+    // @ts-ignore
     return densityGenerator(data);
   }, [data, xScale, yScale, metricScale, containerSize]);
 
@@ -668,6 +674,7 @@ const ScatterContourPlot: React.FC = () => {
               >
                 {[
                   ...new Set(
+                    // @ts-ignore
                     exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
                   ),
                 ]
@@ -701,6 +708,7 @@ const ScatterContourPlot: React.FC = () => {
               >
                 {[
                   ...new Set(
+                    // @ts-ignore
                     exp.trials[0].umapPositions.map((pos) => pos.min_dist)
                   ),
                 ]
