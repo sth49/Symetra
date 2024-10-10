@@ -166,7 +166,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                   <g transform="translate(10, 0)">
                     {" "}
                     <ViolinPlot
-                      data={row[column.key]}
+                      data={row.binData}
                       valueScale={xScale}
                       width={26}
                       height={100}
