@@ -6,7 +6,7 @@ import "./App.css";
 import { Box, ChakraProvider } from "@chakra-ui/react";
 import Overview from "./components/Overview";
 import ScatterContourPlot from "./components/ScatterPlot";
-import GroupView from "./components/GroupView";
+import TrialGroupView from "./components/TrialGroupView";
 import FastEffectTable from "./components/FastEffectTable";
 import theme from "./theme";
 import GroupDetailView from "./components/GroupDetailView";
@@ -101,7 +101,7 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"20%"} m={0.5} bg="white" mr={1}>
-                      <GroupView />
+                      <TrialGroupView />
                     </Box>
                     <Box height={"20%"} m={0.5} bg="white" mr={1}>
                       <GroupDetailView />

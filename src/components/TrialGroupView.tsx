@@ -1,7 +1,6 @@
 import { Box, Button, Heading, Text, useDisclosure } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 
-import StatTest from "./StatTest";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { memo } from "react";
 import { Graph } from "@visx/network";
@@ -53,7 +52,7 @@ function createArcPath(
   return `M${sourceX},${sourceY} Q${midX},${midY} ${targetX},${targetY}`;
 }
 
-const GroupView = () => {
+const TrialGroupView = () => {
   const { hyperparams } = useConstDataStore();
   const groups = useCustomStore((state) => state.groups);
   const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
@@ -387,4 +386,4 @@ const GroupView = () => {
   );
 };
 
-export default GroupView;
+export default TrialGroupView;
