@@ -260,20 +260,34 @@ const TrialTable = () => {
       const selectedTrialArray = Array.from(newSelectedRows);
       const tableContainer = document.querySelector(".virtual-table");
       const tableRect = tableContainer?.getBoundingClientRect();
-
+      const parentContainer = parentRef.current;
+      const scrollTop = parentContainer?.scrollTop || 0;
+      const visibleHeight = parentContainer?.clientHeight || 0;
+  
       const positions = selectedTrialArray
         .map((trialId) => {
           const index = rows.findIndex((item) => Number(item.id) === trialId);
           const rowElement = rowRefs.current[index];
+          const virtualPosition = index * 20;
+  
           if (rowElement) {
             const rect = rowElement.getBoundingClientRect();
+            
+            // Calculate actual position relative to scroll
             let top = rect.bottom;
-            if (rect.bottom < tableRect.top - 15) {
-              top = tableRect.top - 15;
-            } else if (rect.bottom > tableRect.bottom) {
+            let positionType = 'visible';
+  
+            // Check if row is above visible area
+            if (virtualPosition < scrollTop) {
+              top = tableRect.top;
+              positionType = 'above';
+            } 
+            // Check if row is below visible area
+            else if (virtualPosition > scrollTop + visibleHeight) {
               top = tableRect.bottom;
+              positionType = 'below';
             }
-
+  
             return {
               trialId: trialId,
               top: top,
@@ -281,23 +295,39 @@ const TrialTable = () => {
               height: rect.height,
               width: rect.width,
               order: index,
+              positionType: positionType
             };
           }
+  
+          // For rows that don't have elements (virtualized out)
+          const estimatedPosition = virtualPosition;
+          let positionType = 'visible';
+          let top = null;
+  
+          if (estimatedPosition < scrollTop) {
+            top = tableRect.top;
+            positionType = 'above';
+          } else if (estimatedPosition > scrollTop + visibleHeight) {
+            top = tableRect.bottom;
+            positionType = 'below';
+          }
+  
           return {
             trialId: trialId,
-            top: null,
-            left: null,
-            height: null,
-            width: null,
+            top: top,
+            left: tableRect?.left || 0,
+            height: 20, 
+            width: tableRect?.width || 0,
             order: index,
+            positionType: positionType
           };
         })
         .filter((position) => position !== null);
-
+  
       setSelectedTrials(selectedTrialArray);
       setSelectedRowPositions(positions);
     },
-    [rows]
+    [rows, parentRef]
   );
 
   const toggleRowSelection = useCallback(

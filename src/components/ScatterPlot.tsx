@@ -511,13 +511,18 @@ const ScatterContourPlot: React.FC = () => {
         const svgEndX = svgRect.width;
 
         // const top = tableHeaderRect.top + 35;
-        const top =
-          selectedRowPosition.top > tableHeaderRect.bottom &&
-          selectedRowPosition.top < tableBottomRect.bottom + 5
-            ? selectedRowPosition.top
-            : selectedRowPosition.top < tableHeaderRect.bottom
-            ? tableHeaderRect.bottom
-            : tableBottomRect.bottom + 5;
+        let top;
+        switch (selectedRowPosition.positionType) {
+          case 'above':
+            top = tableHeaderRect.bottom;
+            break;
+          case 'below':
+            top = tableBottomRect.bottom + 5;
+            break;
+          case 'visible':
+          default:
+            top = selectedRowPosition.top;
+}
 
         // const top =
         //   flag === "start"
