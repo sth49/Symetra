@@ -15,18 +15,17 @@ import { FaAngleDown } from "react-icons/fa6";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
-import { ViolinPlot, BoxPlot } from "@visx/stats";
-import { Axis, Orientation, SharedAxisProps, AxisScale } from "@visx/axis";
+
+import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { useConstDataStore } from "./store/constDataStore";
+import HparamExtended from "./HparamExtended";
 type TooltipData = {
   key: string;
   value: number;
 };
-import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
-import { formatting, generateBinnedData } from "../model/utils";
-import { HyperparamTypes } from "../model/hyperparam";
-import { useConstDataStore } from "./store/constDataStore";
-const FastEffectTable = () => {
-  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+
+const HparamView = () => {
+  const { TooltipInPortal } = useTooltipInPortal({
     scroll: true,
   });
   const {
@@ -118,13 +117,13 @@ const FastEffectTable = () => {
       {
         key: "dist",
         label: "Distribution",
-        width: 100,
+        width: 110,
         align: "center",
       },
       {
         key: "expander",
         label: "",
-        width: 56,
+        width: 46,
         align: "left",
       },
     ],
@@ -250,7 +249,7 @@ const FastEffectTable = () => {
                     />
                   </Text>
                 ) : column.key === "dist" ? (
-                  <BarChart dist={item.dist} width={70} height={30} />
+                  <BarChart dist={item.dist} width={100} height={30} />
                 ) : column.key === "name" ? (
                   <Box
                     display={"flex"}
@@ -297,158 +296,8 @@ const FastEffectTable = () => {
 
           {isExpanded && (
             <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
-              <Box
-                display={"flex"}
-                flexDir={"column"}
-                alignItems={"center"}
-                justifyContent={"space-between"}
-                whiteSpace={"nowrap"}
-                overflowX={"auto"}
-                textOverflow={"ellipsis"}
-                userSelect={"none"}
-                w={"100%"}
-              >
-                <Box
-                  width={"100%"}
-                  display={"flex"}
-                  alignItems={"center"}
-                  borderBottom={"1px solid #ddd"}
-                >
-                  <Box width={"20%"}>
-                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      {item.name}
-                    </Text>
-                  </Box>
-                  <Box width={"15%"}>
-                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      Count
-                    </Text>
-                  </Box>
-                  <Box width={"15%"}>
-                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      Effect
-                    </Text>
-                  </Box>
-                  <Box width={"40%"}>
-                    <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-                      {/* Distribution */}
-                    </Text>
-                  </Box>
-                </Box>
-                {Object.keys(item.effctsByValue)
-                  .sort((a, b) => {
-                    const aSum = item.effctsByValue[a].reduce(
-                      (a, b) => a + b,
-                      0
-                    );
-                    const bSum = item.effctsByValue[b].reduce(
-                      (a, b) => a + b,
-                      0
-                    );
-                    return bSum - aSum;
-                  })
+              <HparamExtended item={item} />
 
-                  .map((key) => {
-                    console.log(item.effctsByValue[key]);
-                    // scale from all data
-                    const allEffectByValue = Object.values(
-                      item.effctsByValue
-                    ).flat() as number[];
-                    const { xScale } = generateBinnedData(
-                      allEffectByValue,
-                      100,
-                      30,
-                      "x"
-                    );
-                    const { binData } = generateBinnedData(
-                      item.effctsByValue[key],
-                      100,
-                      30,
-                      "x"
-                    );
-                    return (
-                      <Box
-                        display={"flex"}
-                        width={"100%"}
-                        alignItems={"center"}
-                        mb={1.5}
-                      >
-                        <Box width={"20%"}>
-                          <Text
-                            fontSize={"xs"}
-                            align="center"
-                            whiteSpace="pre-line"
-                          >
-                            {key}
-                          </Text>
-                        </Box>
-                        <Box width={"15%"}>
-                          <Text fontSize={"xs"} align="right">
-                            {formatting(item.effctsByValue[key].length, "int")}
-                          </Text>
-                        </Box>
-                        <Box width={"15%"}>
-                          <Text fontSize={"xs"} align="right">
-                            {formatting(
-                              item.effctsByValue[key].reduce(
-                                (a, b) => a + b,
-                                0
-                              ),
-                              "float"
-                            )}
-                          </Text>
-                        </Box>
-                        <Box
-                          width={"50%"}
-                          display={"flex"}
-                          justifyContent={"center"}
-                        >
-                          <svg width={120} height={36}>
-                            <g transform="translate(10, 0)">
-                              {" "}
-                              <ViolinPlot
-                                data={binData}
-                                valueScale={xScale}
-                                width={26}
-                                height={100}
-                                horizontal={true}
-                                top={5}
-                                fill="grey"
-                              />
-                              <Axis
-                                scale={xScale}
-                                orientation={Orientation.bottom}
-                                top={18}
-                                numTicks={2}
-                                tickValues={[
-                                  xScale.domain()[0],
-                                  xScale.domain()[1],
-                                ]}
-                              />
-                              {(() => {
-                                const medianValue = allEffectByValue.sort(
-                                  (a, b) => a - b
-                                )[Math.floor(allEffectByValue.length / 2)];
-                                const medianX = xScale(medianValue);
-                                return (
-                                  <line
-                                    x1={medianX}
-                                    y1={4} // ViolinPlot의 top 값
-                                    x2={medianX}
-                                    y2={32} // Axis의 top 값
-                                    stroke="red"
-                                    strokeWidth={1}
-                                    strokeDasharray="2,2"
-                                  />
-                                );
-                              })()}
-                            </g>
-                          </svg>
-                        </Box>
-                      </Box>
-                    );
-                  })}
-              </Box>
               {/* Add more expanded content here */}
             </div>
           )}
@@ -577,12 +426,11 @@ const FastEffectTable = () => {
                       }
                     }}
                   >
-                    <Text fontWeight={"bold"}>{column.label}</Text>
                     {(column.key === "name" || column.key === "effect") && (
                       <Icon
                         color={"gray"}
                         width={2}
-                        ml={1}
+                        mr={1}
                         as={
                           sortConfig.key === column.key
                             ? sortConfig.direction === "ascending"
@@ -592,6 +440,7 @@ const FastEffectTable = () => {
                         }
                       />
                     )}
+                    <Text fontWeight={"bold"}>{column.label}</Text>
                   </div>
                 ))}
               </div>
@@ -624,4 +473,4 @@ const FastEffectTable = () => {
   );
 };
 
-export default FastEffectTable;
+export default HparamView;

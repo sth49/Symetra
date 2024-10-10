@@ -31,7 +31,7 @@ import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
-const ScatterContourPlot: React.FC = () => {
+const CoverageView: React.FC = () => {
   const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
   const hoveredGroup = useCustomStore((state) => state.hoveredGroup);
@@ -267,195 +267,7 @@ const ScatterContourPlot: React.FC = () => {
     window.addEventListener("resize", updateSvgRect);
     return () => window.removeEventListener("resize", updateSvgRect);
   }, [margin.left]);
-  // previouse version - r: Coverage View l: Trial View
-  // const drawConnectionLine = useCallback(() => {
-  //   if (
-  //     !selectedTrials ||
-  //     !selectedRowPositions.length ||
-  //     !svgRef.current ||
-  //     lastViewIndex === -1
-  //   ) {
-  //     console.log("return null");
-  //     return null;
-  //   }
-  //   let flag =
-  //     selectedRowPositions.length &&
-  //     selectedRowPositions[0].order < lastViewIndex
-  //       ? "start"
-  //       : "end";
 
-  //   const tableContainer = document.querySelector(".virtual-table");
-  //   const tableRect = tableContainer.getBoundingClientRect();
-  //   console.log(selectedRowPositions);
-  //   // console.log("selectedTrial", selectedTrials);
-  //   return selectedRowPositions
-  //     .sort((a, b) => a.order - b.order)
-  //     .map((selectedRowPosition, i) => {
-  //       const selectedTrial = selectedRowPosition.trialId;
-  //       if (flag === "start" && selectedRowPosition.top !== null) {
-  //         flag = "middle";
-  //       } else if (
-  //         (flag === "middle" && selectedRowPosition.top === null) ||
-  //         selectedRowPosition.order >= lastViewIndex
-  //       ) {
-  //         flag = "end";
-  //       }
-
-  //       const selectedPoint = data.find((d) => d.id === selectedTrial);
-  //       console.log("selectedPoint", selectedPoint);
-
-  //       if (!selectedPoint) {
-  //         return null;
-  //       }
-  //       const svgRect = svgRef.current.getBoundingClientRect();
-  //       const viewBox = svgRef.current.viewBox.baseVal;
-  //       const svgMidX1 = xScale(selectedPoint.x);
-  //       const svgMidY1 = yScale(selectedPoint.y) - 2;
-
-  //       const svgMidX2 = xScale(selectedPoint.x);
-  //       const svgMidY2 = yScale(selectedPoint.y) + 2;
-
-  //       const scaleY = viewBox.height / svgRect.height;
-
-  //       const svgStartX = flag === "start" ? -margin.left : 0;
-  //       const svgEndX = -margin.left;
-
-  //       const top =
-  //         flag === "start"
-  //           ? tableRect.top - 15
-  //           : flag === "middle"
-  //           ? selectedRowPosition.top
-  //           : flag === "end"
-  //           ? tableRect.bottom
-  //           : selectedRowPosition.top;
-  //       const svgStartY =
-  //         (top - svgRect.top + tableContainer.scrollTop) * scaleY +
-  //         viewBox.y -
-  //         15;
-  //       const svgEndY =
-  //         (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
-
-  //       // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
-  //       // Calculate the slope
-  //       const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
-
-  //       const baseCurveStrength = 200;
-  //       const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
-  //       const curveStrength =
-  //         baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
-
-  //       // Determine the direction of the curve
-  //       const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
-
-  //       const pathData = `
-  //       M ${svgStartX} ${svgStartY}
-  //       C ${
-  //         (svgStartX +
-  //           curveStrength * curveDirection +
-  //           10 * Math.min(0.4, Math.abs(slope))) *
-  //         curveDirection
-  //       } ${svgStartY},
-  //         ${svgMidX1} ${svgMidY1},
-  //         ${svgMidX1} ${svgMidY1}
-  //       L ${svgMidX2} ${svgMidY2}
-  //       C ${svgMidX2} ${svgMidY2},
-  //         ${
-  //           -(
-  //             svgEndX -
-  //             curveStrength * curveDirection +
-  //             10 * Math.min(0.4, Math.abs(slope))
-  //           ) * curveDirection
-  //         } ${svgEndY},
-  //         ${svgEndX} ${svgEndY}
-  //       Z
-  //     `;
-
-  //       return (
-  //         <>
-  //           <path d={pathData} fill="#d0e0fc" opacity={0.8} strokeWidth={1} />
-  //         </>
-  //       );
-  //     });
-  // }, [
-  //   selectedTrials,
-  //   selectedRowPositions,
-  //   lastViewIndex,
-  //   data,
-  //   xScale,
-  //   yScale,
-  //   margin.left,
-  // ]);
-
-  // const drawConnectionLine2 = useCallback(() => {
-  //   if (!hoveredRowPosition || !svgRef.current) return null;
-
-  //   const tableContainer = document.querySelector(".virtual-table");
-
-  //   const hoveredTrial = hoveredRowPosition.trialId;
-
-  //   const hoveredPoint = data.find((d) => d.id === hoveredTrial);
-  //   if (!hoveredPoint) {
-  //     return null;
-  //   }
-  //   const svgRect = svgRef.current.getBoundingClientRect();
-  //   const viewBox = svgRef.current.viewBox.baseVal;
-  //   const svgMidX1 = xScale(hoveredPoint.x);
-  //   const svgMidY1 = yScale(hoveredPoint.y) - 2;
-
-  //   const svgMidX2 = xScale(hoveredPoint.x);
-  //   const svgMidY2 = yScale(hoveredPoint.y) + 2;
-
-  //   const scaleY = viewBox.height / svgRect.height;
-
-  //   const svgStartX = -margin.left;
-
-  //   const top = hoveredRowPosition.top;
-  //   const svgStartY =
-  //     (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y - 15;
-  //   const svgEndX = -margin.left;
-  //   const svgEndY =
-  //     (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
-
-  //   const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
-
-  //   const baseCurveStrength = 200;
-  //   const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
-  //   const curveStrength =
-  //     baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
-
-  //   // Determine the direction of the curve
-  //   const curveDirection = svgStartY - svgMidY1 > 0 ? -1 : 1;
-
-  //   const pathData = `
-  //       M ${svgStartX} ${svgStartY}
-  //       C ${
-  //         (svgStartX +
-  //           curveStrength * curveDirection +
-  //           10 * Math.min(0.4, Math.abs(slope))) *
-  //         curveDirection
-  //       } ${svgStartY},
-  //         ${svgMidX1} ${svgMidY1},
-  //         ${svgMidX1} ${svgMidY1}
-  //       L ${svgMidX2} ${svgMidY2}
-  //       C ${svgMidX2} ${svgMidY2},
-  //         ${
-  //           -(
-  //             svgEndX -
-  //             curveStrength * curveDirection +
-  //             10 * Math.min(0.4, Math.abs(slope))
-  //           ) * curveDirection
-  //         } ${svgEndY},
-  //         ${svgEndX} ${svgEndY}
-  //       Z
-  //     `;
-
-  //   return (
-  //     <>
-  //       <path d={pathData} fill="#f0f0f0" opacity={0.8} strokeWidth={1} />
-  //       <circle cx={svgMidX1} cy={svgMidY1} r={3} fill={"red"} />
-  //     </>
-  //   );
-  // }, [hoveredRowPosition, data, xScale, yScale, svgPosition, isTableScrolling]);
   const drawConnectionLine = useCallback(() => {
     if (!selectedTrials || !selectedRowPositions.length || !svgRef.current) {
       console.log("return null");
@@ -511,18 +323,13 @@ const ScatterContourPlot: React.FC = () => {
         const svgEndX = svgRect.width;
 
         // const top = tableHeaderRect.top + 35;
-        let top;
-        switch (selectedRowPosition.positionType) {
-          case "above":
-            top = tableHeaderRect.bottom;
-            break;
-          case "below":
-            top = tableBottomRect.bottom + 5;
-            break;
-          case "visible":
-          default:
-            top = selectedRowPosition.top;
-        }
+        const top =
+          selectedRowPosition.top > tableHeaderRect.bottom &&
+          selectedRowPosition.top < tableBottomRect.bottom + 5
+            ? selectedRowPosition.top
+            : selectedRowPosition.top < tableHeaderRect.bottom
+            ? tableHeaderRect.bottom
+            : tableBottomRect.bottom + 5;
 
         // const top =
         //   flag === "start"
@@ -654,7 +461,6 @@ const ScatterContourPlot: React.FC = () => {
       >
         {isPreference && (
           <Box
-            // visibility={isPreference ? "visible" : "hidden"}
             display={"flex"}
             width={"100%"}
             justifyContent={"right"}
@@ -1068,4 +874,4 @@ const ScatterContourPlot: React.FC = () => {
   );
 };
 
-export default memo(ScatterContourPlot);
+export default memo(CoverageView);

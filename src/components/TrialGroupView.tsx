@@ -1,7 +1,7 @@
 import { Box, Button, Heading, Text, useDisclosure } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { memo } from "react";
 import { Graph } from "@visx/network";
 import { performStatisticalTest } from "../model/statistic";
@@ -53,13 +53,13 @@ function createArcPath(
 }
 
 const TrialGroupView = () => {
-  const { hyperparams } = useConstDataStore();
+  const { hyperparams, exp } = useConstDataStore();
   const groups = useCustomStore((state) => state.groups);
+  const setGroups = useCustomStore((state) => state.setGroups);
   const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
   const setSelectedGroup = useCustomStore((state) => state.setSelectedGroup);
 
-  // const { groups, setHoveredGroup, setSelectedGroup } = useCustomStore();
-
+  const boxRef = useRef<HTMLDivElement>(null);
   const {
     tooltipOpen,
     tooltipLeft,
@@ -71,6 +71,23 @@ const TrialGroupView = () => {
   const { TooltipInPortal } = useTooltipInPortal({
     scroll: true,
   });
+
+  useEffect(() => {
+    console.log("TrialGroupView initialized");
+    const updatedGroups = groups.clone();
+    updatedGroups.addGroup(
+      exp?.trials
+        .sort((a, b) => b.metric - a.metric)
+        .slice(0, exp?.trials.length * 0.1) ?? []
+    );
+    updatedGroups.addGroup(
+      exp?.trials
+        .sort((a, b) => a.metric - b.metric)
+        .slice(0, exp?.trials.length * 0.1) ?? []
+    );
+
+    setGroups(updatedGroups);
+  }, []);
 
   const [hoveredLink, setHoveredLink] = useState<CustomLink | null>(null);
   const [localSelectedGroup, setLocalSelectedGroup] = useState<Set<number>>(
@@ -85,7 +102,7 @@ const TrialGroupView = () => {
       (group, i) => ({
         id: group.id,
         x: 20 + i * 65,
-        y: 45,
+        y: 35,
         length: group.getLength(),
         stats: group.getStats(),
       }),
@@ -306,14 +323,17 @@ const TrialGroupView = () => {
       {groups?.getLength() > 0 ? (
         <Box
           width={"100%"}
+          ref={boxRef}
           overflowX={"auto"}
-          height="80%" // 뷰포트 높이에서 적절한 값을 뺀 높이
+          height="85%" // 뷰포트 높이에서 적절한 값을 뺀 높이
           p={2}
           display="flex"
         >
           <Box
-            width={width} // 뷰포트 높이에서 적절한 값을 뺀 높이
+            width={width > boxRef.current?.clientWidth ? width : "100%"}
             height={"100%"}
+            display={"flex"}
+            justifyContent={"center"}
           >
             <svg
               width={width}
@@ -329,7 +349,6 @@ const TrialGroupView = () => {
                 setHoveredLink(null);
               }}
             >
-              {/* <rect width={width} height={"100%"} fill={"white"} /> */}
               <Graph<CustomLink, CustomNode>
                 graph={graphMemo}
                 nodeComponent={NodeComponent}

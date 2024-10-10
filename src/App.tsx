@@ -5,9 +5,9 @@ import { Experiment } from "./model/experiment";
 import "./App.css";
 import { Box, ChakraProvider } from "@chakra-ui/react";
 import Overview from "./components/Overview";
-import ScatterContourPlot from "./components/ScatterPlot";
+import CoverageView from "./components/CoverageView";
 import TrialGroupView from "./components/TrialGroupView";
-import FastEffectTable from "./components/FastEffectTable";
+import HparamView from "./components/HparamView";
 import theme from "./theme";
 import GroupDetailView from "./components/GroupDetailView";
 import { useConstDataStore } from "./components/store/constDataStore";
@@ -64,7 +64,7 @@ function App() {
             <>
               <Box width="320px" height="calc(100vh - 44px)">
                 <Box height="99%" bg="white" m={1} mr={0.5} mt={0.5}>
-                  <FastEffectTable />
+                  <HparamView />
                 </Box>
               </Box>
               <Box
@@ -81,7 +81,7 @@ function App() {
                     flexDirection="column"
                   >
                     <Box height={"99%"} bg="white" m={0.5}>
-                      <ScatterContourPlot />
+                      <CoverageView />
                     </Box>
                   </Box>
                   <Box
