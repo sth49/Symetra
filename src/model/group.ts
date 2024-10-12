@@ -11,8 +11,12 @@ export class Groups {
     return this.groups.find((group) => group.id === id);
   }
 
-  addGroup(trials: Trial[]) {
-    const group = new Group(this.lastGroupId, trials);
+  addGroup(trials: Trial[], name?: string) {
+    const group = new Group(
+      this.lastGroupId,
+      trials,
+      name ? name : "Group " + (this.lastGroupId + 1)
+    );
     this.groups.push(group);
     this.lastGroupId++;
   }
@@ -26,14 +30,18 @@ export class Groups {
     const clone = new Groups();
     clone.lastGroupId = this.lastGroupId;
     clone.groups = this.groups.map((group) => {
-      return new Group(group.id, group.trials);
+      return new Group(group.id, group.trials, group.name);
     });
     return clone;
   }
 }
 
 export class Group {
-  constructor(public id: number, public trials: Trial[]) {}
+  constructor(
+    public id: number,
+    public trials: Trial[],
+    public name: string = "Group " + (id + 1)
+  ) {}
 
   getLength() {
     return this.trials.length;

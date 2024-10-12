@@ -10,6 +10,7 @@ import { formatting } from "../model/utils";
 
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { useConstDataStore } from "./store/constDataStore";
+import { useMetricScale } from "../model/colorScale";
 type TooltipData = {
   key: string;
   type: string;
@@ -59,7 +60,27 @@ const TrialGroupView = () => {
   const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
   const setSelectedGroup = useCustomStore((state) => state.setSelectedGroup);
 
+  const setCurrnetSelectedGroup = useCustomStore(
+    (state) => state.setCurrentSelectedGroup
+  );
+  // const boxRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const [boxHeight, setBoxHeight] = useState(0);
+  const { metricScale, colorScale } = useMetricScale();
+
+  // useEffect(() => {
+  //   const updateSize = () => {
+  //     if (boxRef.current) {
+  //       setBoxHeight(boxRef.current.clientHeight);
+  //     }
+  //   };
+
+  //   updateSize();
+  //   window.addEventListener("resize", updateSize);
+
+  //   return () => window.removeEventListener("resize", updateSize);
+  // }, []);
+
   const {
     tooltipOpen,
     tooltipLeft,
@@ -78,16 +99,35 @@ const TrialGroupView = () => {
     updatedGroups.addGroup(
       exp?.trials
         .sort((a, b) => b.metric - a.metric)
-        .slice(0, exp?.trials.length * 0.1) ?? []
+        .slice(0, exp?.trials.length * 0.1) ?? [],
+      "Top 10%"
     );
     updatedGroups.addGroup(
       exp?.trials
         .sort((a, b) => a.metric - b.metric)
-        .slice(0, exp?.trials.length * 0.1) ?? []
+        .slice(0, exp?.trials.length * 0.1) ?? [],
+      "Bottom 10%"
     );
 
     setGroups(updatedGroups);
   }, []);
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  useEffect(() => {
+    const updateSize = () => {
+      if (boxRef.current) {
+        const newHeight = boxRef.current.clientHeight;
+        setBoxHeight(newHeight);
+        if (isInitialRender && newHeight > 0) {
+          setIsInitialRender(false);
+        }
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+
+    return () => window.removeEventListener("resize", updateSize);
+  }, [isInitialRender]);
 
   const [hoveredLink, setHoveredLink] = useState<CustomLink | null>(null);
   const [localSelectedGroup, setLocalSelectedGroup] = useState<Set<number>>(
@@ -97,16 +137,19 @@ const TrialGroupView = () => {
   const width = groups.groups.length * 120;
 
   const { nodes, links } = useMemo(() => {
+    console.log("GroupView rendering, boxHeight:", boxHeight);
+    if (boxHeight === 0) return { nodes: [], links: [] };
     console.log("GroupView rendering");
     const nodes = groups.groups.map(
       (group, i) => ({
         id: group.id,
+        name: group.name,
         x: 20 + i * 65,
-        y: 35,
+        y: boxHeight / 4,
         length: group.getLength(),
         stats: group.getStats(),
       }),
-      [groups.getLength(), hyperparams]
+      [groups.getLength(), hyperparams, boxRef.current?.clientHeight]
     );
 
     const links = [];
@@ -128,7 +171,7 @@ const TrialGroupView = () => {
     }
 
     return { nodes, links };
-  }, [groups.getLength(), hyperparams]);
+  }, [groups.getLength(), hyperparams, boxHeight]);
 
   const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 
@@ -136,7 +179,7 @@ const TrialGroupView = () => {
     return d3
       .scaleLinear()
       .domain([0, d3.max(links.map((link) => link.weight))])
-      .range([1, 10]);
+      .range([10, 1]);
   }, [links]);
 
   const handleNodeHover = useCallback(
@@ -159,8 +202,10 @@ const TrialGroupView = () => {
       const newLocalSelectedGroup = new Set(localSelectedGroup);
       if (newLocalSelectedGroup.has(id)) {
         newLocalSelectedGroup.delete(id);
+        setCurrnetSelectedGroup(null);
       } else {
         newLocalSelectedGroup.add(id);
+        setCurrnetSelectedGroup(groups.getGroup(id));
       }
       setLocalSelectedGroup(newLocalSelectedGroup);
     },
@@ -182,9 +227,9 @@ const TrialGroupView = () => {
         onMouseMove={(event) => {
           showTooltip({
             tooltipData: {
-              key: "Group",
+              key: "",
               type: "node",
-              value: node.id,
+              value: node.name,
               count: node.length,
               stats: node.stats,
             },
@@ -198,13 +243,16 @@ const TrialGroupView = () => {
         }}
         onClick={() => handleNodeClick(node.id)}
       >
+        <circle r={40} cx={node.x} cy={node.y} fill={"white"} />
+
         <circle
           className={`node ${
             localSelectedGroup.has(node.id) ? "selected" : ""
           }`}
-          r={30}
+          r={40}
           cx={node.x}
           cy={node.y}
+          fill={colorScale(metricScale(Number(node.stats.avg)))}
         />
         <text
           style={{ userSelect: "none" }}
@@ -215,7 +263,7 @@ const TrialGroupView = () => {
           fontSize={12}
           fontWeight={"bold"}
         >
-          Group {node.id}
+          {node.name}
         </text>
 
         <text
@@ -225,7 +273,7 @@ const TrialGroupView = () => {
           textAnchor="middle"
           fontSize={10}
         >
-          {formatting(node.length, "int")}
+          {formatting(node.length, "int") + " trials"}
         </text>
       </g>
     ),
@@ -250,6 +298,7 @@ const TrialGroupView = () => {
             className="link"
             d={createArcPath(source, target, arcHeight)}
             strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
+            fill="gray"
           />
           <path
             className="link2"
@@ -260,9 +309,9 @@ const TrialGroupView = () => {
             onMouseMove={(event) => {
               showTooltip({
                 tooltipData: {
-                  key: "Link",
+                  key: "Difference between ",
                   type: "link",
-                  value: `${source.id} - ${target.id}`,
+                  value: `${source.name} and ${target.name}`,
                   count: link.weight,
                   stats: {
                     avg: 0,
@@ -284,12 +333,21 @@ const TrialGroupView = () => {
     [nodes, weightScale]
   );
 
+  if (isInitialRender) {
+    return (
+      <Box ref={boxRef} width="100%" height="100%">
+        <Text>Loading...</Text>
+      </Box>
+    );
+  }
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Trial Group View
         </Heading>
+
         <Box
           display={"flex"}
           justifyContent={"right"}
@@ -393,8 +451,18 @@ const TrialGroupView = () => {
               </>
             ) : (
               <>
-                <Text align={"left"} mb={1} fontSize={"12px"}>
-                  Weight: {formatting(tooltipData.count, "int")}
+                <Text
+                  align={"left"}
+                  mb={1}
+                  fontSize={"12px"}
+                  // wordBreak={"break-all"}
+                  wordBreak="break-word"
+                  overflowWrap="break-word"
+                  whiteSpace="normal"
+                >
+                  # of statistically different hyperparameters:{" "}
+                  {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
+                  {hyperparams.length}
                 </Text>
               </>
             )}

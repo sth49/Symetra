@@ -31,6 +31,7 @@ import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
+import { useMetricScale } from "../model/colorScale";
 const CoverageView: React.FC = () => {
   const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
@@ -90,7 +91,6 @@ const CoverageView: React.FC = () => {
 
   const xValues = data.map((d) => d.x);
   const yValues = data.map((d) => d.y);
-  const metricValues = data.map((d) => d.metric);
   const [svgPosition, setSvgPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -134,15 +134,16 @@ const CoverageView: React.FC = () => {
 
   const numThresholds = 5;
 
-  const metricScale = useMemo(
-    () =>
-      d3
-        .scaleQuantize()
-        .domain([Math.min(...metricValues), Math.max(...metricValues)])
-        .nice()
-        .range(d3.range(numThresholds)),
-    [metricValues]
-  );
+  const { metricScale, colorScale } = useMetricScale();
+  // const metricScale = useMemo(
+  //   () =>
+  //     d3
+  //       .scaleQuantize()
+  //       .domain([Math.min(...metricValues), Math.max(...metricValues)])
+  //       .nice()
+  //       .range(d3.range(numThresholds)),
+  //   [metricValues]
+  // );
 
   const thresholdRanges = useMemo(() => {
     const scale = metricScale.copy().range(metricScale.domain());
@@ -153,9 +154,9 @@ const CoverageView: React.FC = () => {
     ]);
   }, [metricScale]);
 
-  const colorScale = d3
-    .scaleSequential(d3.interpolateViridis)
-    .domain([0, numThresholds]);
+  // const colorScale = d3
+  //   .scaleSequential(d3.interpolateViridis)
+  //   .domain([0, numThresholds]);
 
   const densityData = useMemo(() => {
     const densityGenerator = d3
