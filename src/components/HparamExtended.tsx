@@ -24,7 +24,8 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
         value: item.type === HyperparamTypes.Ordinal ? Number(key) : key,
         count: item.effctsByValue[key].length,
         effect: item.effctsByValue[key].reduce((a, b) => a + b, 0),
-        binData: generateBinnedData(item.effctsByValue[key], 100, 30, "x"),
+        binData: generateBinnedData(item.effctsByValue[key], 100, 30, "x")
+          .binData,
       };
     });
   }, [item.effctsByValue]);
@@ -135,6 +136,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
       </div>
       {sortedData.map((row, index) => (
         <div
+          key={index}
           style={{
             display: "flex",
             alignItems: "center",
