@@ -63,6 +63,9 @@ const TrialGroupView = () => {
   const setCurrnetSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
+  const currnetSelectedGroup = useCustomStore(
+    (state) => state.currnetSelectedGroup
+  );
   // const boxRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const [boxHeight, setBoxHeight] = useState(0);
@@ -197,8 +200,11 @@ const TrialGroupView = () => {
 
   const handleNodeClick = useCallback(
     (id) => {
-      console.log("Clicked group", id);
-      console.log(localSelectedGroup);
+      if (currnetSelectedGroup && currnetSelectedGroup.id === id) {
+        setCurrnetSelectedGroup(null);
+      } else {
+        setCurrnetSelectedGroup(groups.getGroup(id));
+      }
       const newLocalSelectedGroup = new Set(localSelectedGroup);
       if (newLocalSelectedGroup.has(id)) {
         newLocalSelectedGroup.delete(id);
@@ -209,7 +215,7 @@ const TrialGroupView = () => {
       }
       setLocalSelectedGroup(newLocalSelectedGroup);
     },
-    [localSelectedGroup]
+    [currnetSelectedGroup, groups, localSelectedGroup, setCurrnetSelectedGroup]
   );
 
   const NodeComponent = useCallback(

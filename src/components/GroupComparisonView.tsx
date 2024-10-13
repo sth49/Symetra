@@ -34,11 +34,11 @@ const GroupComparisonView = () => {
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Group Detail View
+          Group Comparison View
         </Heading>
       </Box>
 
-      <Box height={`calc(100% - 36px)`} p={3} overflow={"auto"}>
+      <Box height={`calc(100% - 36px)`} p={2} pt={0} overflow={"auto"}>
         {analysisGroups.length === 0 ? (
           <Text fontSize="md">
             Please select one or more groups from the Trial Group View

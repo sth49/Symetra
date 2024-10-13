@@ -20,6 +20,10 @@ export class Groups {
     this.groups.push(group);
     this.lastGroupId++;
   }
+  editGroup(group: Group) {
+    const index = this.groups.findIndex((g) => g.id === group.id);
+    this.groups[index] = group;
+  }
   deleteGroup(id: number) {
     this.groups = this.groups.filter((group) => group.id !== id);
   }
@@ -29,9 +33,7 @@ export class Groups {
   clone() {
     const clone = new Groups();
     clone.lastGroupId = this.lastGroupId;
-    clone.groups = this.groups.map((group) => {
-      return new Group(group.id, group.trials, group.name);
-    });
+    clone.groups = this.groups.map((group) => group.clone());
     return clone;
   }
 }
@@ -45,6 +47,14 @@ export class Group {
 
   getLength() {
     return this.trials.length;
+  }
+
+  editName(name: string) {
+    this.name = name;
+  }
+
+  clone() {
+    return new Group(this.id, this.trials, this.name);
   }
 
   getCoverages() {
