@@ -26,60 +26,17 @@ const GroupDetailView = () => {
   const setCurrentSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
-
   const setGroups = useCustomStore((state) => state.setGroups);
-  const [editName, setEditName] = useState(
-    currentSelectedGroup ? currentSelectedGroup.name : ""
-  );
+
+  const [editName, setEditName] = useState("");
+
+  const [mode, setMode] = useState("view");
 
   useEffect(() => {
-    console.log("current selected group", currentSelectedGroup);
+    if (currentSelectedGroup) {
+      setEditName(currentSelectedGroup.name);
+    }
   }, [currentSelectedGroup]);
-
-  function EditableControls() {
-    const {
-      isEditing,
-      getSubmitButtonProps,
-      getCancelButtonProps,
-      getEditButtonProps,
-    } = useEditableControls();
-
-    return isEditing ? (
-      <ButtonGroup justifyContent="center" size="sm">
-        <IconButton
-          size={"xs"}
-          aria-label="Submit"
-          icon={<CheckIcon />}
-          // {...getSubmitButtonProps()}
-          onClick={() => {
-            getSubmitButtonProps();
-            const editGroup = currentSelectedGroup.clone();
-            editGroup.editName(editName);
-            setCurrentSelectedGroup(editGroup);
-            const editGroups = groups.clone();
-            editGroups.editGroup(editGroup);
-            setGroups(editGroups);
-          }}
-        />
-        <IconButton
-          size={"xs"}
-          aria-label="Cancel"
-          icon={<CloseIcon />}
-          {...getCancelButtonProps()}
-        />
-      </ButtonGroup>
-    ) : (
-      <Flex justifyContent="center">
-        <IconButton
-          aria-label="Edit"
-          size="xs"
-          colorScheme={"blue"}
-          icon={<EditIcon />}
-          {...getEditButtonProps()}
-        />
-      </Flex>
-    );
-  }
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -113,21 +70,57 @@ const GroupDetailView = () => {
                   <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
                     Group Name
                   </Text>
-                  <Editable
-                    textAlign="center"
-                    // defaultValue={currentSelectedGroup.name}
-                    defaultValue={editName}
-                    fontSize="sm"
-                    isPreviewFocusable={false}
-                    display={"flex"}
-                    justifyContent={"space-between"}
-                    alignItems={"center"}
-                    width={"50%"}
-                  >
-                    <EditablePreview p={0} pr={2} />
-                    <Input as={EditableInput} size={"xs"} p={0} pr={2} />
-                    <EditableControls />
-                  </Editable>
+
+                  {mode === "view" ? (
+                    <Box display={"flex"}>
+                      <Text fontSize="sm" align={"right"} pr={2}>
+                        {currentSelectedGroup.name}
+                      </Text>
+                      <IconButton
+                        aria-label="Edit"
+                        icon={<EditIcon />}
+                        size="xs"
+                        onClick={() => setMode("edit")}
+                      />
+                    </Box>
+                  ) : (
+                    <Box
+                      width={"60%"}
+                      display={"flex"}
+                      justifyContent={"space-between"}
+                    >
+                      <input
+                        style={{ width: "60%", fontSize: "14px" }}
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                      />
+                      <ButtonGroup>
+                        <IconButton
+                          aria-label="Save"
+                          icon={<CheckIcon />}
+                          size={"xs"}
+                          onClick={() => {
+                            const newCurrentSelectedGroup =
+                              currentSelectedGroup.clone();
+                            newCurrentSelectedGroup.editName(editName);
+                            setCurrentSelectedGroup(newCurrentSelectedGroup);
+
+                            const newGroups = groups.clone();
+                            newGroups.editGroup(newCurrentSelectedGroup);
+                            console.log(newGroups);
+                            setGroups(newGroups);
+                            setMode("view");
+                          }}
+                        />
+                        <IconButton
+                          size={"xs"}
+                          aria-label="Cancel"
+                          icon={<CloseIcon />}
+                          onClick={() => setMode("view")}
+                        />
+                      </ButtonGroup>
+                    </Box>
+                  )}
                 </Box>
 
                 <Box display={"flex"} justifyContent={"space-between"}>

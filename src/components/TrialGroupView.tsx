@@ -152,7 +152,7 @@ const TrialGroupView = () => {
         length: group.getLength(),
         stats: group.getStats(),
       }),
-      [groups.getLength(), hyperparams, boxRef.current?.clientHeight]
+      [groups, hyperparams, boxRef.current?.clientHeight]
     );
 
     const links = [];
@@ -174,7 +174,7 @@ const TrialGroupView = () => {
     }
 
     return { nodes, links };
-  }, [groups.getLength(), hyperparams, boxHeight]);
+  }, [groups, hyperparams, boxHeight]);
 
   const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 

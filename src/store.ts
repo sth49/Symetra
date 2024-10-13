@@ -31,6 +31,8 @@ interface CustomStore {
   currentSelectedGroup: Group | null;
   setCurrentSelectedGroup: (group: Group | null) => void;
 
+  editGroupName: (groupId: number, newName: string) => void;
+
   clickedHparamValue: HparamValue | null;
   setClickedHparamValue: (value: HparamValue | null) => void;
 
@@ -65,6 +67,24 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   currentSelectedGroup: null,
   setCurrentSelectedGroup: (group) => set({ currentSelectedGroup: group }),
+
+  editGroupName: (groupId, newName) =>
+    set((state) => {
+      const newGroups = state.groups.clone();
+      const group = newGroups.getGroup(groupId);
+      if (group) {
+        group.editName(newName);
+        return {
+          groups: newGroups,
+          currentSelectedGroup:
+            state.currentSelectedGroup &&
+            state.currentSelectedGroup.id === groupId
+              ? group
+              : state.currentSelectedGroup,
+        };
+      }
+      return state;
+    }),
 
   clickedHparamValue: null, // 선택된 하이퍼파라미터 값에 대한 다른 하이퍼파라미터 값들의 correlation 구할때 사용
   setClickedHparamValue: (value) => set({ clickedHparamValue: value }),
