@@ -1,7 +1,7 @@
 import { Trial } from "./trial";
 
 export class Groups {
-  public lastGroupId = 0;
+  public lastGroupId = -2;
   public groups: Group[] = [];
   constructor() {
     console.log("Groups created");

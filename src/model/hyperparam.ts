@@ -83,8 +83,19 @@ export class Hyperparam {
   formatting(arg0: any): any {
     throw new Error("Method not implemented.");
   }
-  getEffect(): number {
+  getEffect(trialIds: number[] = []): number {
     // shapValues 배열의 절대값의 합 계산
+
+    if (trialIds.length > 0) {
+      const effect = trialIds.reduce(
+        (acc, currentValue) => acc + Math.abs(this.shapValues[currentValue]),
+        0
+      );
+      if (isNaN(effect)) {
+        return 0;
+      }
+      return effect;
+    }
     const effect = this.shapValues.reduce(
       (acc, currentValue) => acc + Math.abs(currentValue),
       0

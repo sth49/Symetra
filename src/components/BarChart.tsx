@@ -22,12 +22,18 @@ type TooltipData = {
 
 interface BarChartProps {
   dist: string;
+  trialIds: number[];
   width: number;
   height: number;
   // margin: { top: number; right: number; bottom: number; left: number };
 }
 
-const BarChart = ({ dist, width = 50, height = 40 }: BarChartProps) => {
+const BarChart = ({
+  dist,
+  trialIds = [],
+  width = 50,
+  height = 40,
+}: BarChartProps) => {
   const {
     tooltipOpen,
     tooltipLeft,
@@ -55,9 +61,15 @@ const BarChart = ({ dist, width = 50, height = 40 }: BarChartProps) => {
 
   // const { setClickedHparamValue, clickedHparamValue } = useCustomStore();
 
-  const data = exp?.trials.map((trial) => trial.params[dist]) as
-    | string[]
-    | number[];
+  // const data = exp?.trials.map((trial) => trial.params[dist]) as
+  //   | string[]
+  //   | number[];
+  const data =
+    trialIds.length > 0
+      ? trialIds.map(
+          (id) => exp?.trials.find((trial) => trial.id === id)?.params[dist]
+        )
+      : exp?.trials.map((trial) => trial.params[dist]);
   const hparam = hyperparams.find((hparam) => hparam.name === dist);
   //   console.log(data);
   //   console.log(hparam?.name);

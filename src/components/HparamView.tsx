@@ -135,30 +135,33 @@ const HparamView = () => {
     [columns]
   );
 
-  const toggleRowSelection = (index, shiftKey) => {
-    if (shiftKey && lastSelectedIndex !== null) {
-      const start = Math.min(lastSelectedIndex, index);
-      const end = Math.max(lastSelectedIndex, index);
-      const newSelectedRows = new Set(selectedRows);
-      for (let i = start; i <= end; i++) {
-        newSelectedRows.add(i);
-      }
-      setSelectedRows(newSelectedRows);
-      setIsMultiSelect(true);
-    } else if (isMultiSelect) {
-      setSelectedRows(new Set());
-      setIsMultiSelect(false);
-    } else {
-      const newSelectedRows = new Set(selectedRows);
-      if (newSelectedRows.has(index)) {
-        newSelectedRows.delete(index);
+  const toggleRowSelection = useCallback(
+    (index, shiftKey) => {
+      if (shiftKey && lastSelectedIndex !== null) {
+        const start = Math.min(lastSelectedIndex, index);
+        const end = Math.max(lastSelectedIndex, index);
+        const newSelectedRows = new Set(selectedRows);
+        for (let i = start; i <= end; i++) {
+          newSelectedRows.add(i);
+        }
+        setSelectedRows(newSelectedRows);
+        setIsMultiSelect(true);
+      } else if (isMultiSelect) {
+        setSelectedRows(new Set());
+        setIsMultiSelect(false);
       } else {
-        newSelectedRows.add(index);
+        const newSelectedRows = new Set(selectedRows);
+        if (newSelectedRows.has(index)) {
+          newSelectedRows.delete(index);
+        } else {
+          newSelectedRows.add(index);
+        }
+        setSelectedRows(newSelectedRows);
       }
-      setSelectedRows(newSelectedRows);
-    }
-    setLastSelectedIndex(index);
-  };
+      setLastSelectedIndex(index);
+    },
+    [isMultiSelect, lastSelectedIndex, selectedRows]
+  );
 
   const toggleRowExpansion = useCallback((id, e) => {
     e.stopPropagation();
@@ -173,16 +176,18 @@ const HparamView = () => {
     });
   }, []);
 
-  const toggleVisibilityForSelected = (visible) => {
-    const newHyperparams = hyperparams.map((hp, index) => {
-      if (selectedRows.has(index)) {
-        hp.visible = visible;
-      }
-      return hp;
-    });
-    setHyperparams([...newHyperparams]);
-    setSelectedRows(new Set());
-  };
+  const toggleVisibilityForSelected = useCallback(
+    (visible) => {
+      const newHyperparams = hyperparams.map((hp, i) => {
+        if (selectedRows.has(i)) {
+          hp.visible = visible;
+        }
+        return hp;
+      });
+      setHyperparams([...newHyperparams]);
+    },
+    [selectedRows, hyperparams, setHyperparams]
+  );
 
   const Row = useCallback(
     ({ item, index }) => {
