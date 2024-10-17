@@ -5,7 +5,7 @@ body {
 }
 
 /* hyperparameter view */
-.hyperparameter-table {
+.hparam-table {
   --hover-color: #f0f0f0;
   --selected-color: #d0e0fc;
   outline: none;
@@ -13,23 +13,32 @@ body {
   white-space: nowrap;
 }
 
-.hyperparameter-table-row {
+.hparam-table-row {
   font-size: smaller;
 }
-.hyperparameter-table-row.selected {
+.hparam-table-row.selected {
   background-color: var(--selected-color);
 }
 
-.hyperparameter-table-row.selected:hover {
+.hparam-table-row.selected:hover {
   background-color: var(--selected-color);
 }
 
-.hyperparameter-table:hover .hyperparameter-table-row:not(.selected):hover {
+.hparam-table:hover .hparam-table-row:not(.selected):hover {
   background-color: var(--hover-color);
 }
 
-.hyperparameter-table * {
+.hparam-table * {
   outline: none;
+}
+
+.hparam-table-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background-color: white;
+  box-shadow: inset 0 -1px 0 #ddd;
+  font-size: smaller;
 }
 
 /* trial view */

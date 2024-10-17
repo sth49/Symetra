@@ -100,10 +100,10 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"20%"} m={0.5} bg="white" mr={1}>
+                    <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0}>
                       <TrialGroupView />
                     </Box>
-                    <Box height={"20%"} m={0.5} bg="white" mr={1}>
+                    <Box height={"10%"} m={0.5} bg="white" mr={1} mt={0}>
                       <GroupDetailView />
                     </Box>
                     <Box height={"calc(59% - 8px)"} m={0.5} bg="white" mr={1}>

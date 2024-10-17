@@ -5,7 +5,7 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { Axis, Orientation } from "@visx/axis";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { HyperparamTypes } from "../model/hyperparam";
 interface HparamExtendedProps {
   item;
@@ -26,6 +26,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
         effect: item.effctsByValue[key].reduce((a, b) => a + b, 0),
         binData: generateBinnedData(item.effctsByValue[key], 100, 30, "x")
           .binData,
+        allEffectValues: item.allEffectValues,
       };
     });
   }, [item.effctsByValue]);
@@ -34,7 +35,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
     const allEffectByValue = Object.values(
       item.effctsByValue
     ).flat() as number[];
-    return generateBinnedData(allEffectByValue, 100, 30, "x").xScale;
+    return generateBinnedData(allEffectByValue, 90, 30, "x").xScale;
   }, [item.effctsByValue]);
 
   const requestSort = useCallback((key) => {
@@ -64,7 +65,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
       {
         label: "Distribution",
         key: "distribution",
-        width: 100,
+        width: 115,
         align: "center",
       },
     ],
@@ -87,6 +88,15 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
 
     setSortedData(sortedItems);
   }, [data, sortConfig]);
+
+  const medianValue = useMemo(() => {
+    const allEffectByValue = Object.values(
+      item.effctsByValue
+    ).flat() as number[];
+    return allEffectByValue.sort((a, b) => a - b)[
+      Math.floor(allEffectByValue.length / 2)
+    ];
+  }, [item.effctsByValue]);
 
   return (
     <div style={{ width: "100%" }}>
@@ -164,14 +174,14 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
               ) : column.key === "effect" ? (
                 formatting(row[column.key], "float")
               ) : column.key === "distribution" ? (
-                <svg width={100} height={36}>
+                <svg width={115} height={36}>
                   <g transform="translate(10, 0)">
                     {" "}
                     <ViolinPlot
                       data={row.binData}
                       valueScale={xScale}
                       width={26}
-                      height={100}
+                      height={90}
                       horizontal={true}
                       top={5}
                       fill="grey"
@@ -180,13 +190,10 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                       scale={xScale}
                       orientation={Orientation.bottom}
                       top={18}
-                      numTicks={2}
+                      numTicks={4}
                       tickValues={[xScale.domain()[0], xScale.domain()[1]]}
                     />
-                    {/* {(() => {
-                      const medianValue = allEffectByValue.sort(
-                        (a, b) => a - b
-                      )[Math.floor(allEffectByValue.length / 2)];
+                    {(() => {
                       const medianX = xScale(medianValue);
                       return (
                         <line
@@ -194,12 +201,12 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                           y1={4} // ViolinPlot의 top 값
                           x2={medianX}
                           y2={32} // Axis의 top 값
-                          stroke="red"
-                          strokeWidth={1}
+                          stroke="#E53E3E"
+                          strokeWidth={2}
                           strokeDasharray="2,2"
                         />
                       );
-                    })()} */}
+                    })()}
                   </g>
                 </svg>
               ) : null}
@@ -207,6 +214,10 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
           ))}
         </div>
       ))}
+      <Text fontSize={"xs"} align="center">
+        Red line indicates median effect value (
+        {formatting(medianValue, "float")})
+      </Text>
     </div>
     // <Box
     //   display={"flex"}
@@ -327,4 +338,4 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   );
 };
 
-export default HparamExtended;
+export default memo(HparamExtended);

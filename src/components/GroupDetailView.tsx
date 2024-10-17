@@ -26,7 +26,6 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
-  AlertDialogCloseButton,
 } from "@chakra-ui/react";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
@@ -276,140 +275,107 @@ const GroupDetailView = () => {
   }, []);
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
-      {/* <h1>Group Comparison View</h1> */}
-      <Box display={"flex"} justifyContent={"space-between"}>
-        <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Group Detail View
-        </Heading>
-        <Box display={"flex"} p={2}>
-          <IconButton
-            aria-label="Delete"
-            icon={<MdDelete />}
-            size="xs"
-            onClick={onOpen}
-            // onClick={() => {
-            //   const newGroups = groups.clone();
-            //   newGroups.deleteGroup(currentSelectedGroup.id);
-            //   setGroups(newGroups);
-            //   setCurrentSelectedGroup(null);
-
-            // }
-            // }
-            mr={1}
-          />
-        </Box>
-      </Box>
-      <Box height={`calc(100% - 36px)`} p={2} pt={0} overflow={"auto"}>
-        {currentSelectedGroup ? (
-          <Box display={"flex"} width={"100%"} height={"100%"}>
-            <Box width={"50%"}>
+    <Box style={{ height: "100%", width: "100%" }} p={2}>
+      {currentSelectedGroup ? (
+        <Box
+          width={"100%"}
+          height={"100%"}
+          display={"flex"}
+          flexDir={"column"}
+          justifyContent={"space-between"}
+        >
+          <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
+            {mode === "view" ? (
               <Box
-                // width={"40%"}
-                height={"100%"}
                 display={"flex"}
-                flexDir={"column"}
-                justifyContent={"space-evenly"}
+                alignItems={"center"}
+                width={"100%"}
+                justifyContent={"space-between"}
               >
-                <Box display={"flex"} justifyContent={"space-between"}>
-                  <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                    Group Name
-                  </Text>
-
-                  {mode === "view" ? (
-                    <Box display={"flex"}>
-                      <Text fontSize="sm" align={"right"} pr={2}>
-                        {currentSelectedGroup.name}
-                      </Text>
-                      <IconButton
-                        aria-label="Edit"
-                        icon={<EditIcon />}
-                        size="xs"
-                        onClick={() => setMode("edit")}
-                        colorScheme={"blue"}
-                      />
-                    </Box>
-                  ) : (
-                    <Box
-                      width={"60%"}
-                      display={"flex"}
-                      justifyContent={"space-between"}
-                      pl={2}
-                    >
-                      <input
-                        style={{
-                          width: "50%",
-                          fontSize: "14px",
-                        }}
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                      />
-                      <ButtonGroup>
-                        <IconButton
-                          aria-label="Save"
-                          icon={<CheckIcon />}
-                          size={"xs"}
-                          colorScheme={"blue"}
-                          onClick={() => {
-                            const newCurrentSelectedGroup =
-                              currentSelectedGroup.clone();
-                            newCurrentSelectedGroup.editName(editName);
-                            setCurrentSelectedGroup(newCurrentSelectedGroup);
-
-                            const newGroups = groups.clone();
-                            newGroups.editGroup(newCurrentSelectedGroup);
-                            console.log(newGroups);
-                            setGroups(newGroups);
-                            setMode("view");
-                          }}
-                        />
-                        <IconButton
-                          size={"xs"}
-                          aria-label="Cancel"
-                          icon={<CloseIcon />}
-                          onClick={() => setMode("view")}
-                          colorScheme={"red"}
-                        />
-                      </ButtonGroup>
-                    </Box>
-                  )}
-                </Box>
-
-                <Box display={"flex"} justifyContent={"space-between"}>
-                  <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                    Trial Counts
-                  </Text>
-                  <Text fontSize="sm" align={"right"}>
-                    {formatting(currentSelectedGroup.trials.length, "int")}
-                  </Text>
-                </Box>
-                <Box display={"flex"} justifyContent={"space-between"}>
-                  <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                    Maximum CVRG
-                  </Text>
-                  <Text fontSize="sm" align={"right"}>
-                    {formatting(currentSelectedGroup.getStats().max, "int")}
-                  </Text>
-                </Box>
-                <Box display={"flex"} justifyContent={"space-between"}>
-                  <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                    Averge CVRG
-                  </Text>
-                  <Text fontSize="sm" align={"right"}>
-                    {formatting(currentSelectedGroup.getStats().avg, "float")}
-                  </Text>
-                </Box>
-                <Box display={"flex"} justifyContent={"space-between"}>
-                  <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                    Minimun CVRG
-                  </Text>
-                  <Text fontSize="sm" align={"right"}>
-                    {formatting(currentSelectedGroup.getStats().min, "int")}
-                  </Text>
-                </Box>
+                <Text
+                  fontSize="sm"
+                  align={"right"}
+                  pr={2}
+                  onClick={() => setMode("edit")}
+                  fontWeight={"bold"}
+                  color={"gray.600"}
+                >
+                  {currentSelectedGroup.name}{" "}
+                  {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
+                </Text>
+                <IconButton
+                  aria-label="Delete"
+                  icon={<MdDelete />}
+                  size="xs"
+                  onClick={onOpen}
+                />
               </Box>
-            </Box>
-            <Box width={"50%"} height={"100%"} pl={2}>
+            ) : (
+              <Box
+                display={"flex"}
+                justifyContent={"space-between"}
+                alignItems={"center"}
+                width={"100%"}
+              >
+                <input
+                  style={{
+                    width: "50%",
+                    fontSize: "14px",
+                  }}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+                <ButtonGroup>
+                  <IconButton
+                    aria-label="Save"
+                    icon={<CheckIcon />}
+                    size={"xs"}
+                    colorScheme={"blue"}
+                    onClick={() => {
+                      const newCurrentSelectedGroup =
+                        currentSelectedGroup.clone();
+                      newCurrentSelectedGroup.editName(editName);
+                      setCurrentSelectedGroup(newCurrentSelectedGroup);
+                      const newGroups = groups.clone();
+                      newGroups.editGroup(newCurrentSelectedGroup);
+                      console.log(newGroups);
+                      setGroups(newGroups);
+                      setMode("view");
+                    }}
+                  />
+                  <IconButton
+                    size={"xs"}
+                    aria-label="Cancel"
+                    icon={<CloseIcon />}
+                    onClick={() => setMode("view")}
+                    colorScheme={"red"}
+                  />
+                </ButtonGroup>
+              </Box>
+            )}
+          </Box>
+          <Box
+            display={"flex"}
+            justifyContent={"space-between"}
+            // width={"50%"}
+            pr={2}
+          >
+            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
+              Mean CVRG
+            </Text>
+            <Text fontSize="sm" align={"right"}>
+              {formatting(currentSelectedGroup.getStats().avg, "float")}
+            </Text>
+          </Box>
+          <Box display={"flex"} justifyContent={"space-between"} width={"50%"}>
+            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
+              Silhouette Coefficient
+            </Text>
+            <Text fontSize="sm" align={"right"}>
+              {/* {formatting(currentSelectedGroup.getStats().avg, "float")} */}
+            </Text>
+          </Box>
+          {/* <Box width={"50%"} height={"100%"} pl={2}>
               <AutoSizer>
                 {({ height, width }) => (
                   <div
@@ -494,14 +460,13 @@ const GroupDetailView = () => {
                   </div>
                 )}
               </AutoSizer>
-            </Box>
-          </Box>
-        ) : (
-          <Text fontSize="md">
-            Please select one group from the Trial Group View
-          </Text>
-        )}
-      </Box>
+            </Box> */}
+        </Box>
+      ) : (
+        <Text fontSize="md">
+          Please select one group from the Trial Group View
+        </Text>
+      )}
       <AlertDialog
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
@@ -539,7 +504,7 @@ const GroupDetailView = () => {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-    </div>
+    </Box>
   );
 };
 

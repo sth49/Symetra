@@ -71,19 +71,6 @@ const TrialGroupView = () => {
   const [boxHeight, setBoxHeight] = useState(0);
   const { metricScale, colorScale } = useMetricScale();
 
-  // useEffect(() => {
-  //   const updateSize = () => {
-  //     if (boxRef.current) {
-  //       setBoxHeight(boxRef.current.clientHeight);
-  //     }
-  //   };
-
-  //   updateSize();
-  //   window.addEventListener("resize", updateSize);
-
-  //   return () => window.removeEventListener("resize", updateSize);
-  // }, []);
-
   const {
     tooltipOpen,
     tooltipLeft,
@@ -111,8 +98,9 @@ const TrialGroupView = () => {
         .slice(0, exp?.trials.length * 0.1) ?? [],
       "Bottom 10%"
     );
-
     setGroups(updatedGroups);
+
+    setCurrnetSelectedGroup(updatedGroups.groups[0]);
   }, []);
   const [isInitialRender, setIsInitialRender] = useState(true);
   useEffect(() => {
@@ -137,8 +125,6 @@ const TrialGroupView = () => {
     new Set()
   );
 
-  const width = groups.groups.length * 120;
-
   const { nodes, links } = useMemo(() => {
     console.log("GroupView rendering, boxHeight:", boxHeight);
     if (boxHeight === 0) return { nodes: [], links: [] };
@@ -147,12 +133,21 @@ const TrialGroupView = () => {
       (group, i) => ({
         id: group.id,
         name: group.name,
-        x: 20 + i * 65,
-        y: boxHeight / 4,
+        // x: i > 3 ? 20 + (i - 4) * 65 : 20 + i * 65,
+        x:
+          i > 3
+            ? ((i - 3.5) * boxRef.current?.clientWidth) / 8
+            : ((i + 0.5) * boxRef.current?.clientWidth) / 8,
+        y: i > 3 ? boxHeight / 3 : boxHeight / 7,
         length: group.getLength(),
         stats: group.getStats(),
       }),
-      [groups, hyperparams, boxRef.current?.clientHeight]
+      [
+        groups,
+        hyperparams,
+        boxRef.current?.clientHeight,
+        boxRef.current?.clientWidth,
+      ]
     );
 
     const links = [];
@@ -249,13 +244,13 @@ const TrialGroupView = () => {
         }}
         onClick={() => handleNodeClick(node.id)}
       >
-        <circle r={40} cx={node.x} cy={node.y} fill={"white"} />
+        <circle r={30} cx={node.x} cy={node.y} fill={"white"} />
 
         <circle
           className={`node ${
             localSelectedGroup.has(node.id) ? "selected" : ""
           }`}
-          r={40}
+          r={30}
           cx={node.x}
           cy={node.y}
           fill={colorScale(metricScale(Number(node.stats.avg)))}
@@ -266,7 +261,7 @@ const TrialGroupView = () => {
           x={node.x}
           y={node.y - 3}
           textAnchor="middle"
-          fontSize={12}
+          fontSize={10}
           fontWeight={"bold"}
         >
           {node.name}
@@ -277,7 +272,7 @@ const TrialGroupView = () => {
           x={node.x}
           y={node.y + 13}
           textAnchor="middle"
-          fontSize={10}
+          fontSize={8}
         >
           {formatting(node.length, "int") + " trials"}
         </text>
@@ -315,7 +310,7 @@ const TrialGroupView = () => {
             onMouseMove={(event) => {
               showTooltip({
                 tooltipData: {
-                  key: "Difference between ",
+                  key: "Similarity between ",
                   type: "link",
                   value: `${source.name} and ${target.name}`,
                   count: link.weight,
@@ -360,7 +355,7 @@ const TrialGroupView = () => {
           alignItems="center"
           pr={2}
         >
-          <Button
+          {/* <Button
             size={"xs"}
             isDisabled={localSelectedGroup.size === 0}
             colorScheme="blue"
@@ -380,7 +375,7 @@ const TrialGroupView = () => {
             }}
           >
             Analysis
-          </Button>
+          </Button> */}
         </Box>
       </Box>
 
@@ -394,13 +389,24 @@ const TrialGroupView = () => {
           display="flex"
         >
           <Box
-            width={width > boxRef.current?.clientWidth ? width : "100%"}
+            // width={width > boxRef.current?.clientWidth ? width : "100%"}
+            width={"100%"}
             height={"100%"}
             display={"flex"}
             justifyContent={"center"}
           >
             <svg
-              width={width}
+              // width={width}
+              width={
+                groups.getLength() > 4
+                  ? "100%"
+                  : `${
+                      (groups.getLength() *
+                        (boxRef.current?.clientWidth ?? 0)) /
+                      4
+                    }`
+              }
+              width={"100%"}
               height={"100%"}
               onMouseEnter={() => {
                 handleNodeHover(null);

@@ -57,6 +57,7 @@ const TrialTable = () => {
   const columns = useMemo(() => {
     return [
       {
+        id: "check",
         header: "",
         accessorKey: "check",
         cell: (info) => {
@@ -84,6 +85,7 @@ const TrialTable = () => {
         size: 30,
       },
       {
+        id: "id",
         header: "ID",
         accessorKey: "id",
         cell: (info) => info.getValue(),
@@ -93,6 +95,7 @@ const TrialTable = () => {
         },
       },
       {
+        id: "metric",
         header: "CVRG",
         accessorKey: "metric",
         cell: (info) => formatting(info.getValue(), "int"),
@@ -103,12 +106,14 @@ const TrialTable = () => {
       },
       ...hyperparams.map((param) => {
         return {
+          id: param.name,
           header: () => (
             <div style={{ display: "flex", alignItems: "center" }}>
               <Icon as={param.icon} mr={1} color={"gray.600"}></Icon>
               {param.displayName}
             </div>
           ),
+
           type: param.type,
           accessorKey: param.name,
           cell: (info) => {

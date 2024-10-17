@@ -5,7 +5,6 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
 import { Box, Button, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
@@ -19,6 +18,7 @@ import { FaSortDown } from "react-icons/fa6";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { useConstDataStore } from "./store/constDataStore";
 import HparamExtended from "./HparamExtended";
+import HparamTable from "./HparamTable";
 type TooltipData = {
   key: string;
   value: number;
@@ -124,7 +124,7 @@ const HparamView = () => {
         key: "expander",
         label: "",
         width: 46,
-        align: "left",
+        align: "center",
       },
     ],
     [exp]
@@ -189,7 +189,7 @@ const HparamView = () => {
     [selectedRows, hyperparams, setHyperparams]
   );
 
-  const Row = useCallback(
+  const Row = React.memo(
     ({ item, index }) => {
       const isSelected = selectedRows.has(item.id);
       const isExpanded = expandedRows.has(item.id);
@@ -302,8 +302,6 @@ const HparamView = () => {
           {isExpanded && (
             <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
               <HparamExtended item={item} />
-
-              {/* Add more expanded content here */}
             </div>
           )}
           {isSelected && isLastSelected && (
@@ -385,87 +383,76 @@ const HparamView = () => {
           {hyperparams.length} Visible)
         </Heading>
       </Box>
-
-      <AutoSizer>
-        {({ height, width }) => (
+      <HparamTable />
+      {/* <div
+        style={{
+          display: "flex",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          backgroundColor: "white",
+          padding: "0 4px",
+        }}
+      >
+        {columns.map((column) => (
           <div
+            key={column.key}
             style={{
-              height: height - 35,
-              width,
-              overflowX: "auto",
-              overflowY: "hidden",
-              padding: "0 4px",
+              display: "flex",
+              width: `${column.width}px`,
+              padding: "2px",
+              borderBottom: "1px solid #ddd",
+              cursor: "pointer",
+              flexShrink: 0,
+              justifyContent: column.align,
+              alignItems: "center",
+              height: "35px",
+              fontSize: "smaller",
             }}
-            ref={scrollContainerRef}
-            onScroll={handleScroll}
+            onClick={() => {
+              if (column.key === "name" || column.key === "effect") {
+                requestSort(column.key);
+              }
+            }}
           >
-            <div style={{ width: totalWidth }}>
-              <div
-                ref={headerRef}
-                style={{
-                  display: "flex",
-                  position: "sticky",
-                  top: 0,
-                  zIndex: 2,
-                  backgroundColor: "white",
-                }}
-              >
-                {columns.map((column) => (
-                  <div
-                    key={column.key}
-                    style={{
-                      display: "flex",
-                      width: `${column.width}px`,
-                      padding: "2px",
-                      borderBottom: "1px solid #ddd",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                      justifyContent: column.align,
-                      alignItems: "center",
-                      height: "35px",
-                      fontSize: "smaller",
-                    }}
-                    onClick={() => {
-                      if (column.key === "name" || column.key === "effect") {
-                        requestSort(column.key);
-                      }
-                    }}
-                  >
-                    {(column.key === "name" || column.key === "effect") && (
-                      <Icon
-                        color={"gray"}
-                        width={2}
-                        mr={1}
-                        as={
-                          sortConfig.key === column.key
-                            ? sortConfig.direction === "ascending"
-                              ? FaSortUp
-                              : FaSortDown
-                            : FaSort
-                        }
-                      />
-                    )}
-                    <Text fontWeight={"bold"}>{column.label}</Text>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div
-              className={`hyperparameter-table`}
-              style={{
-                height: height - 75,
-                overflowY: "scroll",
-                overflowX: "hidden",
-                position: "relative",
-              }}
-            >
-              {sortedData.map((item, index) => (
-                <Row key={item.id} item={item} index={index} />
-              ))}
-            </div>
+            {(column.key === "name" || column.key === "effect") && (
+              <Icon
+                color={"gray"}
+                width={2}
+                mr={1}
+                as={
+                  sortConfig.key === column.key
+                    ? sortConfig.direction === "ascending"
+                      ? FaSortUp
+                      : FaSortDown
+                    : FaSort
+                }
+              />
+            )}
+            <Text fontWeight={"bold"}>{column.label}</Text>
           </div>
-        )}
-      </AutoSizer>
+        ))}
+      </div>
+      <div
+        style={{
+          // height: height - 35,
+          // width,
+          height: "calc(100% - 80px)",
+          overflowY: "auto",
+          padding: "0 4px",
+        }}
+      >
+        <div
+          className={`hyperparameter-table`}
+          style={{
+            position: "relative",
+          }}
+        >
+          {sortedData.map((item, index) => (
+            <Row key={item.id} item={item} index={index} />
+          ))}
+        </div>
+      </div>
       {tooltipOpen && tooltipData && (
         <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
           <div>
@@ -473,7 +460,7 @@ const HparamView = () => {
           </div>
           <div></div>
         </TooltipInPortal>
-      )}
+      )} */}
     </div>
   );
 };
