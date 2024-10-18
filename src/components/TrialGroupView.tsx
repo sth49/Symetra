@@ -11,6 +11,7 @@ import { formatting } from "../model/utils";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { useConstDataStore } from "./store/constDataStore";
 import { useMetricScale } from "../model/colorScale";
+import React from "react";
 type TooltipData = {
   key: string;
   type: string;
@@ -70,6 +71,19 @@ const TrialGroupView = () => {
   const boxRef = useRef<HTMLDivElement>(null);
   const [boxHeight, setBoxHeight] = useState(0);
   const { metricScale, colorScale } = useMetricScale();
+  const legendWidth = 100;
+  const legendHeight = 100;
+  const legendMargin = { top: 70, right: 20 };
+
+  const numThresholds = 5;
+  const thresholdRanges = useMemo(() => {
+    const scale = metricScale.copy().range(metricScale.domain());
+    const ticks = scale.ticks(numThresholds);
+    return ticks.map((tick, i) => [
+      tick,
+      i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
+    ]);
+  }, [metricScale]);
 
   const {
     tooltipOpen,
@@ -133,17 +147,17 @@ const TrialGroupView = () => {
       (group, i) => ({
         id: group.id,
         name: group.name,
-        // x: i > 3 ? 20 + (i - 4) * 65 : 20 + i * 65,
         x:
-          i > 3
-            ? ((i - 3.5) * boxRef.current?.clientWidth) / 8
+          i > 2
+            ? ((i - 2.5) * boxRef.current?.clientWidth) / 8
             : ((i + 0.5) * boxRef.current?.clientWidth) / 8,
-        y: i > 3 ? boxHeight / 3 : boxHeight / 7,
+        y: i > 2 ? boxHeight / 3 : boxHeight / 7,
         length: group.getLength(),
         stats: group.getStats(),
       }),
       [
         groups,
+        groups.getLength(),
         hyperparams,
         boxRef.current?.clientHeight,
         boxRef.current?.clientWidth,
@@ -174,11 +188,8 @@ const TrialGroupView = () => {
   const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 
   const weightScale = useMemo(() => {
-    return d3
-      .scaleLinear()
-      .domain([0, d3.max(links.map((link) => link.weight))])
-      .range([10, 1]);
-  }, [links]);
+    return d3.scaleLinear().domain([0, hyperparams.length]).range([10, 1]);
+  }, [hyperparams.length]);
 
   const handleNodeHover = useCallback(
     (node) => {
@@ -384,12 +395,55 @@ const TrialGroupView = () => {
           width={"100%"}
           ref={boxRef}
           overflowX={"auto"}
-          height="85%" // 뷰포트 높이에서 적절한 값을 뺀 높이
+          height="85%"
           p={2}
           display="flex"
         >
+          <Box>
+            <svg width={legendWidth} height={legendHeight + legendMargin.top}>
+              {thresholdRanges.map((range, i) => (
+                <React.Fragment key={`legend-${i}`}>
+                  <rect
+                    // x={svgRect.width - legendWidth - 30}
+                    x={0}
+                    y={i * (legendHeight / numThresholds) + legendMargin.top}
+                    width={legendWidth / 5}
+                    height={legendHeight / numThresholds}
+                    fill={colorScale(i)}
+                    opacity={0.3}
+                  />
+                  <text
+                    // x={svgRect.width - legendWidth / 2 - 50}
+                    x={5 + legendWidth / 5}
+                    y={
+                      (i + 0.6) * (legendHeight / numThresholds) +
+                      legendMargin.top
+                    }
+                    fontSize="12"
+                    textAnchor="start"
+                    dominantBaseline="middle"
+                    fill="#4A5568"
+                  >
+                    {`${formatting(range[0], "int")} - ${formatting(
+                      range[1],
+                      "int"
+                    )}`}
+                  </text>
+                </React.Fragment>
+              ))}
+              <text
+                x={0}
+                y={65}
+                fontSize="14"
+                textAnchor="start"
+                fontWeight="bold"
+                fill="#4A5568"
+              >
+                Coverage
+              </text>
+            </svg>
+          </Box>
           <Box
-            // width={width > boxRef.current?.clientWidth ? width : "100%"}
             width={"100%"}
             height={"100%"}
             display={"flex"}
@@ -398,15 +452,14 @@ const TrialGroupView = () => {
             <svg
               // width={width}
               width={
-                groups.getLength() > 4
+                groups.getLength() > 3
                   ? "100%"
                   : `${
                       (groups.getLength() *
                         (boxRef.current?.clientWidth ?? 0)) /
-                      4
+                      3
                     }`
               }
-              width={"100%"}
               height={"100%"}
               onMouseEnter={() => {
                 handleNodeHover(null);
@@ -473,8 +526,7 @@ const TrialGroupView = () => {
                   whiteSpace="normal"
                 >
                   # of statistically different hyperparameters:{" "}
-                  {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
-                  {hyperparams.length}
+                  {formatting(tooltipData.count, "int")} / {hyperparams.length}
                 </Text>
               </>
             )}

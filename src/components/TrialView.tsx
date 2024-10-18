@@ -13,7 +13,7 @@ import { useState } from "react";
 
 const TrialView = () => {
   const { exp } = useConstDataStore();
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   return (
     <div style={{ height: "100%", width: "100%" }}>
       {/* <h1>Trial View</h1> */}
@@ -45,7 +45,7 @@ const TrialView = () => {
         </FormControl>
       </Box>
       <div style={{ height: `calc(100% - 35px)` }}>
-        <TrialTable />
+        <TrialTable showControls={visible} />
       </div>
     </div>
   );

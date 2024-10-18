@@ -25,6 +25,7 @@ import {
   BinaryHyperparam,
   ContinuousHyperparam,
   NominalHyperparam,
+  OrdinalHyperparam,
 } from "../model/hyperparam";
 import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
@@ -83,7 +84,7 @@ const CoverageView: React.FC = () => {
   const [selected, setSelected] = useState("");
 
   // console.log(clickedHparam);
-  const margin = { top: 15, right: 10, bottom: 110, left: 20 };
+  const margin = { top: 30, right: 20, bottom: 120, left: 20 };
 
   const legendWidth = 100;
   const legendHeight = 100;
@@ -91,28 +92,6 @@ const CoverageView: React.FC = () => {
 
   const xValues = data.map((d) => d.x);
   const yValues = data.map((d) => d.y);
-  const [svgPosition, setSvgPosition] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    const updateSvgPosition = () => {
-      if (svgRef.current) {
-        const rect = svgRef.current.getBoundingClientRect();
-        setSvgPosition({
-          top: rect.top + window.scrollY,
-          left: rect.left + window.scrollX,
-        });
-      }
-    };
-
-    updateSvgPosition();
-    window.addEventListener("scroll", updateSvgPosition);
-    window.addEventListener("resize", updateSvgPosition);
-
-    return () => {
-      window.removeEventListener("scroll", updateSvgPosition);
-      window.removeEventListener("resize", updateSvgPosition);
-    };
-  }, []);
 
   const xScale = useMemo(
     () =>
@@ -135,15 +114,6 @@ const CoverageView: React.FC = () => {
   const numThresholds = 5;
 
   const { metricScale, colorScale } = useMetricScale();
-  // const metricScale = useMemo(
-  //   () =>
-  //     d3
-  //       .scaleQuantize()
-  //       .domain([Math.min(...metricValues), Math.max(...metricValues)])
-  //       .nice()
-  //       .range(d3.range(numThresholds)),
-  //   [metricValues]
-  // );
 
   const thresholdRanges = useMemo(() => {
     const scale = metricScale.copy().range(metricScale.domain());
@@ -153,10 +123,6 @@ const CoverageView: React.FC = () => {
       i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
     ]);
   }, [metricScale]);
-
-  // const colorScale = d3
-  //   .scaleSequential(d3.interpolateViridis)
-  //   .domain([0, numThresholds]);
 
   const densityData = useMemo(() => {
     const densityGenerator = d3
@@ -228,8 +194,13 @@ const CoverageView: React.FC = () => {
   }, [isLassoActive, isDrawing]);
 
   const confirmLasso = useCallback(() => {
-    groups.addGroup(exp.trials.filter((trial) => selectedPoints.has(trial.id)));
-    setGroups(groups);
+    // groups.addGroup(exp.trials.filter((trial) => selectedPoints.has(trial.id)));
+    // setGroups(groups);
+    const updatedGroups = groups.clone();
+    updatedGroups.addGroup(
+      exp.trials.filter((trial) => selectedPoints.has(trial.id))
+    );
+    setGroups(updatedGroups);
     setIsLassoActive(false);
     setIsDrawing(false);
     setSelectedPoints(new Set());
@@ -274,12 +245,6 @@ const CoverageView: React.FC = () => {
       console.log("return null");
       return null;
     }
-    // let flag =
-    //   selectedRowPositions.length &&
-    //   selectedRowPositions[0].order < lastViewIndex
-    //     ? "start"
-    //     : "end";
-
     const tableContainer = document.querySelector(".virtual-table");
     const tableHeaderContainer = document.querySelector(
       ".virtual-table-sticky-header"
@@ -290,19 +255,10 @@ const CoverageView: React.FC = () => {
     );
     const tableBottomRect = tableBottomContainer.getBoundingClientRect();
 
-    // const
     return selectedRowPositions
       .sort((a, b) => a.order - b.order)
       .map((selectedRowPosition, i) => {
         const selectedTrial = selectedRowPosition.trialId;
-        // if (flag === "start" && selectedRowPosition.top !== null) {
-        //   flag = "middle";
-        // } else if (
-        //   (flag === "middle" && selectedRowPosition.top === null) ||
-        //   selectedRowPosition.order >= lastViewIndex
-        // ) {
-        //   flag = "end";
-        // }
 
         const selectedPoint = data.find((d) => d.id === selectedTrial);
         console.log("selectedPoint", selectedPoint);
@@ -323,7 +279,6 @@ const CoverageView: React.FC = () => {
         const svgStartX = svgRect.width;
         const svgEndX = svgRect.width;
 
-        // const top = tableHeaderRect.top + 35;
         const top =
           selectedRowPosition.top > tableHeaderRect.bottom &&
           selectedRowPosition.top < tableBottomRect.bottom + 5
@@ -332,14 +287,6 @@ const CoverageView: React.FC = () => {
             ? tableHeaderRect.bottom
             : tableBottomRect.bottom + 5;
 
-        // const top =
-        //   flag === "start"
-        //     ? tableRect.top - 20
-        //     : flag === "middle"
-        //     ? selectedRowPosition.top
-        //     : flag === "end"
-        //     ? tableRect.bottom
-        //     : selectedRowPosition.top;
         const svgStartY =
           (top - svgRect.top + tableContainer.scrollTop) * scaleY +
           viewBox.y -
@@ -347,16 +294,12 @@ const CoverageView: React.FC = () => {
         const svgEndY =
           (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
 
-        // const curveStrength = svgStartY - svgMidX1 > 0 ? -30 : 30;
-        // Calculate the slope
         const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
         const baseCurveStrength = 100;
         const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
         const curveStrength =
           baseCurveStrength + (1 - slopeFactor) * baseCurveStrength;
-
-        // Determine the direction of the curve
 
         const pathData = `
         M ${svgStartX} ${svgStartY}
@@ -419,11 +362,11 @@ const CoverageView: React.FC = () => {
             justifyContent="right"
             alignItems="center"
             mr={2}
-            width="120px"
+            width="130px"
           >
             <FormLabel htmlFor="metric-switch" mb={0} mr={1}>
               <Text fontSize="xs" color="gray.600">
-                Show contour
+                Contour by CVRG
               </Text>
             </FormLabel>
             <Switch
@@ -442,7 +385,7 @@ const CoverageView: React.FC = () => {
           >
             <FormLabel htmlFor="perference-switch" mb={0} mr={1}>
               <Text fontSize="xs" color="gray.600">
-                Preference
+                Show controls
               </Text>
             </FormLabel>
             <Switch
@@ -502,8 +445,9 @@ const CoverageView: React.FC = () => {
               </Select>
             </FormControl>
             <FormControl
+              pr={2}
               display="flex"
-              justifyContent="center"
+              justifyContent="right"
               alignItems="center"
               width={"200px"}
             >
@@ -592,10 +536,9 @@ const CoverageView: React.FC = () => {
                     ? "#718096"
                     : "#718096"
                 }
+                opacity={0.8}
               />
             ))}
-            {/* {selectedTrials && selectedRowPositions && drawConnectionLine()} */}
-
             {isLassoActive && tempLassoPoints.length > 0 && (
               <path
                 d={`M ${tempLassoPoints
@@ -613,6 +556,7 @@ const CoverageView: React.FC = () => {
                   {thresholdRanges.map((range, i) => (
                     <React.Fragment key={`legend-${i}`}>
                       <rect
+                        // x={svgRect.width - legendWidth - 30}
                         x={10}
                         y={
                           i * (legendHeight / numThresholds) + legendMargin.top
@@ -623,27 +567,33 @@ const CoverageView: React.FC = () => {
                         opacity={0.3}
                       />
                       <text
-                        x={legendWidth / 5 + 15}
+                        // x={svgRect.width - legendWidth / 2 - 50}
+                        x={10 + legendWidth / 5 + 5}
                         y={
-                          (i + 0.5) * (legendHeight / numThresholds) +
+                          (i + 0.6) * (legendHeight / numThresholds) +
                           legendMargin.top
                         }
                         fontSize="12"
                         textAnchor="start"
                         dominantBaseline="middle"
+                        fill="#4A5568"
                       >
-                        {`${range[0]} - ${range[1]}`}
+                        {`${formatting(range[0], "int")} - ${formatting(
+                          range[1],
+                          "int"
+                        )}`}
                       </text>
                     </React.Fragment>
                   ))}
                   <text
                     x={10}
-                    y={10}
+                    y={13}
                     fontSize="14"
                     textAnchor="start"
                     fontWeight="bold"
+                    fill="#4A5568"
                   >
-                    Metric Range
+                    Coverage
                   </text>
                 </g>
               ))}
@@ -653,139 +603,158 @@ const CoverageView: React.FC = () => {
                 {hyperparams
                   .find((hp) => hp.name === selected)
                   ?.scale.domain()
-                  .map((val, i) => (
-                    <React.Fragment key={`legend-${i}`}>
-                      {hyperparams.find((hp) => hp.name === selected) instanceof
-                        NominalHyperparam ||
-                      hyperparams.find((hp) => hp.name === selected) instanceof
-                        BinaryHyperparam ? (
-                        <>
-                          <rect
-                            x={10}
-                            y={
-                              i *
-                                (legendHeight /
-                                  hyperparams
-                                    .find((hp) => hp.name === selected)
-                                    ?.scale.domain().length) +
-                              legendMargin.top
-                            }
-                            width={legendWidth / 5}
-                            stroke={
-                              hyperparams.find(
-                                (hp) => hp.name === selected
-                              ) instanceof BinaryHyperparam && "gray"
-                            }
-                            height={
-                              legendHeight /
-                              hyperparams
+                  .map((val, i) => {
+                    console.log("val", val);
+                    console.log(
+                      "type",
+
+                      typeof val
+                    );
+                    if (val === true || val === false) return null;
+                    return (
+                      <React.Fragment key={`legend-${i}`}>
+                        {hyperparams.find(
+                          (hp) => hp.name === selected
+                        ) instanceof NominalHyperparam ||
+                        hyperparams.find(
+                          (hp) => hp.name === selected
+                        ) instanceof BinaryHyperparam ? (
+                          <>
+                            <rect
+                              x={10}
+                              y={
+                                i *
+                                  (legendHeight /
+                                    hyperparams
+                                      .find((hp) => hp.name === selected)
+                                      ?.scale.domain().length) +
+                                legendMargin.top
+                              }
+                              width={legendWidth / 5}
+                              // stroke={
+                              //   hyperparams.find(
+                              //     (hp) => hp.name === selected
+                              //   ) instanceof BinaryHyperparam && "gray"
+                              // }
+                              height={
+                                legendHeight /
+                                hyperparams
+                                  .find((hp) => hp.name === selected)
+                                  ?.scale.domain().length
+                              }
+                              fill={hyperparams
                                 .find((hp) => hp.name === selected)
-                                ?.scale.domain().length
-                            }
-                            fill={hyperparams
-                              .find((hp) => hp.name === selected)
-                              ?.scale(val)}
-                            opacity={0.3}
-                          />
-                          <text
-                            x={legendWidth / 5 + 15}
-                            y={
-                              (i + 0.5) *
-                                (legendHeight /
-                                  hyperparams
-                                    .find((hp) => hp.name === selected)
-                                    ?.scale.domain().length) +
-                              legendMargin.top
-                            }
-                            fontSize="12"
-                            textAnchor="start"
-                            dominantBaseline="middle"
-                          >
-                            {val === true
+                                ?.getColorByValue(val)}
+                              // opacity={0.3}
+                            />
+                            <text
+                              x={legendWidth / 5 + 15}
+                              y={
+                                (i + 0.5) *
+                                  (legendHeight /
+                                    hyperparams
+                                      .find((hp) => hp.name === selected)
+                                      ?.scale.domain().length) +
+                                legendMargin.top
+                              }
+                              fontSize="12"
+                              textAnchor="start"
+                              dominantBaseline="middle"
+                              fill="#4A5568"
+                            >
+                              {/* {val === true
                               ? "True"
                               : val === false
                               ? "False"
                               : val}
-                          </text>
-                        </>
-                      ) : hyperparams.find(
-                          (hp) => hp.name === selected
-                        ) instanceof ContinuousHyperparam ? (
-                        <g>
-                          {(() => {
-                            const hp = hyperparams.find(
-                              (hp) => hp.name === selected
-                            ) as ContinuousHyperparam;
-                            const domain = hp.scale.domain();
-                            const linearScale = d3
-                              .scaleLinear()
-                              .domain(domain)
-                              .range([0, 1]);
+                               */}
+                              {val}
+                            </text>
+                          </>
+                        ) : hyperparams.find(
+                            (hp) => hp.name === selected
+                          ) instanceof ContinuousHyperparam ||
+                          hyperparams.find(
+                            (hp) => hp.name === selected
+                          ) instanceof OrdinalHyperparam ? (
+                          <g>
+                            {(() => {
+                              const hp = hyperparams.find(
+                                (hp) => hp.name === selected
+                              ) as ContinuousHyperparam;
+                              const domain = hp.scale.domain();
+                              const linearScale = d3
+                                .scaleLinear()
+                                .domain(domain)
+                                .range([0, 1]);
 
-                            return (
-                              <>
-                                <defs>
-                                  <linearGradient
-                                    id="numerical-gradient"
-                                    x1="0%"
-                                    y1="0%"
-                                    x2="100%"
-                                    y2="0%"
-                                  >
-                                    <stop
-                                      offset="0%"
-                                      stopColor={hp.scale(domain[0])}
-                                    />
-                                    <stop
-                                      offset="100%"
-                                      stopColor={hp.scale(domain[1])}
-                                    />
-                                  </linearGradient>
-                                </defs>
-                                <rect
-                                  x={10}
-                                  y={legendMargin.top}
-                                  width={legendWidth}
-                                  height={20}
-                                  fill="url(#numerical-gradient)"
-                                />
-                                {[0, 0.5, 1].map((t, i) => {
-                                  const value = linearScale.invert(t);
-                                  return (
-                                    <g key={`legend-numerical-${i}`}>
-                                      <line
-                                        x1={10 + t * legendWidth}
-                                        y1={legendMargin.top + 20}
-                                        x2={10 + t * legendWidth}
-                                        y2={legendMargin.top + 25}
-                                        stroke="black"
+                              return (
+                                <>
+                                  <defs>
+                                    <linearGradient
+                                      id="numerical-gradient"
+                                      x1="0%"
+                                      y1="0%"
+                                      x2="100%"
+                                      y2="0%"
+                                    >
+                                      <stop
+                                        offset="0%"
+                                        stopColor={hp.scale(domain[0])}
                                       />
-                                      <text
-                                        x={10 + t * legendWidth}
-                                        y={legendMargin.top + 40}
-                                        fontSize="12"
-                                        textAnchor="middle"
-                                      >
-                                        {oneDecimalFormat(value)}
-                                      </text>
-                                    </g>
-                                  );
-                                })}
-                              </>
-                            );
-                          })()}
-                        </g>
-                      ) : (
-                        <>"asdf"</>
-                      )}
-                    </React.Fragment>
-                  ))}
+                                      <stop
+                                        offset="100%"
+                                        stopColor={hp.scale(domain[1])}
+                                      />
+                                    </linearGradient>
+                                  </defs>
+                                  <rect
+                                    x={10}
+                                    y={legendMargin.top}
+                                    width={legendWidth}
+                                    height={20}
+                                    fill="url(#numerical-gradient)"
+                                  />
+                                  {[0, 0.5, 1].map((t, i) => {
+                                    const value = linearScale.invert(t);
+                                    return (
+                                      <g key={`legend-numerical-${i}`}>
+                                        <line
+                                          x1={10 + t * legendWidth}
+                                          y1={legendMargin.top + 20}
+                                          x2={10 + t * legendWidth}
+                                          y2={legendMargin.top + 25}
+                                          stroke="black"
+                                        />
+                                        <text
+                                          x={10 + t * legendWidth}
+                                          y={legendMargin.top + 40}
+                                          fontSize="12"
+                                          textAnchor="middle"
+                                          fill="#4A5568"
+                                        >
+                                          {oneDecimalFormat(value)}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()}
+                          </g>
+                        ) : (
+                          <>"asdf"</>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 <text
                   x={10}
                   y={10}
                   fontSize="14"
                   textAnchor="start"
                   fontWeight="bold"
+                  fill="#4A5568"
                 >
                   {selected}
                 </text>
@@ -807,8 +776,8 @@ const CoverageView: React.FC = () => {
             {selectedTrials && selectedRowPositions && drawConnectionLine()}
             {selectedTrials &&
               selectedTrials.map((trialId, i) => {
+                console.log("trialId", trialId);
                 const selectedPoint = data.find((d) => d.id === trialId);
-
                 return (
                   <circle
                     key={`circle-${i}`}
@@ -838,7 +807,7 @@ const CoverageView: React.FC = () => {
         justifyContent={"space-between"}
         alignItems="center"
       >
-        <Text fontSize={"xs"} color="gray.600" p={2}>
+        <Text fontSize={"xs"} color="gray.600" p={2} userSelect={"none"}>
           Choose trials to create a trial group (
           {formatting(selectedPoints.size, "int")} {" / "}
           {formatting(data.length, "int")}

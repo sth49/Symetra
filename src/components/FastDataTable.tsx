@@ -898,10 +898,6 @@ const FastDataTable: React.FC = () => {
             updatedGroups.addGroup(
               exp?.trials.filter((trial) => selectedRows.has(trial.id)) ?? []
             );
-
-            // groups.addGroup(
-            //   exp?.trials.filter((trial) => selectedRows.has(trial.id)) ?? []
-            // );
             setGroups(groups);
             setSelectedRows(new Set());
             setSelectedRowPositions([]);

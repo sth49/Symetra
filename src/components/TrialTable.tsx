@@ -11,7 +11,10 @@ import { formatting } from "../model/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, Button, Icon, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
-
+import { FaSort } from "react-icons/fa6";
+import { FaSortUp } from "react-icons/fa6";
+import { FaSortDown } from "react-icons/fa6";
+import { FaLayerGroup } from "react-icons/fa6";
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
 
@@ -28,15 +31,23 @@ const adjustTableHeight = (tableRef, virtualHeight) => {
   );
   return pseudoHeight;
 };
-const TrialTable = () => {
+
+interface TrialTableProps {
+  showControls?: boolean;
+}
+const TrialTable = ({ showControls = false }: TrialTableProps) => {
   const { exp, hyperparams } = useConstDataStore();
   const data = useMemo(
     () =>
-      exp?.trials.map((trial) => ({
-        id: Number(trial.id),
-        metric: trial.metric,
-        ...trial.params,
-      })) || [],
+      exp?.trials
+        .sort((a, b) => a.id - b.id)
+        .map((trial) => {
+          return {
+            id: trial.id,
+            metric: trial.metric,
+            ...trial.params,
+          };
+        }) ?? [],
     [exp]
   );
 
@@ -44,7 +55,12 @@ const TrialTable = () => {
 
   const [isMultiSelect, setIsMultiSelect] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "metric",
+      desc: true,
+    },
+  ]);
   const [rowSelection, setRowSelection] = useState({});
 
   useEffect(() => {
@@ -83,7 +99,9 @@ const TrialTable = () => {
           align: "center",
         },
         size: 30,
+        enableSorting: false,
       },
+
       {
         id: "id",
         header: "ID",
@@ -163,7 +181,8 @@ const TrialTable = () => {
     },
     enableRowSelection: true,
   });
-  const { rows } = table.getRowModel();
+  const { rows } = table.getSortedRowModel();
+  // console.log("rows", rows);
 
   const parentRef = useRef<HTMLDivElement>(null);
   const scrollableRef = useRef<HTMLDivElement>(null);
@@ -189,8 +208,15 @@ const TrialTable = () => {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimerRef = useRef(null);
 
-  const BOTTOM_PADDING = 100;
+  const BOTTOM_PADDING = useMemo(() => {
+    if (showControls) {
+      return 150;
+    }
+    return 100;
+  }, [showControls]);
+
   const paddedTotalSize = virtualSize + BOTTOM_PADDING;
+
   const handlePseudoResize = useCallback(() => {
     return adjustTableHeight(tableRef, paddedTotalSize);
   }, [tableRef, paddedTotalSize]);
@@ -262,7 +288,12 @@ const TrialTable = () => {
   const rowRefs = useRef({});
   const updateSelectedTrials = useCallback(
     (newSelectedRows: Set<number>) => {
-      const selectedTrialArray = Array.from(newSelectedRows);
+      // const selectedTrialArray = Array.from(newSelectedRows);
+      const selectedTrialArray = table
+        .getSortedRowModel()
+        .rows.filter((row) => newSelectedRows.has(Number(row.id)))
+        .map((row) => Number(row.original.id));
+
       const tableContainer = document.querySelector(".virtual-table");
       const tableRect = tableContainer?.getBoundingClientRect();
       const parentContainer = parentRef.current;
@@ -271,7 +302,9 @@ const TrialTable = () => {
 
       const positions = selectedTrialArray
         .map((trialId) => {
-          const index = rows.findIndex((item) => Number(item.id) === trialId);
+          const index = rows.findIndex(
+            (item) => Number(item.original.id) === trialId
+          );
           const rowElement = rowRefs.current[index];
           const virtualPosition = index * 20;
 
@@ -283,7 +316,7 @@ const TrialTable = () => {
             let positionType = "visible";
 
             // Check if row is above visible area
-            if (virtualPosition < scrollTop) {
+            if (virtualPosition + 35 < scrollTop) {
               top = tableRect.top;
               positionType = "above";
             }
@@ -292,7 +325,9 @@ const TrialTable = () => {
               top = tableRect.bottom;
               positionType = "below";
             }
-
+            // console.log("positionType", positionType);
+            // console.log("top", top);
+            // console.log("trialId", trialId);
             return {
               trialId: trialId,
               top: top,
@@ -332,7 +367,7 @@ const TrialTable = () => {
       setSelectedTrials(selectedTrialArray);
       setSelectedRowPositions(positions);
     },
-    [rows, parentRef]
+    [table, setSelectedTrials, setSelectedRowPositions, rows]
   );
 
   const toggleRowSelection = useCallback(
@@ -360,12 +395,21 @@ const TrialTable = () => {
           }
         }
         setLastSelectedIndex(index);
+        // console.log("rows", rows[index]);
+        // console.log("trialId", trialId);
+        // console.log("newSelection", newSelection);
         updateSelectedTrials(new Set(Object.keys(newSelection).map(Number)));
         return newSelection;
       });
     },
     [rows, lastSelectedIndex, isMultiSelect]
   );
+
+  useEffect(() => {
+    if (Object.keys(rowSelection).length > 0) {
+      updateSelectedTrials(new Set(Object.keys(rowSelection).map(Number)));
+    }
+  }, [sorting, rowSelection, updateSelectedTrials]);
 
   return (
     <div
@@ -441,10 +485,27 @@ const TrialTable = () => {
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {{
+                            {/* {{
                               asc: " 🔼",
                               desc: " 🔽",
-                            }[header.column.getIsSorted() as string] ?? null}
+                            }[header.column.getIsSorted() as string] ?? null} */}
+                            {!showControls &&
+                              header.column.getCanSort() &&
+                              header.column.getIsSorted() !== false && (
+                                <Icon
+                                  color="gray.600"
+                                  onClick={header.column.getToggleSortingHandler()}
+                                  as={
+                                    (header.column.getIsSorted() as string) ===
+                                    "asc"
+                                      ? FaSortUp
+                                      : (header.column.getIsSorted() as string) ===
+                                        "desc"
+                                      ? FaSortDown
+                                      : FaSort
+                                  }
+                                />
+                              )}
                             {header.isPlaceholder
                               ? null
                               : flexRender(
@@ -453,6 +514,31 @@ const TrialTable = () => {
                                 )}
                           </div>
                         )}
+                        {showControls && header.column.getCanSort() && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-evenly",
+                            }}
+                          >
+                            <Icon
+                              color="gray.600"
+                              onClick={header.column.getToggleSortingHandler()}
+                              as={
+                                (header.column.getIsSorted() as string) ===
+                                "asc"
+                                  ? FaSortUp
+                                  : (header.column.getIsSorted() as string) ===
+                                    "desc"
+                                  ? FaSortDown
+                                  : FaSort
+                              }
+                            />
+                            <Icon color="gray.600" as={FaLayerGroup} />
+                          </div>
+                        )}
+
                         <div
                           {...{
                             onDoubleClick: () => header.column.resetSize(),

@@ -292,17 +292,18 @@ export class BinaryHyperparam extends CategoricalHyperparam {
   constructor(json: HyperparamJson) {
     super(json);
     this.scale = d3
-      .scaleOrdinal<string, string>([
-        "rgba(0, 0, 0, 0.2)",
-        "rgba(0, 0, 0, 0.5)",
-      ]) // Add the missing type arguments
+      .scaleOrdinal<string, string>(["#E2E8F0", "#718096"]) // Add the missing type arguments
       .domain(["true", "false"]);
   }
   getColor(index: number): string | undefined {
-    return this.scale(this.values[index]);
+    return this.scale(
+      this.values[index] === "true" || this.values[index] === true
+        ? "true"
+        : "false"
+    );
   }
   getColorByValue(value: any): string {
-    return this.scale(value);
+    return this.scale(value === "true" || value === true ? "true" : "false");
   }
 }
 export class NominalHyperparam extends CategoricalHyperparam {

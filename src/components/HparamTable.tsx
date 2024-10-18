@@ -1,17 +1,17 @@
 import { useCallback, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
+import { Tooltip } from "@chakra-ui/react";
 import {
   ExpandedState,
   flexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Box, Button, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
+import { Box, Button, Icon, IconButton, Text } from "@chakra-ui/react";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
 import BarChart from "./BarChart";
@@ -50,8 +50,13 @@ const HparamTable = () => {
   );
   const toggleVisibilityForSelected = useCallback(
     (visible) => {
+      const selectedRowIds = table
+        .getSortedRowModel()
+        .rows.filter((r, i) => selectedRows.has(i))
+        .map((r) => r.original.displayName);
+
       const newHyperparams = hyperparams.map((hp, i) => {
-        if (selectedRows.has(i)) {
+        if (selectedRowIds.includes(hp.displayName)) {
           hp.visible = visible;
         }
         return hp;
@@ -103,7 +108,7 @@ const HparamTable = () => {
 
           const item = row.original;
           const visible = hyperparams.find(
-            (hp) => hp.displayName === item.name
+            (hp) => hp.name === item.fullName
           )?.visible;
 
           return (
@@ -120,7 +125,7 @@ const HparamTable = () => {
               onClick={(e) => {
                 e.stopPropagation();
                 const newHyperparams = hyperparams.map((hp, i) => {
-                  if (hp.displayName === item.name) {
+                  if (hp.name === item.fullName) {
                     hp.visible = !hp.visible;
                   }
                   return hp;
@@ -152,11 +157,6 @@ const HparamTable = () => {
               display={"flex"}
               alignItems={"center"}
               onClick={(e) => {
-                // console.log(
-                //   table
-                //     .getSortedRowModel()
-                //     .rows.findIndex((r) => r.id === row.id)
-                // );
                 toggleRowSelection(index, e.shiftKey);
               }}
               //   onMouseEnter={(e) => {
@@ -168,10 +168,16 @@ const HparamTable = () => {
               //   }}
               //   onMouseLeave={hideTooltip}
             >
-              <Text userSelect={"none"} display={"flex"} alignItems={"center"}>
-                <Icon as={hparamIcon} mr={1} color={"gray.600"} />
-                {info.getValue()}
-              </Text>
+              <Tooltip label={row.original.fullName}>
+                <Text
+                  userSelect={"none"}
+                  display={"flex"}
+                  alignItems={"center"}
+                >
+                  <Icon as={hparamIcon} mr={1} color={"gray.600"} />
+                  {info.getValue()}
+                </Text>
+              </Tooltip>
             </Box>
           );
         },
@@ -348,11 +354,11 @@ const HparamTable = () => {
                           }}
                         >
                           {{
-                            asc: <Icon color={"gray.500"} as={FaSortUp} />,
-                            desc: <Icon color={"gray.500"} as={FaSortDown} />,
+                            asc: <Icon color={"gray.600"} as={FaSortUp} />,
+                            desc: <Icon color={"gray.600"} as={FaSortDown} />,
                           }[header.column.getIsSorted() as string] ??
                             (header.column.getCanSort() && (
-                              <Icon color={"gray.500"} as={FaSort} />
+                              <Icon color={"gray.600"} as={FaSort} />
                             ))}
                           {header.isPlaceholder
                             ? null

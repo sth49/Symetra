@@ -24,7 +24,7 @@ function App() {
       try {
         const experiment = await Experiment.fromJson(configData, trialData);
         setExp(experiment);
-
+        console.log("trials", experiment.trials);
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
         console.log("Loaded experiment:", experiment);
