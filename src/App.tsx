@@ -13,6 +13,7 @@ import GroupDetailView from "./components/GroupDetailView";
 import { useConstDataStore } from "./components/store/constDataStore";
 import TrialView from "./components/TrialView";
 import GroupComparisonView from "./components/GroupComparisonView";
+import Heatmap from "./components/Heatmap";
 function App() {
   const { exp, setExp, setHyperparams } = useConstDataStore();
 
@@ -100,13 +101,16 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0}>
+                    <Box height={"20%"} m={0.5} bg="white" mr={1} mb={0}>
                       <TrialGroupView />
                     </Box>
                     <Box height={"10%"} m={0.5} bg="white" mr={1} mt={0}>
                       <GroupDetailView />
                     </Box>
-                    <Box height={"calc(59% - 8px)"} m={0.5} bg="white" mr={1}>
+                    <Box height={"20%"} m={0.5} bg="white" mr={1}>
+                      <Heatmap />
+                    </Box>
+                    <Box height={"calc(49% - 8px)"} m={0.5} bg="white" mr={1}>
                       <GroupComparisonView />
                     </Box>
                   </Box>

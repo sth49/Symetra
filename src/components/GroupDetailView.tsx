@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Button,
   ButtonGroup,
@@ -12,13 +13,10 @@ import { useCustomStore } from "../store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { formatting } from "../model/utils";
-import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons";
+import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
 import BarChart from "./BarChart";
-import { FaSort } from "react-icons/fa6";
-import { FaSortUp } from "react-icons/fa6";
-import { FaSortDown } from "react-icons/fa6";
-import AutoSizer from "react-virtualized-auto-sizer";
+import { useMetricScale } from "../model/colorScale";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -50,9 +48,8 @@ const GroupDetailView = () => {
     key: null,
     direction: "none", // ascending or descending
   });
-
   const [sortedData, setSortedData] = useState([]);
-
+  const { metricScale, colorScale } = useMetricScale();
   const requestSort = useCallback((key) => {
     setSortConfig((prevConfig) => ({
       key:
@@ -358,14 +355,29 @@ const GroupDetailView = () => {
             display={"flex"}
             justifyContent={"space-between"}
             // width={"50%"}
-            pr={2}
+            // pr={2}
           >
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
               Mean CVRG
             </Text>
-            <Text fontSize="sm" align={"right"}>
+            {/* <Text
+              fontSize="sm"
+              align={"right"}
+              backgroundColor={colorScale(
+                metricScale(currentSelectedGroup.getStats().avg + 1000)
+              )}
+              color={"white"}
+            >
               {formatting(currentSelectedGroup.getStats().avg, "float")}
-            </Text>
+            </Text> */}
+            <Badge
+              backgroundColor={colorScale(
+                metricScale(currentSelectedGroup.getStats().avg)
+              )}
+              color={"white"}
+            >
+              {formatting(currentSelectedGroup.getStats().avg, "float")}
+            </Badge>
           </Box>
           <Box display={"flex"} justifyContent={"space-between"} width={"50%"}>
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">

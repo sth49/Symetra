@@ -59,13 +59,12 @@ const TrialGroupView = () => {
   const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
   const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
-  const setSelectedGroup = useCustomStore((state) => state.setSelectedGroup);
 
   const setCurrnetSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
   const currnetSelectedGroup = useCustomStore(
-    (state) => state.currnetSelectedGroup
+    (state) => state.currentSelectedGroup
   );
   // const boxRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -73,7 +72,7 @@ const TrialGroupView = () => {
   const { metricScale, colorScale } = useMetricScale();
   const legendWidth = 100;
   const legendHeight = 100;
-  const legendMargin = { top: 70, right: 20 };
+  const legendMargin = { top: 25, right: 20 };
 
   const numThresholds = 5;
   const thresholdRanges = useMemo(() => {
@@ -143,15 +142,13 @@ const TrialGroupView = () => {
     console.log("GroupView rendering, boxHeight:", boxHeight);
     if (boxHeight === 0) return { nodes: [], links: [] };
     console.log("GroupView rendering");
+
     const nodes = groups.groups.map(
       (group, i) => ({
         id: group.id,
         name: group.name,
-        x:
-          i > 2
-            ? ((i - 2.5) * boxRef.current?.clientWidth) / 8
-            : ((i + 0.5) * boxRef.current?.clientWidth) / 8,
-        y: i > 2 ? boxHeight / 3 : boxHeight / 7,
+        x: (((i % 3) + 0.25) * boxRef.current?.clientWidth) / 5,
+        y: (Math.floor(i / 3) * boxHeight) / 4 + boxHeight / 8,
         length: group.getLength(),
         stats: group.getStats(),
       }),
@@ -207,21 +204,12 @@ const TrialGroupView = () => {
   const handleNodeClick = useCallback(
     (id) => {
       if (currnetSelectedGroup && currnetSelectedGroup.id === id) {
-        setCurrnetSelectedGroup(null);
+        return;
       } else {
         setCurrnetSelectedGroup(groups.getGroup(id));
       }
-      const newLocalSelectedGroup = new Set(localSelectedGroup);
-      if (newLocalSelectedGroup.has(id)) {
-        newLocalSelectedGroup.delete(id);
-        setCurrnetSelectedGroup(null);
-      } else {
-        newLocalSelectedGroup.add(id);
-        setCurrnetSelectedGroup(groups.getGroup(id));
-      }
-      setLocalSelectedGroup(newLocalSelectedGroup);
     },
-    [currnetSelectedGroup, groups, localSelectedGroup, setCurrnetSelectedGroup]
+    [currnetSelectedGroup, groups, setCurrnetSelectedGroup]
   );
 
   const NodeComponent = useCallback(
@@ -365,35 +353,12 @@ const TrialGroupView = () => {
           justifyContent={"right"}
           alignItems="center"
           pr={2}
-        >
-          {/* <Button
-            size={"xs"}
-            isDisabled={localSelectedGroup.size === 0}
-            colorScheme="blue"
-            onClick={() => {
-              if (localSelectedGroup.size === 0) {
-                return;
-              } else if (localSelectedGroup.size === 1) {
-                console.log("Single group selected");
-
-                setSelectedGroup(new Set([...localSelectedGroup, 0].sort()));
-                setLocalSelectedGroup(new Set());
-              } else if (localSelectedGroup.size === 2) {
-                console.log("Two groups selected");
-                setSelectedGroup(new Set([...localSelectedGroup].sort()));
-                setLocalSelectedGroup(new Set());
-              }
-            }}
-          >
-            Analysis
-          </Button> */}
-        </Box>
+        ></Box>
       </Box>
 
       {groups?.getLength() > 0 ? (
         <Box
           width={"100%"}
-          ref={boxRef}
           overflowX={"auto"}
           height="85%"
           p={2}
@@ -404,7 +369,6 @@ const TrialGroupView = () => {
               {thresholdRanges.map((range, i) => (
                 <React.Fragment key={`legend-${i}`}>
                   <rect
-                    // x={svgRect.width - legendWidth - 30}
                     x={0}
                     y={i * (legendHeight / numThresholds) + legendMargin.top}
                     width={legendWidth / 5}
@@ -413,7 +377,6 @@ const TrialGroupView = () => {
                     opacity={0.3}
                   />
                   <text
-                    // x={svgRect.width - legendWidth / 2 - 50}
                     x={5 + legendWidth / 5}
                     y={
                       (i + 0.6) * (legendHeight / numThresholds) +
@@ -433,7 +396,7 @@ const TrialGroupView = () => {
               ))}
               <text
                 x={0}
-                y={65}
+                y={legendMargin.top - 8}
                 fontSize="14"
                 textAnchor="start"
                 fontWeight="bold"
@@ -445,22 +408,23 @@ const TrialGroupView = () => {
           </Box>
           <Box
             width={"100%"}
+            ref={boxRef}
             height={"100%"}
             display={"flex"}
             justifyContent={"center"}
+            overflow={"auto"}
           >
             <svg
               // width={width}
-              width={
-                groups.getLength() > 3
-                  ? "100%"
-                  : `${
-                      (groups.getLength() *
-                        (boxRef.current?.clientWidth ?? 0)) /
-                      3
-                    }`
+              width={"100%"}
+              // height={"100%"}
+              height={
+                groups.getLength() > 6
+                  ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
+                    boxHeight / 8 +
+                    150
+                  : "100%"
               }
-              height={"100%"}
               onMouseEnter={() => {
                 handleNodeHover(null);
                 hideTooltip();
@@ -502,7 +466,7 @@ const TrialGroupView = () => {
             {tooltipData.type === "node" ? (
               <>
                 <Text align={"left"} mb={1} fontSize={"12px"}>
-                  Count: {formatting(tooltipData.count, "int")}
+                  {formatting(tooltipData.count, "int")} trials
                 </Text>
                 <Text align={"left"} mb={1} fontSize={"12px"}>
                   Max: {formatting(tooltipData.stats.max, "float")}

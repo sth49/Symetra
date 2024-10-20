@@ -192,8 +192,6 @@ const HparamTable = () => {
         accessorKey: "effect",
         cell: (info) => {
           const { row } = info;
-          //   console.log("row", row);
-
           const index = table
             .getSortedRowModel()
             .rows.findIndex((r) => r.id === row.id);
@@ -226,7 +224,6 @@ const HparamTable = () => {
               trialIds={[]}
             />
           );
-          //   return <>dist</>;
         },
         size: 110,
         meta: {
