@@ -9,6 +9,7 @@ import { FaAngleDown } from "react-icons/fa6";
 import { Select } from "@chakra-ui/react";
 import BarChart from "./BarChart";
 import { StarIcon } from "@chakra-ui/icons";
+import { Tooltip } from "@chakra-ui/react";
 const GroupComparisonView = () => {
   const { hyperparams, exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -35,7 +36,7 @@ const GroupComparisonView = () => {
         group2: group2Stats.max,
         type: "int",
       },
-      avg: {
+      mean: {
         group1: group1Stats.avg,
         group2: group2Stats.avg,
         type: "float",
@@ -107,19 +108,18 @@ const GroupComparisonView = () => {
             width: "100%",
             display: "flex",
             alignItems: "center",
+            borderBottom: "1px solid #ddd",
           }}
         >
-          <Box width={"37%"}>
+          <Box width={"37%"} display={"flex"} justifyContent={"center"}>
             <Text align={"center"} fontWeight={"bold"}>
               {currentSelectedGroup ? currentSelectedGroup.name : "None"}
             </Text>
           </Box>
-          <Box width={"15%"}>
-            <Text align={"center"}></Text>
-          </Box>
-          <Box width={"37%"}>
+          <Box width={"15%"}></Box>
+          <Box width={"37%"} display={"flex"} justifyContent={"center"}>
             <Select
-              width={"80%"}
+              width={"75%"}
               value={group2 ? group2.id.toString() : ""}
               size={"sm"}
               onChange={(e) => {
@@ -137,9 +137,7 @@ const GroupComparisonView = () => {
                 ))}
             </Select>
           </Box>
-          <Box width={"10%"}>
-            <Text align={"center"}></Text>
-          </Box>
+          <Box width={"10%"}></Box>
         </div>
         <div
           style={{
@@ -155,6 +153,7 @@ const GroupComparisonView = () => {
                 <div
                   style={{
                     display: "flex",
+                    alignItems: "center",
                   }}
                 >
                   <Box width={"37%"}>
@@ -163,7 +162,6 @@ const GroupComparisonView = () => {
                     </Text>
                   </Box>
                   <Box width={"15%"}>
-                    {" "}
                     <Text align={"center"} fontSize={"sm"}>
                       {key} cvrg
                     </Text>
@@ -207,23 +205,27 @@ const GroupComparisonView = () => {
                       </Text> */}
                         </Box>
                         <Box width={"15%"}>
-                          <Text
-                            display={"flex"}
-                            justifyContent={"center"}
-                            fontSize={"sm"}
-                            alignItems={"center"}
-                          >
-                            <Icon as={d.icon} mr={1} color={"gray.600"} />
-                            {d.name}
-                            {d.pValue < 0.05 && (
-                              <StarIcon color={"yellow.400"} ml={2} />
-                            )}
-                          </Text>
+                          <Tooltip label={d.fullName}>
+                            <Text
+                              display={"flex"}
+                              justifyContent={"center"}
+                              fontSize={"sm"}
+                              alignItems={"center"}
+                              userSelect={"none"}
+                            >
+                              <Icon as={d.icon} mr={1} color={"gray.600"} />
+                              {d.name}
+                              {d.pValue < 0.05 && (
+                                <StarIcon color={"yellow.400"} ml={2} />
+                              )}
+                            </Text>
+                          </Tooltip>
                         </Box>
                         <Box
                           width={"37%"}
                           display={"flex"}
-                          justifyContent={"space-around"}
+                          // justifyContent={"space-around"}
+                          justifyContent={"center"}
                           alignItems={"center"}
                         >
                           {/* <Text align={"center"} fontSize={"sm"}>
@@ -236,7 +238,11 @@ const GroupComparisonView = () => {
                             height={30}
                           />
                         </Box>
-                        <Box width={"10%"}>
+                        <Box
+                          width={"10%"}
+                          display={"flex"}
+                          justifyContent={"center"}
+                        >
                           {/* <Text align={"center"}></Text> */}
                           <IconButton
                             size={"xs"}
@@ -246,13 +252,7 @@ const GroupComparisonView = () => {
                               ) : (
                                 <Icon as={FaAngleUp} color={"gray.500"} />
                               )
-                              // row.getIsExpanded() ? (
-                              // <Icon as={FaAngleDown} color={"gray.500"} />
-                              // ) : (
-                              //   <Icon as={FaAngleUp} color={"gray.500"} />
-                              // )
                             }
-                            // onClick={() => row.toggleExpanded()}
                             onClick={() => {
                               if (expander === d.fullName) {
                                 setExpander("");

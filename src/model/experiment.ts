@@ -25,13 +25,17 @@ export class Experiment {
     trialJson.map((trial: TrialJson) => {
       trials.push(Trial.fromJson(trial));
     });
+    const unionSet = new Set<number>();
+    for (const trial of trials) {
+      trial.branch.forEach((b) => unionSet.add(b));
+    }
 
     // column 이름 추출
     return new Experiment(
       configJson.name,
       hyperparams,
       trials,
-      Metric.fromJson(configJson.metric)
+      Metric.fromJson(configJson.metric, unionSet.size)
     );
   }
 }

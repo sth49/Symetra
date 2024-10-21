@@ -32,10 +32,15 @@ export interface HyperparamJson {
 }
 
 export class Metric {
-  constructor(public name: string, public displayName: string) {}
+  constructor(
+    public name: string,
+    public displayName: string,
 
-  static fromJson(json: Metric) {
-    return new Metric(json.name, json.displayName);
+    public totalBranch: number = 0
+  ) {}
+
+  static fromJson(json: Metric, totalBranch: number) {
+    return new Metric(json.name, json.displayName, totalBranch);
   }
 }
 

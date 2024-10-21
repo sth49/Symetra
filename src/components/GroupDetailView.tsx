@@ -25,6 +25,11 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
 } from "@chakra-ui/react";
+import {
+  getAttributeSilhouetteCoefficient,
+  getBranchSilhouetteCoefficient,
+} from "../model/silhouetteCoefficient";
+import { calculateCorrelation } from "../model/correlation";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -105,6 +110,18 @@ const GroupDetailView = () => {
     if (currentSelectedGroup) {
       setEditName(currentSelectedGroup.name);
       setTrialIds(currentSelectedGroup.trials.map((trial) => trial.id));
+      // console.log(
+      //   getBranchSilhouetteCoefficient(
+      //     exp.trials,
+      //     currentSelectedGroup.trials,
+      //     exp.metric.totalBranch
+      //   )
+      // );
+      calculateCorrelation(
+        currentSelectedGroup.trials,
+        exp.hyperparams[6],
+        exp.hyperparams[11]
+      );
     }
   }, [currentSelectedGroup]);
 
@@ -118,12 +135,6 @@ const GroupDetailView = () => {
         width: 100,
         align: "center",
       },
-      // {
-      //   key: "expander",
-      //   label: "",
-      //   width: 46,
-      //   align: "left",
-      // },
     ],
     [exp]
   );
@@ -379,12 +390,36 @@ const GroupDetailView = () => {
               {formatting(currentSelectedGroup.getStats().avg, "float")}
             </Badge>
           </Box>
-          <Box display={"flex"} justifyContent={"space-between"} width={"50%"}>
+          <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
               Silhouette Coefficient
             </Text>
             <Text fontSize="sm" align={"right"}>
-              {/* {formatting(currentSelectedGroup.getStats().avg, "float")} */}
+              {/* {formatting(
+                currentSelectedGroup
+                  ? getBranchSilhouetteCoefficient(
+                      exp.trials,
+                      currentSelectedGroup.trials,
+                      exp.metric.totalBranch
+                    )
+                  : 0,
+                "float"
+              )} */}
+            </Text>
+            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
+              Silhouette Coefficient
+            </Text>
+            <Text fontSize="sm" align={"right"}>
+              {/* {formatting(
+                currentSelectedGroup
+                  ? getAttributeSilhouetteCoefficient(
+                      exp.trials,
+                      currentSelectedGroup.trials,
+                      exp.hyperparams
+                    )
+                  : 0,
+                "float"
+              )} */}
             </Text>
           </Box>
           {/* <Box width={"50%"} height={"100%"} pl={2}>

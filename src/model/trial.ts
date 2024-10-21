@@ -32,4 +32,11 @@ export class Trial {
       new Set(json.branch)
     );
   }
+  branchOneHot(n: number) {
+    const oneHot = Array(n).fill(0);
+    this.branch.forEach((b) => {
+      oneHot[b] = 1;
+    });
+    return oneHot;
+  }
 }

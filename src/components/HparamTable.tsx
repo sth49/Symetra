@@ -278,7 +278,6 @@ const HparamTable = () => {
     },
     onSortingChange: setSorting,
     onExpandedChange: setExpanded,
-    // getExpandedRowModel: getExpandedRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     debugTable: true,
