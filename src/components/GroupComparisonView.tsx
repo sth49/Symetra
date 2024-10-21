@@ -1,6 +1,6 @@
 import { Box, Heading, Icon, IconButton, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { formatting } from "../model/utils";
 import { performStatisticalTest } from "../model/statistic";
 import { useConstDataStore } from "./store/constDataStore";
@@ -14,33 +14,13 @@ const GroupComparisonView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
-  const selectedGroup = useCustomStore((state) => state.selectedGroup);
   const groups = useCustomStore((state) => state.groups);
-  const analysisGroups = useMemo(() => {
-    return groups.groups.filter((group) => selectedGroup.has(group.id));
-  }, [groups.groups, selectedGroup]);
 
   const [group2, setGroup2] = useState(
     groups.groups.filter((group) => group.id !== currentSelectedGroup.id)[0]
   );
 
   const [expander, setExpander] = useState("");
-
-  const hparamResults = useMemo(() => {
-    if (analysisGroups.length === 0) {
-      return [];
-    }
-    return hyperparams
-      .map((param) =>
-        performStatisticalTest(
-          analysisGroups[0].getHyperparam(param.name),
-          analysisGroups[1].getHyperparam(param.name),
-          param.type,
-          param
-        )
-      )
-      .sort((a, b) => a.pValue - b.pValue);
-  }, [analysisGroups, hyperparams]);
 
   const stats = useMemo(() => {
     if (!currentSelectedGroup || !group2) {
@@ -69,14 +49,15 @@ const GroupComparisonView = () => {
   }, [currentSelectedGroup, group2]);
 
   const data = useMemo(() => {
+    if (!currentSelectedGroup || !group2) {
+      return null;
+    }
     const trialIds1 =
       (currentSelectedGroup &&
         currentSelectedGroup.trials.map((trial) => trial.id)) ||
       [];
     const trialIds2 = (group2 && group2.trials.map((trial) => trial.id)) || [];
-    // (currentSelectedGroup &&
-    //   currentSelectedGroup.trials.map((trial) => trial.id)) ||
-    // [];
+
     return exp?.hyperparams.map((hp, index) => ({
       id: index,
       name: hp.displayName,
@@ -96,7 +77,15 @@ const GroupComparisonView = () => {
         hp
       ).pValue,
     }));
-  }, [currentSelectedGroup, exp?.hyperparams, group2]);
+  }, [currentSelectedGroup, exp, group2]);
+
+  useEffect(() => {
+    if (currentSelectedGroup) {
+      setGroup2(
+        groups.groups.filter((group) => group.id !== currentSelectedGroup.id)[0]
+      );
+    }
+  }, [currentSelectedGroup, groups]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -113,10 +102,6 @@ const GroupComparisonView = () => {
         pt={0}
         overflow={"auto"}
       >
-        {/* <Text>
-          currentSelectedGroup:{" "}
-          {currentSelectedGroup ? currentSelectedGroup.name : "None"}
-        </Text> */}
         <div
           style={{
             width: "100%",
@@ -151,9 +136,6 @@ const GroupComparisonView = () => {
                   </option>
                 ))}
             </Select>
-            {/* <Text align={"center"}>
-
-              </Text> */}
           </Box>
           <Box width={"10%"}>
             <Text align={"center"}></Text>
@@ -164,7 +146,6 @@ const GroupComparisonView = () => {
             height: "calc(100% - 35px)",
             width: "100%",
             position: "relative",
-            // backgroundColor: "blue",
             overflowY: "auto",
           }}
         >

@@ -251,7 +251,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
               new Set(Object.keys(rowSelection).map(Number))
             );
           }
-        }, 150);
+        }, 300);
 
         const visibleHeight = parentRef.current.clientHeight;
         setIsScrollNearBottom(

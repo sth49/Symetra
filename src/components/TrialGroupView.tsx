@@ -185,8 +185,8 @@ const TrialGroupView = () => {
   const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 
   const weightScale = useMemo(() => {
-    return d3.scaleLinear().domain([0, hyperparams.length]).range([10, 1]);
-  }, [hyperparams.length]);
+    return d3.scaleLinear().domain([0, 61]).range([10, 1]);
+  }, []);
 
   const handleNodeHover = useCallback(
     (node) => {
@@ -297,7 +297,7 @@ const TrialGroupView = () => {
           <path
             className="link"
             d={createArcPath(source, target, arcHeight)}
-            strokeWidth={link.weight === 0 ? 1 : weightScale(link.weight)}
+            strokeWidth={weightScale(link.weight)}
             fill="gray"
           />
           <path
