@@ -35,6 +35,8 @@ const HparamTable = () => {
           fullName: hp.name,
           displayName: hp.displayName,
           effect: hp.getEffect(),
+          positiveEffect: hp.getPositiveEffect(),
+          negativeEffect: hp.getNegativeEffect(),
           effctsByValue: hp.getEffectsByValue(),
           dist: hp.name,
           type: hp.type,
@@ -114,10 +116,10 @@ const HparamTable = () => {
           return (
             <IconButton
               size={"xs"}
-              colorScheme={visible ? "blue" : "gray"}
+              colorScheme="gray"
               icon={
                 visible ? (
-                  <Icon as={FaEye} color={"white"} />
+                  <Icon as={FaEye} color={"gray.500"} />
                 ) : (
                   <Icon as={FaEyeSlash} color={"gray.500"} />
                 )
@@ -188,7 +190,7 @@ const HparamTable = () => {
       },
       {
         id: "effect",
-        header: "Effect",
+        header: "Effect (+/-)",
         accessorKey: "effect",
         cell: (info) => {
           const { row } = info;
@@ -201,12 +203,13 @@ const HparamTable = () => {
                 toggleRowSelection(index, e.shiftKey);
               }}
             >
-              {formatting(row.original.effect, "float")}
+              {formatting(row.original.positiveEffect, "float", 2)} /{" "}
+              {formatting(row.original.negativeEffect, "float", 2)}
             </div>
           );
         },
 
-        size: 50,
+        size: 80,
         meta: {
           align: "center",
         },
@@ -219,13 +222,13 @@ const HparamTable = () => {
           return (
             <BarChart
               dist={info.getValue()}
-              width={100}
+              width={80}
               height={30}
               trialIds={[]}
             />
           );
         },
-        size: 110,
+        size: 80,
         meta: {
           align: "center",
         },

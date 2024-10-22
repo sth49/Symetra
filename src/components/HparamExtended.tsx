@@ -13,17 +13,28 @@ interface HparamExtendedProps {
 
 const HparamExtended = ({ item }: HparamExtendedProps) => {
   const [sortConfig, setSortConfig] = useState({
-    key: null,
-    direction: "none", // ascending or descending
+    key: "effect",
+    direction: "descending", // ascending or descending
   });
   const [sortedData, setSortedData] = useState([]);
 
   const data = useMemo(() => {
+    const key = "5";
     return Object.keys(item.effctsByValue).map((key) => {
       return {
         value: item.type === HyperparamTypes.Ordinal ? Number(key) : key,
         count: item.effctsByValue[key].length,
         effect: item.effctsByValue[key].reduce((a, b) => a + b, 0),
+        positiveEffect:
+          item.effctsByValue[key]
+            .filter((v) => v > 0)
+            .reduce((a, b) => a + b, 0) /
+          item.effctsByValue[key].filter((v) => v > 0).length,
+        negativeEffect:
+          item.effctsByValue[key]
+            .filter((v) => v < 0)
+            .reduce((a, b) => a + b, 0) /
+          item.effctsByValue[key].filter((v) => v < 0).length,
         binData: generateBinnedData(item.effctsByValue[key], 100, 30, "x")
           .binData,
         allEffectValues: item.allEffectValues,
@@ -35,7 +46,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
     const allEffectByValue = Object.values(
       item.effctsByValue
     ).flat() as number[];
-    return generateBinnedData(allEffectByValue, 90, 30, "x").xScale;
+    return generateBinnedData(allEffectByValue, 60, 30, "x").xScale;
   }, [item.effctsByValue]);
 
   const requestSort = useCallback((key) => {
@@ -59,13 +70,13 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
         label: "Effect",
         key: "effect",
 
-        width: 60,
+        width: 85,
         align: "center",
       },
       {
         label: "Distribution",
         key: "distribution",
-        width: 115,
+        width: 90,
         align: "center",
       },
     ],
@@ -172,7 +183,15 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
               ) : column.key === "count" ? (
                 formatting(row[column.key], "int")
               ) : column.key === "effect" ? (
-                formatting(row[column.key], "float")
+                <>
+                  {formatting(row["positiveEffect"], "float", 2) === "NaN"
+                    ? "-"
+                    : formatting(row["positiveEffect"], "float", 2)}{" "}
+                  /{" "}
+                  {formatting(row["negativeEffect"], "float", 2) === "NaN"
+                    ? "-"
+                    : formatting(row["negativeEffect"], "float", 2)}
+                </>
               ) : column.key === "distribution" ? (
                 <svg width={115} height={36}>
                   <g transform="translate(10, 0)">
@@ -181,7 +200,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                       data={row.binData}
                       valueScale={xScale}
                       width={26}
-                      height={90}
+                      height={60}
                       horizontal={true}
                       top={5}
                       fill="grey"

@@ -61,10 +61,14 @@ export const generateBinnedData = (
 //   return isInt ? Math.round(value) : value.toFixed(2);
 // };
 
-export const formatting = (value: number, valueType: string) => {
+export const formatting = (
+  value: number,
+  valueType: string,
+  digit: number = 1
+) => {
   const formatter = new Intl.NumberFormat("ko-KR", {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
+    maximumFractionDigits: digit,
   });
 
   if (valueType === "int") {

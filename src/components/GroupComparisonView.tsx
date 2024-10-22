@@ -10,6 +10,9 @@ import { Select } from "@chakra-ui/react";
 import BarChart from "./BarChart";
 import { StarIcon } from "@chakra-ui/icons";
 import { Tooltip } from "@chakra-ui/react";
+import { GrRadialSelected } from "react-icons/gr";
+import { MdPushPin } from "react-icons/md";
+import { FaLightbulb } from "react-icons/fa";
 const GroupComparisonView = () => {
   const { hyperparams, exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -92,7 +95,7 @@ const GroupComparisonView = () => {
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Group Comparison View
+          Inter Group Difference
         </Heading>
       </Box>
 
@@ -111,12 +114,21 @@ const GroupComparisonView = () => {
             borderBottom: "1px solid #ddd",
           }}
         >
+          <Box width={"15%"}></Box>
+
           <Box width={"37%"} display={"flex"} justifyContent={"center"}>
-            <Text align={"center"} fontWeight={"bold"}>
+            <Text
+              align={"center"}
+              fontWeight={"bold"}
+              alignItems={"center"}
+              display={"flex"}
+              justifyContent={"center"}
+              color={"gray.600"}
+            >
+              <Icon as={FaLightbulb} color={"gray.600"} mr={1} />
               {currentSelectedGroup ? currentSelectedGroup.name : "None"}
             </Text>
           </Box>
-          <Box width={"15%"}></Box>
           <Box width={"37%"} display={"flex"} justifyContent={"center"}>
             <Select
               width={"75%"}
@@ -156,16 +168,17 @@ const GroupComparisonView = () => {
                     alignItems: "center",
                   }}
                 >
+                  <Box width={"15%"}>
+                    <Text align={"left"} fontSize={"sm"}>
+                      {key} cvrg
+                    </Text>
+                  </Box>
                   <Box width={"37%"}>
                     <Text align={"center"} fontSize={"sm"}>
                       {formatting(stats[key].group1, stats[key].type)}
                     </Text>
                   </Box>
-                  <Box width={"15%"}>
-                    <Text align={"center"} fontSize={"sm"}>
-                      {key} cvrg
-                    </Text>
-                  </Box>
+
                   <Box width={"37%"}>
                     <Text align={"center"} fontSize={"sm"}>
                       {formatting(stats[key].group2, stats[key].type)}
@@ -188,6 +201,23 @@ const GroupComparisonView = () => {
                           display: "flex",
                         }}
                       >
+                        <Box width={"15%"}>
+                          <Tooltip label={d.fullName}>
+                            <Text
+                              display={"flex"}
+                              justifyContent={"left"}
+                              fontSize={"sm"}
+                              alignItems={"center"}
+                              userSelect={"none"}
+                            >
+                              {d.pValue < 0.05 && (
+                                <StarIcon color={"yellow.400"} mr={2} />
+                              )}
+                              <Icon as={d.icon} mr={1} color={"gray.600"} />
+                              {d.name}
+                            </Text>
+                          </Tooltip>
+                        </Box>
                         <Box
                           width={"37%"}
                           display={"flex"}
@@ -200,27 +230,8 @@ const GroupComparisonView = () => {
                             width={90}
                             height={30}
                           />
-                          {/* <Text fontSize={"sm"}>
-                        {formatting(d.group1, "float")}
-                      </Text> */}
                         </Box>
-                        <Box width={"15%"}>
-                          <Tooltip label={d.fullName}>
-                            <Text
-                              display={"flex"}
-                              justifyContent={"center"}
-                              fontSize={"sm"}
-                              alignItems={"center"}
-                              userSelect={"none"}
-                            >
-                              <Icon as={d.icon} mr={1} color={"gray.600"} />
-                              {d.name}
-                              {d.pValue < 0.05 && (
-                                <StarIcon color={"yellow.400"} ml={2} />
-                              )}
-                            </Text>
-                          </Tooltip>
-                        </Box>
+
                         <Box
                           width={"37%"}
                           display={"flex"}
@@ -228,9 +239,6 @@ const GroupComparisonView = () => {
                           justifyContent={"center"}
                           alignItems={"center"}
                         >
-                          {/* <Text align={"center"} fontSize={"sm"}>
-                        {formatting(d.group2, "float")}
-                      </Text> */}
                           <BarChart
                             dist={d.dist}
                             trialIds={d.trialIds2}
@@ -243,7 +251,6 @@ const GroupComparisonView = () => {
                           display={"flex"}
                           justifyContent={"center"}
                         >
-                          {/* <Text align={"center"}></Text> */}
                           <IconButton
                             size={"xs"}
                             icon={
@@ -298,224 +305,6 @@ const GroupComparisonView = () => {
             </div>
           </div>
         </div>
-
-        {/* {analysisGroups.length === 0 ? (
-          <Text fontSize="md">
-            Please select one or more groups from the Trial Group View
-          </Text>
-        ) : (
-          <Box display={"flex"} height={"100%"}>
-            <Box
-              display={"flex"}
-              flexDir={"column"}
-              alignItems={"center"}
-              justifyContent={"space-between"}
-              whiteSpace={"nowrap"}
-              overflowX={"auto"}
-              textOverflow={"ellipsis"}
-              userSelect={"none"}
-              w={"40%"}
-            >
-              <Box
-                width={"100%"}
-                display={"flex"}
-                alignItems={"center"}
-                p={1}
-                borderBottom={"1px solid #ddd"}
-              >
-                <Box width={"20%"}></Box>
-                {analysisGroups.map((group) => (
-                  <Box width={"40%"} key={group.id}>
-                    <Text fontWeight={"bold"} align="center" fontSize={"sm"}>
-                      Group {group.id}
-                      {group.id === 0 ? (
-                        " (All)"
-                      ) : group.id === 1 ? (
-                        " (10%)"
-                      ) : (
-                        <></>
-                      )}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-              <Box
-                width={"100%"}
-                display={"flex"}
-                alignItems={"center"}
-                p={1}
-                pb={2}
-              >
-                <Box width={"20%"}>
-                  <Text fontSize={"xs"} fontWeight={"bold"}>
-                    Count
-                  </Text>
-                </Box>
-                {analysisGroups.map((group) => (
-                  <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"xs"}>
-                      {formatting(group.trials.length, "int")}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-              <Box
-                width={"100%"}
-                display={"flex"}
-                alignItems={"center"}
-                p={1}
-                pb={2}
-              >
-                <Box width={"20%"}>
-                  <Text fontSize={"xs"} fontWeight={"bold"}>
-                    Max. CVRG
-                  </Text>
-                </Box>
-                {analysisGroups.map((group) => (
-                  <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"xs"}>
-                      {formatting(group.getStats().max, "int")}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-              <Box
-                width={"100%"}
-                display={"flex"}
-                alignItems={"center"}
-                p={1}
-                pb={2}
-              >
-                <Box width={"20%"}>
-                  <Text fontSize={"xs"} fontWeight={"bold"}>
-                    Avg. CVRG
-                  </Text>
-                </Box>
-                {analysisGroups.map((group) => (
-                  <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"xs"}>
-                      {formatting(group.getStats().avg, "float")}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-              <Box
-                width={"100%"}
-                display={"flex"}
-                alignItems={"center"}
-                p={1}
-                pb={2}
-              >
-                <Box width={"20%"}>
-                  <Text fontSize={"xs"} fontWeight={"bold"}>
-                    Min. CVRG
-                  </Text>
-                </Box>
-                {analysisGroups.map((group) => (
-                  <Box width={"40%"} key={group.id}>
-                    <Text align="center" fontSize={"xs"}>
-                      {formatting(group.getStats().min, "int")}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-            <Box
-              display={"flex"}
-              flexDir={"column"}
-              alignItems={"center"}
-              justifyContent={"space-between"}
-              whiteSpace={"nowrap"}
-              overflowX={"auto"}
-              textOverflow={"ellipsis"}
-              userSelect={"none"}
-              w={"30%"}
-              pl={4}
-            >
-              <Box
-                width={"100%"}
-                display={"flex"}
-                alignItems={"center"}
-                p={1}
-                borderBottom={"1px solid #ddd"}
-              >
-                <Box width={"50%"}>
-                  <Text align={"center"} fontSize={"sm"} fontWeight={"bold"}>
-                    Hparam
-                  </Text>
-                </Box>
-                <Box width={"50%"}>
-                  <Text align={"center"} fontSize={"sm"} fontWeight={"bold"}>
-                    p-value
-                  </Text>
-                </Box>
-              </Box>
-              <Box overflow={"auto"} width="100%">
-                {hparamResults.map((result, index) => (
-                  <Box
-                    width={"100%"}
-                    display={"flex"}
-                    alignItems={"center"}
-                    p={1}
-                    pb={2}
-                    key={index}
-                  >
-                    <Box width={"50%"} display={"flex"} pl={2}>
-                      <Text align={"center"} fontSize={"xs"}>
-                        <Icon
-                          as={result.param.icon}
-                          color={"gray.600"}
-                          mr={1}
-                        />
-                        {result.param.displayName}
-                      </Text>
-                    </Box>
-                    <Box width={"50%"}>
-                      <Text align={"center"} fontSize={"xs"}>
-                        {formatting(result.pValue, "float")}
-                      </Text>
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-            <Box pl={2}>
-              <Text fontWeight={"bold"} fontSize={"sm"}>
-                Expected Coverage
-              </Text>
-              <Box display={"flex"}>
-                <Text fontSize={"xs"} mr={2} width={"50%"}>
-                  Group {analysisGroups[0].id}
-                </Text>
-                <Text fontSize={"xs"} width={"50%"}>
-                  {formatting(analysisGroups[0].getUnion().size, "int")}
-                </Text>
-              </Box>
-              <Box display={"flex"}>
-                <Text fontSize={"xs"} mr={2} width={"50%"}>
-                  Group {analysisGroups[1].id}
-                </Text>
-                <Text fontSize={"xs"} width={"50%"}>
-                  {formatting(analysisGroups[1].getUnion().size, "int")}
-                </Text>
-              </Box>
-              <Box display={"flex"}>
-                <Text fontSize={"xs"} mr={2} width={"50%"}>
-                  Combined
-                </Text>
-                <Text fontSize={"xs"} width={"50%"}>
-                  {formatting(
-                    new Set([
-                      ...analysisGroups[0].getUnion(),
-                      ...analysisGroups[1].getUnion(),
-                    ]).size,
-                    "int"
-                  )}
-                </Text>
-              </Box>
-            </Box>
-          </Box>
-        )} */}
       </Box>
     </div>
   );

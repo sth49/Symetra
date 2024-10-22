@@ -364,6 +364,44 @@ const TrialGroupView = () => {
           p={2}
           display="flex"
         >
+          <Box
+            width={"100%"}
+            ref={boxRef}
+            height={"100%"}
+            display={"flex"}
+            justifyContent={"center"}
+            overflow={"auto"}
+          >
+            <svg
+              // width={width}
+              width={"100%"}
+              // height={"100%"}
+              height={
+                groups.getLength() > 6
+                  ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
+                    boxHeight / 8 +
+                    150
+                  : "100%"
+              }
+              onMouseEnter={() => {
+                handleNodeHover(null);
+                hideTooltip();
+                setHoveredLink(null);
+              }}
+              onMouseLeave={() => {
+                handleNodeHover(null);
+                hideTooltip();
+                setHoveredLink(null);
+              }}
+            >
+              <Graph<CustomLink, CustomNode>
+                graph={graphMemo}
+                nodeComponent={NodeComponent}
+                linkComponent={LinkComponent}
+              />
+            </svg>
+          </Box>
+
           <Box>
             <svg width={legendWidth} height={legendHeight + legendMargin.top}>
               {thresholdRanges.map((range, i) => (
@@ -404,43 +442,6 @@ const TrialGroupView = () => {
               >
                 Coverage
               </text>
-            </svg>
-          </Box>
-          <Box
-            width={"100%"}
-            ref={boxRef}
-            height={"100%"}
-            display={"flex"}
-            justifyContent={"center"}
-            overflow={"auto"}
-          >
-            <svg
-              // width={width}
-              width={"100%"}
-              // height={"100%"}
-              height={
-                groups.getLength() > 6
-                  ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
-                    boxHeight / 8 +
-                    150
-                  : "100%"
-              }
-              onMouseEnter={() => {
-                handleNodeHover(null);
-                hideTooltip();
-                setHoveredLink(null);
-              }}
-              onMouseLeave={() => {
-                handleNodeHover(null);
-                hideTooltip();
-                setHoveredLink(null);
-              }}
-            >
-              <Graph<CustomLink, CustomNode>
-                graph={graphMemo}
-                nodeComponent={NodeComponent}
-                linkComponent={LinkComponent}
-              />
             </svg>
           </Box>
         </Box>

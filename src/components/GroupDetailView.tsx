@@ -29,6 +29,7 @@ import {
   getAttributeSilhouetteCoefficient,
   getBranchSilhouetteCoefficient,
 } from "../model/silhouetteCoefficient";
+import { FaLightbulb } from "react-icons/fa";
 import { calculateCorrelation } from "../model/correlation";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
@@ -139,149 +140,6 @@ const GroupDetailView = () => {
     [exp]
   );
 
-  const totalWidth = useMemo(
-    () => columns.reduce((sum, col) => sum + col.width, 0),
-    [columns]
-  );
-
-  const Row = useCallback(({ item, index }) => {
-    // const isSelected = selectedRows.has(item.id);
-    // const isExpanded = expandedRows.has(item.id);
-    // const isLastSelected =
-    //   selectedRows.size > 0 &&
-    //   Array.from(selectedRows).sort((a, b) => data[a].id - data[b].id)[
-    //     selectedRows.size - 1
-    //   ] === index;
-    const hp = hyperparams.find((hp) => hp.displayName === item.name);
-    const hparamIcon = hp?.icon;
-
-    return (
-      <>
-        <div
-          className={`hyperparameter-table-row`}
-          style={{
-            display: "flex",
-            width: totalWidth,
-            alignItems: "center",
-          }}
-          // onClick={(e) => toggleRowSelection(index, e.shiftKey)}
-        >
-          {columns.map((column) => (
-            <div
-              key={column.key}
-              style={{
-                width: `${column.width}px`,
-                padding: "2px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                display: "flex",
-                justifyContent: column.align,
-              }}
-            >
-              {column.key === "dist" ? (
-                <BarChart
-                  dist={item.dist}
-                  trialIds={item.trialIds}
-                  width={90}
-                  height={30}
-                />
-              ) : column.key === "name" ? (
-                <Box
-                  display={"flex"}
-                  alignItems={"center"}
-                  // onMouseEnter={(e) => {
-                  //   showTooltip({
-                  //     tooltipLeft: e.clientX,
-                  //     tooltipTop: e.clientY,
-                  //     tooltipData: { key: item.fullName, value: item.name },
-                  //   });
-                  // }}
-                  // onMouseLeave={hideTooltip}
-                >
-                  <Text
-                    userSelect={"none"}
-                    display={"flex"}
-                    alignItems={"center"}
-                  >
-                    <Icon as={hparamIcon} mr={1} color={"gray.600"} />
-                    {item[column.key]}
-                  </Text>
-                </Box>
-              ) : column.key === "effect" ? (
-                <Text userSelect={"none"}>{item[column.key].toFixed(1)}</Text>
-              ) : column.key === "expander" ? (
-                <IconButton
-                  size={"xs"}
-                  // icon={
-                  //   !isExpanded ? (
-                  //     <Icon as={FaAngleDown} color={"gray.500"} />
-                  //   ) : (
-                  //     <Icon as={FaAngleUp} color={"gray.500"} />
-                  //   )
-                  // }
-                  // onClick={(e) => toggleRowExpansion(item.id, e)}
-                  aria-label={""}
-                />
-              ) : (
-                <div>asdf</div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* {isExpanded && (
-          <div style={{ padding: "10px", backgroundColor: "#f9f9f9" }}>
-            <HparamExtended item={item} />
-          </div>
-        )} */}
-        {/* {isSelected && isLastSelected && (
-            <Box
-              display={"flex"}
-              width={"100%"}
-              justifyContent={"space-between"}
-              p={"10px 0"}
-              bgColor={"#f9f9f9"}
-            >
-              <Button
-                size={"xs"}
-                width={"48%"}
-                height={"40px"}
-                isDisabled={selectedRows.size === 0}
-                onClick={() => toggleVisibilityForSelected(true)}
-                colorScheme="blue"
-                whiteSpace="normal"
-                display={"flex"}
-                wordBreak="break-word"
-                ml={0.5}
-                fontSize={"10px"}
-              >
-                <Icon as={FaEye} />
-                Show selected hyperparameters ({selectedRows.size})
-              </Button>
-              <Button
-                size={"xs"}
-                width={"48%"}
-                height={"40px"}
-                isDisabled={selectedRows.size === 0}
-                onClick={() => toggleVisibilityForSelected(false)}
-                colorScheme="blue"
-                display={"flex"}
-                whiteSpace="normal"
-                wordBreak="break-word"
-                mr={0.5}
-                fontSize={"10px"}
-              >
-                <Icon as={FaEyeSlash} />
-                Hide selected hyperparameters ({selectedRows.size})
-              </Button>
-            </Box>
-          )} */}
-      </>
-    );
-  }, []);
-
   return (
     <Box style={{ height: "100%", width: "100%" }} p={2}>
       {currentSelectedGroup ? (
@@ -297,7 +155,7 @@ const GroupDetailView = () => {
               <Box
                 display={"flex"}
                 alignItems={"center"}
-                width={"100%"}
+                width={"50%"}
                 justifyContent={"space-between"}
               >
                 <Text
@@ -307,7 +165,10 @@ const GroupDetailView = () => {
                   onClick={() => setMode("edit")}
                   fontWeight={"bold"}
                   color={"gray.600"}
+                  display={"flex"}
+                  alignItems={"center"}
                 >
+                  <Icon as={FaLightbulb} color={"gray.600"} mr={1} />
                   {currentSelectedGroup.name}{" "}
                   {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
                 </Text>
@@ -323,7 +184,7 @@ const GroupDetailView = () => {
                 display={"flex"}
                 justifyContent={"space-between"}
                 alignItems={"center"}
-                width={"100%"}
+                width={"50%"}
               >
                 <input
                   style={{
@@ -361,153 +222,37 @@ const GroupDetailView = () => {
                 </ButtonGroup>
               </Box>
             )}
-          </Box>
-          <Box
-            display={"flex"}
-            justifyContent={"space-between"}
-            // width={"50%"}
-            // pr={2}
-          >
-            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-              Mean CVRG
-            </Text>
-            {/* <Text
-              fontSize="sm"
-              align={"right"}
-              backgroundColor={colorScale(
-                metricScale(currentSelectedGroup.getStats().avg + 1000)
-              )}
-              color={"white"}
+            <Box
+              display={"flex"}
+              justifyContent={"space-between"}
+              width={"50%"}
+              pl={2}
             >
-              {formatting(currentSelectedGroup.getStats().avg, "float")}
-            </Text> */}
-            <Badge
-              backgroundColor={colorScale(
-                metricScale(currentSelectedGroup.getStats().avg)
-              )}
-              color={"white"}
-            >
-              {formatting(currentSelectedGroup.getStats().avg, "float")}
-            </Badge>
+              <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
+                Mean CVRG
+              </Text>
+              <Badge
+                backgroundColor={colorScale(
+                  metricScale(currentSelectedGroup.getStats().avg)
+                )}
+                color={"white"}
+              >
+                {formatting(currentSelectedGroup.getStats().avg, "float")}
+              </Badge>
+            </Box>
           </Box>
           <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-              Silhouette Coefficient
+              Silhouette Coefficient (Branch)
             </Text>
-            <Text fontSize="sm" align={"right"}>
-              {/* {formatting(
-                currentSelectedGroup
-                  ? getBranchSilhouetteCoefficient(
-                      exp.trials,
-                      currentSelectedGroup.trials,
-                      exp.metric.totalBranch
-                    )
-                  : 0,
-                "float"
-              )} */}
-            </Text>
-            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-              Silhouette Coefficient
-            </Text>
-            <Text fontSize="sm" align={"right"}>
-              {/* {formatting(
-                currentSelectedGroup
-                  ? getAttributeSilhouetteCoefficient(
-                      exp.trials,
-                      currentSelectedGroup.trials,
-                      exp.hyperparams
-                    )
-                  : 0,
-                "float"
-              )} */}
-            </Text>
+            <Text fontSize="sm" align={"right"}></Text>
           </Box>
-          {/* <Box width={"50%"} height={"100%"} pl={2}>
-              <AutoSizer>
-                {({ height, width }) => (
-                  <div
-                    style={{
-                      height: height,
-                      width,
-                      overflowX: "auto",
-                      overflowY: "hidden",
-                      // padding: "2px 2px",
-                    }}
-                    // ref={scrollContainerRef}
-                    // onScroll={handleScroll}
-                  >
-                    <div style={{ width: totalWidth }}>
-                      <div
-                        // ref={headerRef}
-                        style={{
-                          display: "flex",
-                          position: "sticky",
-                          top: 0,
-                          zIndex: 2,
-                          backgroundColor: "white",
-                        }}
-                      >
-                        {columns.map((column) => (
-                          <div
-                            key={column.key}
-                            style={{
-                              display: "flex",
-                              width: `${column.width}px`,
-                              padding: "2px",
-                              borderBottom: "1px solid #ddd",
-                              cursor: "pointer",
-                              flexShrink: 0,
-                              justifyContent: column.align,
-                              alignItems: "center",
-                              height: "35px",
-                              fontSize: "smaller",
-                            }}
-                            onClick={() => {
-                              if (
-                                column.key === "name" ||
-                                column.key === "effect"
-                              ) {
-                                requestSort(column.key);
-                              }
-                            }}
-                          >
-                            {(column.key === "name" ||
-                              column.key === "effect") && (
-                              <Icon
-                                color={"gray"}
-                                width={2}
-                                mr={1}
-                                as={
-                                  sortConfig.key === column.key
-                                    ? sortConfig.direction === "ascending"
-                                      ? FaSortUp
-                                      : FaSortDown
-                                    : FaSort
-                                }
-                              />
-                            )}
-                            <Text fontWeight={"bold"}>{column.label}</Text>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div
-                      className={`hyperparameter-table`}
-                      style={{
-                        height: height,
-                        overflowY: "scroll",
-                        overflowX: "hidden",
-                        position: "relative",
-                      }}
-                    >
-                      {sortedData.map((item, index) => (
-                        <Row key={item.id} item={item} index={index} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </AutoSizer>
-            </Box> */}
+          <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
+            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
+              Silhouette Coefficient (Hyperparameter)
+            </Text>
+            <Text fontSize="sm" align={"right"}></Text>
+          </Box>
         </Box>
       ) : (
         <Text fontSize="md">

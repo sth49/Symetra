@@ -14,16 +14,6 @@ const Heatmap = () => {
 
   const [result, setResult] = useState(null);
 
-  // const heatmapData = useMemo(() => {
-  //   if (currentSelectedGroup) {
-  //     return calculateCorrelation(
-  //       currentSelectedGroup.trials,
-  //       exp.hyperparams[5],
-  //       exp.hyperparams[2]
-  //     );
-  //   }
-  // }, [currentSelectedGroup, exp.hyperparams]);
-
   useEffect(() => {
     if (currentSelectedGroup) {
       const result = calculateCorrelation(
@@ -35,13 +25,11 @@ const Heatmap = () => {
     }
   }, [currentSelectedGroup, exp.hyperparams]);
 
-  // console.log(heatmapData);
-
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Heatmap
+          Intra Group Correlation
         </Heading>
       </Box>
       <Box height={`calc(100% - 35px)`}>

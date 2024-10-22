@@ -111,6 +111,75 @@ export class Hyperparam {
     return effect;
   }
 
+  getPositiveEffect(trialIds: number[] = []): number {
+    // shapValues 배열의 양수 합 계산
+    if (trialIds.length > 0) {
+      const effect = trialIds.reduce(
+        (acc, currentValue) => acc + Math.max(0, this.shapValues[currentValue]),
+        0
+      );
+      if (isNaN(effect)) {
+        return 0;
+      }
+
+      const count = trialIds.reduce(
+        (acc, currentValue) =>
+          acc + (this.shapValues[currentValue] > 0 ? 1 : 0),
+        0
+      );
+
+      return effect / count;
+    }
+    const effect = this.shapValues.reduce(
+      (acc, currentValue) => acc + Math.max(0, currentValue),
+      0
+    );
+    if (isNaN(effect)) {
+      return 0;
+    }
+
+    const count = this.shapValues.reduce(
+      (acc, currentValue) => acc + (currentValue > 0 ? 1 : 0),
+      0
+    );
+    return effect / count;
+  }
+
+  getNegativeEffect(trialIds: number[] = []): number {
+    // shapValues 배열의 음수 합 계산
+    if (trialIds.length > 0) {
+      const effect = trialIds.reduce(
+        (acc, currentValue) => acc + Math.min(0, this.shapValues[currentValue]),
+        0
+      );
+      if (isNaN(effect)) {
+        return 0;
+      }
+
+      const count = trialIds.reduce(
+        (acc, currentValue) =>
+          acc + (this.shapValues[currentValue] < 0 ? 1 : 0),
+        0
+      );
+
+      return effect / count;
+    }
+    const effect = this.shapValues.reduce(
+      (acc, currentValue) => acc + Math.min(0, currentValue),
+      0
+    );
+    if (isNaN(effect)) {
+      return 0;
+    }
+
+    const count = this.shapValues.reduce(
+      (acc, currentValue) => acc + (currentValue < 0 ? 1 : 0),
+      0
+    );
+
+    return effect / count;
+  }
+
   toggleVisible() {
     // console.log("toggleVisible");
     this.visible = !this.visible;
@@ -207,8 +276,8 @@ export class ContinuousHyperparam extends Hyperparam {
           (value >= bin.x0 && value < bin.x1) ||
           (i === this.binCount - 1 && value === xMax)
         ) {
-          // binShapValues.push(this.shapValues[j]);
-          binShapValues.push(Math.abs(this.shapValues[j]));
+          binShapValues.push(this.shapValues[j]);
+          // binShapValues.push(Math.abs(this.shapValues[j]));
         }
       });
       effectsByValue[
@@ -284,7 +353,8 @@ export class CategoricalHyperparam extends Hyperparam {
       effectsByValue[value] = [];
       this.shapValues.forEach((val, index) => {
         if (this.values[index] === value) {
-          effectsByValue[value].push(Math.abs(val));
+          // effectsByValue[value].push(Math.abs(val));
+          effectsByValue[value].push(val);
         }
       });
     });
