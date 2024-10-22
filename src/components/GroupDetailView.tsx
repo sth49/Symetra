@@ -119,8 +119,8 @@ const GroupDetailView = () => {
       // );
       calculateCorrelation(
         currentSelectedGroup.trials,
-        exp.hyperparams[6],
-        exp.hyperparams[11]
+        exp.hyperparams[5],
+        exp.hyperparams[2]
       );
     }
   }, [currentSelectedGroup]);
