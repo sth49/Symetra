@@ -22,7 +22,7 @@ const TrialView = () => {
         justifyContent={"space-between"}
         alignItems={"center"}
       >
-        <Heading as="h5" size="sm" color="gray.600" p={2}>
+        <Heading as="h5" size="sm" color="gray.600" p={2} userSelect={"none"}>
           Trial View ({formatting(exp.trials.length, "int")} Trials)
         </Heading>
         <FormControl
@@ -32,7 +32,7 @@ const TrialView = () => {
           width="140px"
         >
           <FormLabel htmlFor="metric-switch" mb={0}>
-            <Text fontSize="xs" color="gray.600">
+            <Text fontSize="xs" color="gray.600" userSelect={"none"}>
               Show controls
             </Text>
           </FormLabel>

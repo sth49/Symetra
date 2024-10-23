@@ -82,3 +82,19 @@ export function decimalToBinary(decimal: bigint, bitLength: number): string {
   const binary = decimal.toString(2);
   return binary.padStart(bitLength, "0");
 }
+
+export function rgbaFromHex(hex: string, opacity: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+export function hexToRgb(hex: string): number[] {
+  // HEX에서 # 제거
+  const cleanHex = hex.replace("#", "");
+
+  // RGB 값 추출
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+
+  return [r, g, b];
+}

@@ -12,7 +12,7 @@ import {
 import { useCustomStore } from "../store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
-import { formatting } from "../model/utils";
+import { formatting, hexToRgb } from "../model/utils";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
 import BarChart from "./BarChart";
@@ -232,10 +232,12 @@ const GroupDetailView = () => {
                 Mean CVRG
               </Text>
               <Badge
-                backgroundColor={colorScale(
-                  metricScale(currentSelectedGroup.getStats().avg)
-                )}
-                color={"white"}
+                backgroundColor={`rgba(${hexToRgb(
+                  colorScale(metricScale(currentSelectedGroup.getStats().avg))
+                ).join(", ")}, 0.5)`}
+                color={"black"}
+                display={"flex"}
+                alignItems={"center"}
               >
                 {formatting(currentSelectedGroup.getStats().avg, "float")}
               </Badge>

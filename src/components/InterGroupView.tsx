@@ -13,7 +13,7 @@ import { Tooltip } from "@chakra-ui/react";
 import { GrRadialSelected } from "react-icons/gr";
 import { MdPushPin } from "react-icons/md";
 import { FaLightbulb } from "react-icons/fa";
-const GroupComparisonView = () => {
+const InterGroupView = () => {
   const { hyperparams, exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -68,8 +68,12 @@ const GroupComparisonView = () => {
       fullName: hp.name,
       displayName: hp.displayName,
       group1: hp.getEffect(trialIds1),
+      group1Positive: hp.getPositiveEffect(trialIds1),
+      group1Negative: hp.getNegativeEffect(trialIds1),
       trialIds1: trialIds1,
       group2: hp.getEffect(trialIds2),
+      group2Positive: hp.getPositiveEffect(trialIds2),
+      group2Negative: hp.getNegativeEffect(trialIds2),
       trialIds2: trialIds2,
       dist: hp.name,
       type: hp.type,
@@ -114,9 +118,9 @@ const GroupComparisonView = () => {
             borderBottom: "1px solid #ddd",
           }}
         >
-          <Box width={"15%"}></Box>
+          <Box width={"20%"}></Box>
 
-          <Box width={"37%"} display={"flex"} justifyContent={"center"}>
+          <Box width={"35%"} display={"flex"} justifyContent={"center"}>
             <Text
               align={"center"}
               fontWeight={"bold"}
@@ -129,9 +133,8 @@ const GroupComparisonView = () => {
               {currentSelectedGroup ? currentSelectedGroup.name : "None"}
             </Text>
           </Box>
-          <Box width={"37%"} display={"flex"} justifyContent={"center"}>
+          <Box width={"35%"} display={"flex"} justifyContent={"center"}>
             <Select
-              width={"75%"}
               value={group2 ? group2.id.toString() : ""}
               size={"sm"}
               onChange={(e) => {
@@ -160,35 +163,81 @@ const GroupComparisonView = () => {
           }}
         >
           <div style={{ height: "90%", width: "100%", position: "relative" }}>
-            {stats &&
-              Object.keys(stats).map((key) => (
+            {stats && (
+              <>
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
+                    padding: "5px 0 ",
                   }}
                 >
-                  <Box width={"15%"}>
+                  <Box width={"20%"}>
                     <Text align={"left"} fontSize={"sm"}>
-                      {key} cvrg
+                      Mean CVRG
                     </Text>
                   </Box>
-                  <Box width={"37%"}>
+                  <Box width={"35%"}>
                     <Text align={"center"} fontSize={"sm"}>
-                      {formatting(stats[key].group1, stats[key].type)}
+                      {formatting(stats["mean"].group1, stats["mean"].type)}
                     </Text>
                   </Box>
 
-                  <Box width={"37%"}>
+                  <Box width={"35%"}>
                     <Text align={"center"} fontSize={"sm"}>
-                      {formatting(stats[key].group2, stats[key].type)}
+                      {formatting(stats["mean"].group2, stats["mean"].type)}
                     </Text>
                   </Box>
-                  <Box width={"10%"}>
-                    <Text align={"center"}></Text>
+                  <Box width={"10%"} display={"flex"} justifyContent={"center"}>
+                    {/* <Text align={"center"}></Text> */}
+                    <IconButton
+                      size={"xs"}
+                      icon={
+                        "cvrg" === expander ? (
+                          <Icon as={FaAngleDown} color={"gray.500"} />
+                        ) : (
+                          <Icon as={FaAngleUp} color={"gray.500"} />
+                        )
+                      }
+                      onClick={() => {
+                        if (expander === "cvrg") {
+                          setExpander("");
+                        } else {
+                          setExpander("cvrg");
+                        }
+                      }}
+                      aria-label={""}
+                    />
                   </Box>
                 </div>
-              ))}
+                {expander === "cvrg" &&
+                  ["min", "max"].map((key) => (
+                    <div
+                      style={{
+                        backgroundColor: "#f9f9f9",
+                        padding: "5px 0",
+                      }}
+                    >
+                      <Box width={"100%"} display={"flex"}>
+                        <Box width={"20%"}>
+                          <Text fontSize={"sm"}>{key.toUpperCase()} CVRG</Text>
+                        </Box>
+
+                        <Box width={"35%"}>
+                          <Text align={"center"} fontSize={"sm"}>
+                            {formatting(stats[key].group1, "int")}
+                          </Text>
+                        </Box>
+                        <Box width={"35%"}>
+                          <Text align={"center"} fontSize={"sm"}>
+                            {formatting(stats[key].group2, "int")}
+                          </Text>
+                        </Box>
+                      </Box>
+                    </div>
+                  ))}
+              </>
+            )}
 
             <div style={{ height: "90%", width: "100%", position: "relative" }}>
               {data &&
@@ -201,7 +250,7 @@ const GroupComparisonView = () => {
                           display: "flex",
                         }}
                       >
-                        <Box width={"15%"}>
+                        <Box width={"20%"}>
                           <Tooltip label={d.fullName}>
                             <Text
                               display={"flex"}
@@ -219,7 +268,7 @@ const GroupComparisonView = () => {
                           </Tooltip>
                         </Box>
                         <Box
-                          width={"37%"}
+                          width={"35%"}
                           display={"flex"}
                           justifyContent={"space-around"}
                           alignItems={"center"}
@@ -233,9 +282,8 @@ const GroupComparisonView = () => {
                         </Box>
 
                         <Box
-                          width={"37%"}
+                          width={"35%"}
                           display={"flex"}
-                          // justifyContent={"space-around"}
                           justifyContent={"center"}
                           alignItems={"center"}
                         >
@@ -275,6 +323,7 @@ const GroupComparisonView = () => {
                         <div
                           style={{
                             backgroundColor: "#f9f9f9",
+                            padding: "5px 0",
                           }}
                         >
                           <Box
@@ -282,19 +331,21 @@ const GroupComparisonView = () => {
                             display={"flex"}
                             alignItems={"center"}
                           >
-                            <Box width={"37%"}>
+                            <Box width={"20%"}>
+                              <Text fontSize={"sm"}>Effect (+/-)</Text>
+                            </Box>
+
+                            <Box width={"35%"}>
                               <Text align={"center"} fontSize={"sm"}>
-                                {formatting(d.group1, "float")}
+                                {formatting(d.group1Positive, "float")} /{" "}
+                                {formatting(d.group1Negative, "float")}
                               </Text>
                             </Box>
-                            <Box width={"15%"}>
+
+                            <Box width={"35%"}>
                               <Text align={"center"} fontSize={"sm"}>
-                                Effect
-                              </Text>
-                            </Box>
-                            <Box width={"37%"}>
-                              <Text align={"center"} fontSize={"sm"}>
-                                {formatting(d.group2, "float")}
+                                {formatting(d.group2Positive, "float")} /{" "}
+                                {formatting(d.group2Negative, "float")}
                               </Text>
                             </Box>
                           </Box>
@@ -310,4 +361,4 @@ const GroupComparisonView = () => {
   );
 };
 
-export default memo(GroupComparisonView);
+export default memo(InterGroupView);

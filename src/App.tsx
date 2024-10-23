@@ -12,8 +12,8 @@ import theme from "./theme";
 import GroupDetailView from "./components/GroupDetailView";
 import { useConstDataStore } from "./components/store/constDataStore";
 import TrialView from "./components/TrialView";
-import GroupComparisonView from "./components/GroupComparisonView";
-import Heatmap from "./components/Heatmap";
+import InterGroupView from "./components/InterGroupView";
+import IntraGroupView from "./components/IntraGroupView";
 function App() {
   const { exp, setExp, setHyperparams } = useConstDataStore();
 
@@ -108,10 +108,10 @@ function App() {
                       <GroupDetailView />
                     </Box>
                     <Box height={"20%"} m={0.5} bg="white" mr={1}>
-                      <Heatmap />
+                      <IntraGroupView />
                     </Box>
                     <Box height={"calc(49% - 8px)"} m={0.5} bg="white" mr={1}>
-                      <GroupComparisonView />
+                      <InterGroupView />
                     </Box>
                   </Box>
                 </Box>

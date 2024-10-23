@@ -9,8 +9,8 @@ export function calculateCorrelation(
   const values1 = groupTrials.map((trial) => trial.params[param1.name]);
   const values2 = groupTrials.map((trial) => trial.params[param2.name]);
 
-  console.log(param1, param2);
-  console.log(values1, values2);
+  //   console.log(param1, param2);
+  //   console.log(values1, values2);
 
   if (
     param1.type === HyperparamTypes.Continuous &&
@@ -24,60 +24,15 @@ export function calculateCorrelation(
     param1.type === HyperparamTypes.Binary &&
     param2.type === HyperparamTypes.Binary
   ) {
-    // const table = calculateContingencyTable(
-    //   groupTrials,
-    //   param1.name,
-    //   param2.name
-    // );
-    // console.log(table);
-    // const { phiCoefficient, chiSquare } = calculateCorrelationMetrics(table);
-    // // 백분율 계산
-    // console.log(phiCoefficient, chiSquare);
-    // const percentages = calculatePercentages(table);
-    // console.log(percentages);
-
     const result = calculateCombinationCorrelations(
       groupTrials,
       param1.name,
       param2.name
     );
-    console.log(result);
+    // console.log(result);
 
     return result;
   }
-  //   } else if (
-  //     (param1.type === HyperparamTypes.Nominal ||
-  //       param1.type === HyperparamTypes.Binary) &&
-  //     (param2.type === HyperparamTypes.Nominal ||
-  //       param2.type === HyperparamTypes.Binary)
-  //   ) {
-  //     console.log("calculateCramerV");
-  //     return calculateCramerV(values1, values2);
-  //   } else if (
-  //     param1.type === HyperparamTypes.Continuous &&
-  //     (param2.type === HyperparamTypes.Nominal ||
-  //       param2.type === HyperparamTypes.Binary)
-  //   ) {
-  //     return calculateEtaCorrelation(values1 as number[], values2);
-  //   } else if (
-  //     (param1.type === HyperparamTypes.Nominal ||
-  //       param1.type === HyperparamTypes.Binary) &&
-  //     param2.type === HyperparamTypes.Continuous
-  //   ) {
-  //     return calculateEtaCorrelation(values2 as number[], values1);
-  //   } else if (
-  //     param1.type === HyperparamTypes.Ordinal &&
-  //     param2.type === HyperparamTypes.Ordinal
-  //   ) {
-  //     return calculateSpearmanCorrelation(
-  //       values1 as number[],
-  //       values2 as number[]
-  //     );
-  //   } else {
-  //     throw new Error(
-  //       "Unsupported parameter type combination for correlation calculation"
-  //     );
-  //   }
 }
 
 export function calculateCombinationCorrelations(
@@ -93,8 +48,6 @@ export function calculateCombinationCorrelations(
     ff: trials.map((trial) => !trial.params[param1] && !trial.params[param2]),
   };
 
-  console.log(combinations);
-
   // 성능 메트릭 벡터
   const metrics = trials.map((trial) => trial.metric);
 
@@ -106,6 +59,7 @@ export function calculateCombinationCorrelations(
     ff: calculatePointBiserialCorrelation(combinations.ff, metrics),
   };
 
+  (correlations.tt + correlations.tf + correlations.ft + correlations.ff) / 4;
   // 각 조합에 대한 추가 통계
   const statistics = {
     tt: calculateCombinationStatistics(combinations.tt, metrics),
@@ -114,7 +68,67 @@ export function calculateCombinationCorrelations(
     ff: calculateCombinationStatistics(combinations.ff, metrics),
   };
 
-  return { correlations, statistics };
+  // 가중 평균을 사용한 total correlation 계산
+  const totalCorrelation = calculateTotalCorrelation(
+    combinations,
+    correlations
+  );
+
+  return { correlations, statistics, totalCorrelation };
+}
+
+function calculateTotalCorrelation(
+  combinations: Record<string, boolean[]>,
+  correlations: Record<string, number>
+): number {
+  // 각 조합의 샘플 크기 계산
+  const sampleSizes = Object.entries(combinations).reduce(
+    (acc, [key, values]) => {
+      acc[key] = values.filter((v) => v).length;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  // 전체 샘플 크기
+  const totalSamples = Object.values(sampleSizes).reduce((a, b) => a + b, 0);
+
+  if (totalSamples === 0) return 0;
+
+  // Fisher's z-transformation을 사용한 가중 평균 계산
+  let weightedSum = 0;
+  let weightSum = 0;
+
+  Object.entries(correlations).forEach(([key, correlation]) => {
+    const n = sampleSizes[key];
+    if (n > 0) {
+      // Fisher's z-transformation
+      const z = fisherZ(correlation);
+      // n-3을 가중치로 사용 (Fisher's z의 표준 오차의 역수)
+      const weight = n - 3;
+      if (weight > 0) {
+        weightedSum += z * weight;
+        weightSum += weight;
+      }
+    }
+  });
+
+  // 역변환하여 최종 상관계수 계산
+  return weightSum > 0 ? fisherZInverse(weightedSum / weightSum) : 0;
+}
+
+// Fisher's z-transformation
+function fisherZ(r: number): number {
+  // 상관계수가 -1이나 1인 경우 처리
+  if (r >= 1) return 1.8; // 근사값
+  if (r <= -1) return -1.8; // 근사값
+  return 0.5 * Math.log((1 + r) / (1 - r));
+}
+
+// Fisher's z-transformation의 역변환
+function fisherZInverse(z: number): number {
+  const exp2z = Math.exp(2 * z);
+  return (exp2z - 1) / (exp2z + 1);
 }
 
 function calculatePointBiserialCorrelation(

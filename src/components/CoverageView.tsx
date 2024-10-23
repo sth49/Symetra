@@ -556,7 +556,6 @@ const CoverageView: React.FC = () => {
                   {thresholdRanges.map((range, i) => (
                     <React.Fragment key={`legend-${i}`}>
                       <rect
-                        // x={svgRect.width - legendWidth - 30}
                         x={10}
                         y={
                           i * (legendHeight / numThresholds) + legendMargin.top
@@ -573,6 +572,9 @@ const CoverageView: React.FC = () => {
                           (i + 0.6) * (legendHeight / numThresholds) +
                           legendMargin.top
                         }
+                        style={{
+                          userSelect: "none",
+                        }}
                         fontSize="12"
                         textAnchor="start"
                         dominantBaseline="middle"
@@ -592,6 +594,9 @@ const CoverageView: React.FC = () => {
                     textAnchor="start"
                     fontWeight="bold"
                     fill="#4A5568"
+                    style={{
+                      userSelect: "none",
+                    }}
                   >
                     Coverage
                   </text>
@@ -657,6 +662,9 @@ const CoverageView: React.FC = () => {
                                       ?.scale.domain().length) +
                                 legendMargin.top
                               }
+                              style={{
+                                userSelect: "none",
+                              }}
                               fontSize="12"
                               textAnchor="start"
                               dominantBaseline="middle"
@@ -732,6 +740,9 @@ const CoverageView: React.FC = () => {
                                           fontSize="12"
                                           textAnchor="middle"
                                           fill="#4A5568"
+                                          style={{
+                                            userSelect: "none",
+                                          }}
                                         >
                                           {oneDecimalFormat(value)}
                                         </text>
