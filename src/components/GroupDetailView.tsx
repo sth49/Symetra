@@ -247,13 +247,31 @@ const GroupDetailView = () => {
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
               Silhouette Coefficient (Branch)
             </Text>
-            <Text fontSize="sm" align={"right"}></Text>
+            <Text fontSize="sm" align={"right"}>
+              {formatting(
+                getBranchSilhouetteCoefficient(
+                  exp.trials,
+                  currentSelectedGroup.trials,
+                  exp.metric.totalBranch
+                ),
+                "float"
+              )}
+            </Text>
           </Box>
           <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
               Silhouette Coefficient (Hyperparameter)
             </Text>
-            <Text fontSize="sm" align={"right"}></Text>
+            <Text fontSize="sm" align={"right"}>
+              {formatting(
+                getAttributeSilhouetteCoefficient(
+                  exp.trials,
+                  currentSelectedGroup.trials,
+                  exp.hyperparams
+                ),
+                "float"
+              )}
+            </Text>
           </Box>
         </Box>
       ) : (

@@ -253,6 +253,16 @@ const TrialGroupView = () => {
           cx={node.x}
           cy={node.y}
           fill={colorScale(metricScale(Number(node.stats.avg)))}
+          stroke={
+            currnetSelectedGroup && currnetSelectedGroup.id === node.id
+              ? "black"
+              : "none"
+          }
+          strokeDasharray={
+            currnetSelectedGroup && currnetSelectedGroup.id === node.id
+              ? "5,5"
+              : "none"
+          }
         />
         <text
           style={{ userSelect: "none" }}

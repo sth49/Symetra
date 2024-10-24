@@ -78,12 +78,13 @@ const InterGroupView = () => {
       dist: hp.name,
       type: hp.type,
       icon: hp.icon,
-      pValue: performStatisticalTest(
-        currentSelectedGroup.getHyperparam(hp.name),
-        group2.getHyperparam(hp.name),
-        hp.type,
-        hp
-      ).pValue,
+      pValue:
+        performStatisticalTest(
+          currentSelectedGroup.getHyperparam(hp.name),
+          group2.getHyperparam(hp.name),
+          hp.type,
+          hp
+        ).pValue || 1,
     }));
   }, [currentSelectedGroup, exp, group2]);
 
@@ -243,116 +244,119 @@ const InterGroupView = () => {
               {data &&
                 data
                   .sort((a, b) => a.pValue - b.pValue)
-                  .map((d) => (
-                    <>
-                      <div
-                        style={{
-                          display: "flex",
-                        }}
-                      >
-                        <Box width={"20%"}>
-                          <Tooltip label={d.fullName}>
-                            <Text
-                              display={"flex"}
-                              justifyContent={"left"}
-                              fontSize={"sm"}
-                              alignItems={"center"}
-                              userSelect={"none"}
-                            >
-                              {d.pValue < 0.05 && (
-                                <StarIcon color={"yellow.400"} mr={2} />
-                              )}
-                              <Icon as={d.icon} mr={1} color={"gray.600"} />
-                              {d.name}
-                            </Text>
-                          </Tooltip>
-                        </Box>
-                        <Box
-                          width={"35%"}
-                          display={"flex"}
-                          justifyContent={"space-around"}
-                          alignItems={"center"}
-                        >
-                          <BarChart
-                            dist={d.dist}
-                            trialIds={d.trialIds1}
-                            width={90}
-                            height={30}
-                          />
-                        </Box>
-
-                        <Box
-                          width={"35%"}
-                          display={"flex"}
-                          justifyContent={"center"}
-                          alignItems={"center"}
-                        >
-                          <BarChart
-                            dist={d.dist}
-                            trialIds={d.trialIds2}
-                            width={90}
-                            height={30}
-                          />
-                        </Box>
-                        <Box
-                          width={"10%"}
-                          display={"flex"}
-                          justifyContent={"center"}
-                        >
-                          <IconButton
-                            size={"xs"}
-                            icon={
-                              d.fullName === expander ? (
-                                <Icon as={FaAngleDown} color={"gray.500"} />
-                              ) : (
-                                <Icon as={FaAngleUp} color={"gray.500"} />
-                              )
-                            }
-                            onClick={() => {
-                              if (expander === d.fullName) {
-                                setExpander("");
-                              } else {
-                                setExpander(d.fullName);
-                              }
-                            }}
-                            aria-label={""}
-                          />
-                        </Box>
-                      </div>
-                      {expander === d.fullName && (
+                  .map((d) => {
+                    console.log(d.displayName, d.pValue);
+                    return (
+                      <>
                         <div
                           style={{
-                            backgroundColor: "#f9f9f9",
-                            padding: "5px 0",
+                            display: "flex",
                           }}
                         >
+                          <Box width={"20%"}>
+                            <Tooltip label={d.fullName}>
+                              <Text
+                                display={"flex"}
+                                justifyContent={"left"}
+                                fontSize={"sm"}
+                                alignItems={"center"}
+                                userSelect={"none"}
+                              >
+                                {d.pValue < 0.05 && (
+                                  <StarIcon color={"yellow.400"} mr={2} />
+                                )}
+                                <Icon as={d.icon} mr={1} color={"gray.600"} />
+                                {d.name}
+                              </Text>
+                            </Tooltip>
+                          </Box>
                           <Box
-                            width={"100%"}
+                            width={"35%"}
                             display={"flex"}
+                            justifyContent={"space-around"}
                             alignItems={"center"}
                           >
-                            <Box width={"20%"}>
-                              <Text fontSize={"sm"}>Effect (+/-)</Text>
-                            </Box>
+                            <BarChart
+                              dist={d.dist}
+                              trialIds={d.trialIds1}
+                              width={90}
+                              height={30}
+                            />
+                          </Box>
 
-                            <Box width={"35%"}>
-                              <Text align={"center"} fontSize={"sm"}>
-                                {formatting(d.group1Positive, "float")} /{" "}
-                                {formatting(d.group1Negative, "float")}
-                              </Text>
-                            </Box>
-
-                            <Box width={"35%"}>
-                              <Text align={"center"} fontSize={"sm"}>
-                                {formatting(d.group2Positive, "float")} /{" "}
-                                {formatting(d.group2Negative, "float")}
-                              </Text>
-                            </Box>
+                          <Box
+                            width={"35%"}
+                            display={"flex"}
+                            justifyContent={"center"}
+                            alignItems={"center"}
+                          >
+                            <BarChart
+                              dist={d.dist}
+                              trialIds={d.trialIds2}
+                              width={90}
+                              height={30}
+                            />
+                          </Box>
+                          <Box
+                            width={"10%"}
+                            display={"flex"}
+                            justifyContent={"center"}
+                          >
+                            <IconButton
+                              size={"xs"}
+                              icon={
+                                d.fullName === expander ? (
+                                  <Icon as={FaAngleDown} color={"gray.500"} />
+                                ) : (
+                                  <Icon as={FaAngleUp} color={"gray.500"} />
+                                )
+                              }
+                              onClick={() => {
+                                if (expander === d.fullName) {
+                                  setExpander("");
+                                } else {
+                                  setExpander(d.fullName);
+                                }
+                              }}
+                              aria-label={""}
+                            />
                           </Box>
                         </div>
-                      )}
-                    </>
-                  ))}
+                        {expander === d.fullName && (
+                          <div
+                            style={{
+                              backgroundColor: "#f9f9f9",
+                              padding: "5px 0",
+                            }}
+                          >
+                            <Box
+                              width={"100%"}
+                              display={"flex"}
+                              alignItems={"center"}
+                            >
+                              <Box width={"20%"}>
+                                <Text fontSize={"sm"}>Effect (+/-)</Text>
+                              </Box>
+
+                              <Box width={"35%"}>
+                                <Text align={"center"} fontSize={"sm"}>
+                                  {formatting(d.group1Positive, "float")} /{" "}
+                                  {formatting(d.group1Negative, "float")}
+                                </Text>
+                              </Box>
+
+                              <Box width={"35%"}>
+                                <Text align={"center"} fontSize={"sm"}>
+                                  {formatting(d.group2Positive, "float")} /{" "}
+                                  {formatting(d.group2Negative, "float")}
+                                </Text>
+                              </Box>
+                            </Box>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })}
             </div>
           </div>
         </div>
