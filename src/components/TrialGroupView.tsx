@@ -383,9 +383,7 @@ const TrialGroupView = () => {
             overflow={"auto"}
           >
             <svg
-              // width={width}
               width={"100%"}
-              // height={"100%"}
               height={
                 groups.getLength() > 6
                   ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
@@ -495,7 +493,6 @@ const TrialGroupView = () => {
                   align={"left"}
                   mb={1}
                   fontSize={"12px"}
-                  // wordBreak={"break-all"}
                   wordBreak="break-word"
                   overflowWrap="break-word"
                   whiteSpace="normal"

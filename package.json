@@ -29,6 +29,7 @@
     "@types/react-virtualized-auto-sizer": "^1.0.4",
     "@types/react-window": "^1.8.8",
     "@visx/axis": "^3.10.1",
+    "@visx/event": "^3.3.0",
     "@visx/group": "^3.3.0",
     "@visx/heatmap": "^3.3.0",
     "@visx/hierarchy": "^3.3.0",

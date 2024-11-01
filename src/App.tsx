@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import trialData from "./data/ParaSuit_encoded.json";
+import trialData from "./data/ParaSuit.json";
 import configData from "./data/config.json";
 import { Experiment } from "./model/experiment";
 import "./App.css";
@@ -104,10 +104,10 @@ function App() {
                     <Box height={"20%"} m={0.5} bg="white" mr={1} mb={0}>
                       <TrialGroupView />
                     </Box>
-                    <Box height={"10%"} m={0.5} bg="white" mr={1} mt={0}>
+                    <Box height={"7%"} m={0.5} bg="white" mr={1} mt={0}>
                       <GroupDetailView />
                     </Box>
-                    <Box height={"20%"} m={0.5} bg="white" mr={1}>
+                    <Box height={"23%"} m={0.5} bg="white" mr={1}>
                       <IntraGroupView />
                     </Box>
                     <Box height={"calc(49% - 8px)"} m={0.5} bg="white" mr={1}>

@@ -13,6 +13,7 @@ import { Tooltip } from "@chakra-ui/react";
 import { GrRadialSelected } from "react-icons/gr";
 import { MdPushPin } from "react-icons/md";
 import { FaLightbulb } from "react-icons/fa";
+import { FaAsterisk } from "react-icons/fa";
 const InterGroupView = () => {
   const { hyperparams, exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -68,12 +69,12 @@ const InterGroupView = () => {
       fullName: hp.name,
       displayName: hp.displayName,
       group1: hp.getEffect(trialIds1),
-      group1Positive: hp.getPositiveEffect(trialIds1),
-      group1Negative: hp.getNegativeEffect(trialIds1),
+      // group1Positive: hp.getPositiveEffect(trialIds1),
+      // group1Negative: hp.getNegativeEffect(trialIds1),
       trialIds1: trialIds1,
       group2: hp.getEffect(trialIds2),
-      group2Positive: hp.getPositiveEffect(trialIds2),
-      group2Negative: hp.getNegativeEffect(trialIds2),
+      // group2Positive: hp.getPositiveEffect(trialIds2),
+      // group2Negative: hp.getNegativeEffect(trialIds2),
       trialIds2: trialIds2,
       dist: hp.name,
       type: hp.type,
@@ -263,7 +264,12 @@ const InterGroupView = () => {
                                 userSelect={"none"}
                               >
                                 {d.pValue < 0.05 && (
-                                  <StarIcon color={"yellow.400"} mr={2} />
+                                  // <StarIcon color={"yellow.400"} mr={2} />
+                                  <Icon
+                                    as={FaAsterisk}
+                                    color={"red.600"}
+                                    mr={1}
+                                  />
                                 )}
                                 <Icon as={d.icon} mr={1} color={"gray.600"} />
                                 {d.name}
@@ -340,15 +346,18 @@ const InterGroupView = () => {
 
                               <Box width={"35%"}>
                                 <Text align={"center"} fontSize={"sm"}>
-                                  {formatting(d.group1Positive, "float")} /{" "}
-                                  {formatting(d.group1Negative, "float")}
+                                  {formatting(d.group1, "float")}
+
+                                  {/* {formatting(d.group1Positive, "float")} /{" "}
+                                  {formatting(d.group1Negative, "float")} */}
                                 </Text>
                               </Box>
 
                               <Box width={"35%"}>
                                 <Text align={"center"} fontSize={"sm"}>
-                                  {formatting(d.group2Positive, "float")} /{" "}
-                                  {formatting(d.group2Negative, "float")}
+                                  {formatting(d.group2, "float")}
+                                  {/* {formatting(d.group2Positive, "float")} /{" "}
+                                  {formatting(d.group2Negative, "float")} */}
                                 </Text>
                               </Box>
                             </Box>

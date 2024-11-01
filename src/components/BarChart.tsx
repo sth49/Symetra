@@ -23,6 +23,7 @@ type TooltipData = {
 interface BarChartProps {
   dist: string;
   trialIds: number[];
+  viewType?: string;
   width: number;
   height: number;
   // margin: { top: number; right: number; bottom: number; left: number };
@@ -31,6 +32,7 @@ interface BarChartProps {
 const BarChart = ({
   dist,
   trialIds = [],
+  viewType = "inter",
   width = 50,
   height = 40,
 }: BarChartProps) => {
@@ -84,7 +86,7 @@ const BarChart = ({
         ? (a, b) => Number(a) - Number(b)
         : undefined
     );
-    const count = data.reduce((acc, cur) => {
+    const count = data.reduce((acc: { [key: string]: number }, cur) => {
       acc[cur as keyof typeof acc] = (acc[cur as keyof typeof acc] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
@@ -167,6 +169,7 @@ const BarChart = ({
                 onMouseLeave={hideTooltip}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (viewType !== "hparam") return;
                   if (clickedHparamValue?.name === dist) {
                     if (clickedHparamValue?.value[0] === bin.x0) {
                       setClickedHparamValue(null);
@@ -186,37 +189,39 @@ const BarChart = ({
               />
             </>
           ))}
-          {bins2.map((bin, i) => (
-            <Bar
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("1");
-                if (clickedHparamValue?.name === dist) {
-                  if (clickedHparamValue?.value[0] === bin.x0) {
-                    setClickedHparamValue(null);
+          {viewType === "hparam" &&
+            bins2.map((bin, i) => (
+              <Bar
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (viewType !== "hparam") return;
+
+                  if (clickedHparamValue?.name === dist) {
+                    if (clickedHparamValue?.value[0] === bin.x0) {
+                      setClickedHparamValue(null);
+                    } else {
+                      setClickedHparamValue({
+                        name: dist,
+                        value: [bin.x0],
+                      });
+                    }
                   } else {
                     setClickedHparamValue({
                       name: dist,
                       value: [bin.x0],
                     });
                   }
-                } else {
-                  setClickedHparamValue({
-                    name: dist,
-                    value: [bin.x0],
-                  });
-                }
-              }}
-              key={i}
-              x={xScale(bin.x0)}
-              y={yScale(Number(bin.count))}
-              width={xScale.bandwidth()}
-              height={height - margin.bottom - yScale(Number(bin.count))}
-              fill={"url(#pattern)"}
-              opacity={1}
-              stroke="#030f1b"
-            />
-          ))}
+                }}
+                key={i}
+                x={xScale(bin.x0)}
+                y={yScale(Number(bin.count))}
+                width={xScale.bandwidth()}
+                height={height - margin.bottom - yScale(Number(bin.count))}
+                fill={"url(#pattern)"}
+                opacity={1}
+                stroke="#030f1b"
+              />
+            ))}
           <PatternLines
             id="pattern"
             height={5}
@@ -318,11 +323,7 @@ const BarChart = ({
       });
     };
     const bins2 = calculateOverlayBins();
-    // if (hparam.displayName === "MSAS") {
-    //   console.log("sf");
-    //   console.log(bins);
-    //   console.log(bins2);
-    // }
+
     return (
       <Box display="flex" justifyContent="center" alignItems="center">
         <svg width={width} height={height}>
@@ -366,6 +367,8 @@ const BarChart = ({
                 onMouseLeave={hideTooltip}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (viewType !== "hparam") return;
+
                   if (clickedHparamValue?.name === dist) {
                     if (clickedHparamValue?.value[0] === bin.x0) {
                       setClickedHparamValue(null);
@@ -385,36 +388,39 @@ const BarChart = ({
               />
             </>
           ))}
-          {bins2.map((bin, i) => (
-            <Bar
-              key={i}
-              x={xScale(Number(bin.x0))}
-              y={yScale(Number(bin.count))}
-              width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
-              height={height - margin.bottom - yScale(Number(bin.count))}
-              fill={"url(#pattern)"}
-              opacity={1}
-              stroke="#030f1b"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (clickedHparamValue?.name === dist) {
-                  if (clickedHparamValue?.value[0] === bin.x0) {
-                    setClickedHparamValue(null);
+          {viewType === "hparam" &&
+            bins2.map((bin, i) => (
+              <Bar
+                key={i}
+                x={xScale(Number(bin.x0))}
+                y={yScale(Number(bin.count))}
+                width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
+                height={height - margin.bottom - yScale(Number(bin.count))}
+                fill={"url(#pattern)"}
+                opacity={1}
+                stroke="#030f1b"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (viewType !== "hparam") return;
+
+                  if (clickedHparamValue?.name === dist) {
+                    if (clickedHparamValue?.value[0] === bin.x0) {
+                      setClickedHparamValue(null);
+                    } else {
+                      setClickedHparamValue({
+                        name: dist,
+                        value: [bin.x0, bin.x1],
+                      });
+                    }
                   } else {
                     setClickedHparamValue({
                       name: dist,
                       value: [bin.x0, bin.x1],
                     });
                   }
-                } else {
-                  setClickedHparamValue({
-                    name: dist,
-                    value: [bin.x0, bin.x1],
-                  });
-                }
-              }}
-            />
-          ))}
+                }}
+              />
+            ))}
         </svg>
         {tooltipOpen && tooltipData && (
           <TooltipInPortal top={tooltipTop} left={tooltipLeft}>

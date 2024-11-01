@@ -35,12 +35,12 @@ export class Metric {
   constructor(
     public name: string,
     public displayName: string,
-
-    public totalBranch: number = 0
+    public totalBranch: number = 0,
+    public baseValue: number = 0
   ) {}
 
   static fromJson(json: Metric, totalBranch: number) {
-    return new Metric(json.name, json.displayName, totalBranch);
+    return new Metric(json.name, json.displayName, totalBranch, json.baseValue);
   }
 }
 
@@ -93,7 +93,8 @@ export class Hyperparam {
 
     if (trialIds.length > 0) {
       const effect = trialIds.reduce(
-        (acc, currentValue) => acc + Math.abs(this.shapValues[currentValue]),
+        // (acc, currentValue) => acc + Math.abs(this.shapValues[currentValue]),
+        (acc, currentValue) => acc + this.shapValues[currentValue],
         0
       );
       if (isNaN(effect)) {
@@ -102,13 +103,14 @@ export class Hyperparam {
       return effect;
     }
     const effect = this.shapValues.reduce(
-      (acc, currentValue) => acc + Math.abs(currentValue),
+      // (acc, currentValue) => acc + Math.abs(currentValue),
+      (acc, currentValue) => acc + currentValue,
       0
     );
     if (isNaN(effect)) {
       return 0;
     }
-    return effect;
+    return effect / this.shapValues.length;
   }
 
   getPositiveEffect(trialIds: number[] = []): number {
@@ -187,6 +189,9 @@ export class Hyperparam {
   getColorByValue(value: any): string {
     throw new Error("Method not implemented.");
   }
+  getIdsByValue() {
+    throw new Error("Method not implemented.");
+  }
   getEffectsByValue() {
     throw new Error("Method not implemented.");
   }
@@ -221,6 +226,73 @@ export class ContinuousHyperparam extends Hyperparam {
   }
   getColorByValue(value: any): string {
     return this.scale(value);
+  }
+
+  getIdsByValue() {
+    const idsByValue: { [key: string]: number[] } = {};
+
+    const isInteger = this.values.every(Number.isInteger);
+    const isSame = this.values.every((val, i, arr) => val === arr[0]);
+
+    // 값들의 최소/최대값 계산
+    const xMin = Math.min(...this.values);
+    const xMax =
+      isInteger && isSame
+        ? Math.max(...this.values) + 10
+        : isSame
+        ? xMin + 0.5
+        : Math.max(...this.values);
+
+    const xScale = scaleLinear({
+      domain: [xMin, xMax],
+      range: [0, 1],
+      nice: true,
+    });
+
+    const [niceXMin, niceXMax] = xScale.domain();
+    const xRange = niceXMax - niceXMin;
+    const binSize = xRange / this.binCount;
+
+    // 구간 범위 계산
+    const bins = Array.from({ length: this.binCount }, (_, i) => ({
+      x0: isInteger
+        ? Math.floor(xMin + i * binSize)
+        : (xMin + i * binSize).toFixed(2),
+      x1: isInteger
+        ? Math.floor(xMin + (i + 1) * binSize)
+        : (xMin + (i + 1) * binSize).toFixed(2),
+      count: 0,
+    }));
+
+    this.values.forEach((value, i) => {
+      const binIndex = Math.floor((value - niceXMin) / binSize);
+      if (binIndex >= 0 && binIndex < this.binCount) {
+        bins[binIndex].count += 1;
+      } else if (value === xMax) {
+        bins[this.binCount - 1].count += 1;
+      }
+    });
+
+    // 각 구간별 trial id 저장
+    bins.forEach((bin, i) => {
+      const binIds = [];
+      this.values.forEach((value, j) => {
+        if (
+          (value >= bin.x0 && value < bin.x1) ||
+          (i === this.binCount - 1 && value === xMax)
+        ) {
+          binIds.push(j + 1);
+        }
+      });
+      idsByValue[
+        `${formatting(Number(bin.x0), this.valueType)} ~ ${formatting(
+          Number(bin.x1),
+          this.valueType
+        )}`
+      ] = binIds;
+    });
+
+    return idsByValue;
   }
 
   getEffectsByValue() {
@@ -346,6 +418,17 @@ export class CategoricalHyperparam extends Hyperparam {
   }
   getColorByValue(value: any): string {
     return this.scale(value);
+  }
+
+  getIdsByValue() {
+    const idsByValue: { [key: string]: number[] } = {};
+    this.values.forEach((value, i) => {
+      if (idsByValue[value] === undefined) {
+        idsByValue[value] = [];
+      }
+      idsByValue[value].push(i + 1);
+    });
+    return idsByValue;
   }
   getEffectsByValue() {
     const effectsByValue: { [key: string]: number[] } = {};

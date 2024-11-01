@@ -126,20 +126,6 @@ const GroupDetailView = () => {
     }
   }, [currentSelectedGroup]);
 
-  const columns = useMemo(
-    () => [
-      { key: "name", label: "Name", width: 65, align: "left" },
-      { key: "effect", label: "Effect", width: 45, align: "right" },
-      {
-        key: "dist",
-        label: "Distribution",
-        width: 100,
-        align: "center",
-      },
-    ],
-    [exp]
-  );
-
   return (
     <Box style={{ height: "100%", width: "100%" }} p={2}>
       {currentSelectedGroup ? (
@@ -238,6 +224,7 @@ const GroupDetailView = () => {
                 color={"black"}
                 display={"flex"}
                 alignItems={"center"}
+                fontWeight={"normal"}
               >
                 {formatting(currentSelectedGroup.getStats().avg, "float")}
               </Badge>
@@ -258,7 +245,7 @@ const GroupDetailView = () => {
               )}
             </Text>
           </Box>
-          <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
+          {/* <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
               Silhouette Coefficient (Hyperparameter)
             </Text>
@@ -272,7 +259,7 @@ const GroupDetailView = () => {
                 "float"
               )}
             </Text>
-          </Box>
+          </Box> */}
         </Box>
       ) : (
         <Text fontSize="md">

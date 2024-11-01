@@ -84,7 +84,7 @@ const CoverageView: React.FC = () => {
   const [selected, setSelected] = useState("");
 
   // console.log(clickedHparam);
-  const margin = { top: 30, right: 20, bottom: 120, left: 20 };
+  const margin = { top: 80, right: 40, bottom: 160, left: 40 };
 
   const legendWidth = 100;
   const legendHeight = 100;
@@ -401,7 +401,7 @@ const CoverageView: React.FC = () => {
         display={"flex"}
         flexDirection={"column"}
         overflowY={"hidden"}
-        height="calc(100% - 40px)"
+        height="calc(100% - 40px - 60px)"
       >
         {isPreference && (
           <Box
@@ -802,8 +802,49 @@ const CoverageView: React.FC = () => {
           </svg>
         </Box>
       </Box>
-
       <Box
+        height={"60px"}
+        p={1}
+        zIndex={10}
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems="center"
+      >
+        <Text fontSize={"xs"} color="gray.600" p={2} userSelect={"none"}>
+          Choose trials to create a trial group (
+          {formatting(selectedPoints.size, "int")} {" / "}
+          {formatting(data.length, "int")}
+          {" Selected"})
+        </Text>
+        <Box display={"flex"}>
+          <IconButton
+            aria-label="Lasso"
+            icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
+            onClick={() => {
+              if (isLassoActive) {
+                cancelLasso();
+              } else {
+                setIsLassoActive(true);
+                setSelectedPoints(new Set());
+              }
+            }}
+            size="xs"
+            colorScheme={isLassoActive ? "red" : "blue"}
+            mr={1}
+          />
+          <Button
+            onClick={confirmLasso}
+            size="xs"
+            colorScheme="blue"
+            isDisabled={tempLassoPoints.length < 3}
+            mr={1}
+          >
+            Create Trial Group
+          </Button>
+        </Box>
+      </Box>
+
+      {/* <Box
         position="absolute"
         bg="white"
         boxShadow="lg"
@@ -850,7 +891,7 @@ const CoverageView: React.FC = () => {
             Create Trial Group
           </Button>
         </Box>
-      </Box>
+      </Box> */}
     </Box>
   );
 };

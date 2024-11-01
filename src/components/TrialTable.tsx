@@ -208,14 +208,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimerRef = useRef(null);
 
-  const BOTTOM_PADDING = useMemo(() => {
-    if (showControls) {
-      return 150;
-    }
-    return 100;
-  }, [showControls]);
-
-  const paddedTotalSize = virtualSize + BOTTOM_PADDING;
+  const paddedTotalSize = virtualSize;
 
   const handlePseudoResize = useCallback(() => {
     return adjustTableHeight(tableRef, paddedTotalSize);
@@ -325,9 +318,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
               top = tableRect.bottom;
               positionType = "below";
             }
-            // console.log("positionType", positionType);
-            // console.log("top", top);
-            // console.log("trialId", trialId);
+
             return {
               trialId: trialId,
               top: top,
@@ -425,7 +416,8 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
         className="container"
         style={{
           overflow: "auto",
-          height: "100%",
+          // height: "100%",
+          height: "calc(100% - 60px)",
         }}
       >
         <div
@@ -485,10 +477,6 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {/* {{
-                              asc: " 🔼",
-                              desc: " 🔽",
-                            }[header.column.getIsSorted() as string] ?? null} */}
                             {!showControls &&
                               header.column.getCanSort() &&
                               header.column.getIsSorted() !== false && (
@@ -612,15 +600,13 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
           style={{
             position: "absolute",
             width: "100%",
-            // transform: "translate(-50%, -50%)",
             zIndex: 10,
             bottom: "0px",
-            // left: "10%",
-            // fill: "red",
             height: "30px",
           }}
         ></div>
-        <Box
+
+        {/* <Box
           position="absolute"
           bg="white"
           boxShadow="lg"
@@ -661,8 +647,42 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
           >
             Create Trial Group
           </Button>
-        </Box>
+        </Box> */}
       </div>
+      <Box
+        bg="white"
+        p={1}
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems="center"
+      >
+        <Text fontSize={"xs"} color="gray.600" p={2}>
+          Choose trials to create a trial group (
+          {formatting(Object.keys(rowSelection).length, "int")} {" / "}
+          {formatting(data.length, "int")} Selected)
+        </Text>
+        <Button
+          size={"xs"}
+          colorScheme={"blue"}
+          variant={"solid"}
+          isDisabled={selectedTrials.length === 0}
+          mr={1}
+          onClick={() => {
+            const updatedGroups = groups.clone();
+            updatedGroups.addGroup(
+              exp?.trials.filter((trial) =>
+                selectedTrials.includes(trial.id)
+              ) ?? []
+            );
+            setGroups(updatedGroups);
+            setRowSelection({});
+            setSelectedRowPositions([]);
+            setSelectedTrials([]);
+          }}
+        >
+          Create Trial Group
+        </Button>
+      </Box>
     </div>
   );
 };

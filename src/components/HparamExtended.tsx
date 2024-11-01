@@ -7,6 +7,9 @@ import { FaSortDown } from "react-icons/fa6";
 import { Axis, Orientation } from "@visx/axis";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { HyperparamTypes } from "../model/hyperparam";
+import BranchBarChart from "./BranchBarChart";
+import { useConstDataStore } from "./store/constDataStore";
+import * as d3 from "d3";
 interface HparamExtendedProps {
   item;
 }
@@ -16,27 +19,31 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
     key: "effect",
     direction: "descending", // ascending or descending
   });
+  const exp = useConstDataStore((state) => state.exp);
   const [sortedData, setSortedData] = useState([]);
 
+  // console.log("item", item);
   const data = useMemo(() => {
-    const key = "5";
     return Object.keys(item.effctsByValue).map((key) => {
       return {
         value: item.type === HyperparamTypes.Ordinal ? Number(key) : key,
         count: item.effctsByValue[key].length,
-        effect: item.effctsByValue[key].reduce((a, b) => a + b, 0),
-        positiveEffect:
-          item.effctsByValue[key]
-            .filter((v) => v > 0)
-            .reduce((a, b) => a + b, 0) /
-          item.effctsByValue[key].filter((v) => v > 0).length,
-        negativeEffect:
-          item.effctsByValue[key]
-            .filter((v) => v < 0)
-            .reduce((a, b) => a + b, 0) /
-          item.effctsByValue[key].filter((v) => v < 0).length,
+        effect:
+          item.effctsByValue[key].reduce((a, b) => a + b, 0) /
+          item.effctsByValue[key].length,
+        // positiveEffect:
+        //   item.effctsByValue[key]
+        //     .filter((v) => v > 0)
+        //     .reduce((a, b) => a + b, 0) /
+        //   item.effctsByValue[key].filter((v) => v > 0).length,
+        // negativeEffect:
+        //   item.effctsByValue[key]
+        //     .filter((v) => v < 0)
+        //     .reduce((a, b) => a + b, 0) /
+        //   item.effctsByValue[key].filter((v) => v < 0).length,
         binData: generateBinnedData(item.effctsByValue[key], 100, 30, "x")
           .binData,
+        trialIds: item.idsByValue[key],
         allEffectValues: item.allEffectValues,
       };
     });
@@ -64,17 +71,17 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
 
   const columns = useMemo(
     () => [
-      { label: `${item.name}`, key: "value", width: 50, align: "center" },
+      { label: `${item.name}`, key: "value", width: 80, align: "center" },
       { label: "Count", key: "count", width: 60, align: "center" },
       {
         label: "Effect",
         key: "effect",
 
-        width: 85,
+        width: 55,
         align: "center",
       },
       {
-        label: "Distribution",
+        label: "Coverage",
         key: "distribution",
         width: 90,
         align: "center",
@@ -101,13 +108,9 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   }, [data, sortConfig]);
 
   const medianValue = useMemo(() => {
-    const allEffectByValue = Object.values(
-      item.effctsByValue
-    ).flat() as number[];
-    return allEffectByValue.sort((a, b) => a - b)[
-      Math.floor(allEffectByValue.length / 2)
-    ];
-  }, [item.effctsByValue]);
+    const allCoverage = exp.trials.map((trial) => trial.metric);
+    return d3.median(allCoverage);
+  }, [exp.trials]);
 
   return (
     <div style={{ width: "100%" }}>
@@ -184,176 +187,72 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                 formatting(row[column.key], "int")
               ) : column.key === "effect" ? (
                 <>
-                  {formatting(row["positiveEffect"], "float", 2) === "NaN"
+                  {formatting(row[column.key], "float")}
+                  {/* {formatting(row["positiveEffect"], "float", 2) === "NaN"
                     ? "-"
                     : formatting(row["positiveEffect"], "float", 2)}{" "}
                   /{" "}
                   {formatting(row["negativeEffect"], "float", 2) === "NaN"
                     ? "-"
-                    : formatting(row["negativeEffect"], "float", 2)}
+                    : formatting(row["negativeEffect"], "float", 2)} */}
                 </>
               ) : column.key === "distribution" ? (
-                <svg width={115} height={36}>
-                  <g transform="translate(10, 0)">
-                    {" "}
-                    <ViolinPlot
-                      data={row.binData}
-                      valueScale={xScale}
-                      width={26}
-                      height={60}
-                      horizontal={true}
-                      top={5}
-                      fill="grey"
-                    />
-                    <Axis
-                      scale={xScale}
-                      orientation={Orientation.bottom}
-                      top={18}
-                      numTicks={4}
-                      tickValues={[xScale.domain()[0], xScale.domain()[1]]}
-                    />
-                    {(() => {
-                      const medianX = xScale(medianValue);
-                      return (
-                        <line
-                          x1={medianX}
-                          y1={4} // ViolinPlot의 top 값
-                          x2={medianX}
-                          y2={32} // Axis의 top 값
-                          stroke="#E53E3E"
-                          strokeWidth={2}
-                          strokeDasharray="2,2"
-                        />
-                      );
-                    })()}
-                  </g>
-                </svg>
-              ) : null}
+                <BranchBarChart
+                  trialIds={row.trialIds}
+                  width={100}
+                  height={30}
+                />
+              ) : // <svg width={115} height={36}>
+              //   <g transform="translate(10, 0)">
+              //     {" "}
+              //     <ViolinPlot
+              //       data={row.binData}
+              //       valueScale={xScale}
+              //       width={26}
+              //       height={60}
+              //       horizontal={true}
+              //       top={5}
+              //       fill="grey"
+              //     />
+              //     <Axis
+              //       scale={xScale}
+              //       orientation={Orientation.bottom}
+              //       top={18}
+              //       numTicks={4}
+              //       tickValues={[xScale.domain()[0], xScale.domain()[1]]}
+              //     />
+              //     {(() => {
+              //       const medianX = xScale(medianValue);
+              //       return (
+              //         <line
+              //           x1={medianX}
+              //           y1={4} // ViolinPlot의 top 값
+              //           x2={medianX}
+              //           y2={32} // Axis의 top 값
+              //           stroke="#E53E3E"
+              //           strokeWidth={2}
+              //           strokeDasharray="2,2"
+              //         />
+              //       );
+              //     })()}
+              //   </g>
+              // </svg>
+              null}
             </div>
           ))}
         </div>
       ))}
-      <Text fontSize={"xs"} align="center">
-        Red line indicates median effect value (
-        {formatting(medianValue, "float")})
+      <Text
+        fontSize={"xs"}
+        color="gray.600"
+        align="center"
+        whiteSpace="pre-line"
+        mb={3}
+        mt={1}
+      >
+        Median branch coverage value: {formatting(medianValue, "float")}
       </Text>
     </div>
-    // <Box
-    //   display={"flex"}
-    //   flexDir={"column"}
-    //   alignItems={"center"}
-    //   justifyContent={"space-between"}
-    //   whiteSpace={"nowrap"}
-    //   overflowX={"auto"}
-    //   textOverflow={"ellipsis"}
-    //   userSelect={"none"}
-    //   w={"100%"}
-    // >
-    //   <Box
-    //     width={"100%"}
-    //     display={"flex"}
-    //     alignItems={"center"}
-    //     borderBottom={"1px solid #ddd"}
-    //   >
-    //     <Box width={"20%"}>
-    //       <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-    //         {item.name}
-    //       </Text>
-    //     </Box>
-    //     <Box width={"15%"}>
-    //       <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-    //         Count
-    //       </Text>
-    //     </Box>
-    //     <Box width={"15%"}>
-    //       <Text fontSize={"xs"} fontWeight={"bold"} align="center">
-    //         Effect
-    //       </Text>
-    //     </Box>
-    //     <Box width={"40%"}>
-    //       <Text fontSize={"xs"} fontWeight={"bold"} align="center"></Text>
-    //     </Box>
-    //   </Box>
-    //   {Object.keys(item.effctsByValue)
-    //     .sort((a, b) => {
-    //       const aSum = item.effctsByValue[a].reduce((a, b) => a + b, 0);
-    //       const bSum = item.effctsByValue[b].reduce((a, b) => a + b, 0);
-    //       return bSum - aSum;
-    //     })
-    //     .map((key) => {
-    //       const allEffectByValue = Object.values(
-    //         item.effctsByValue
-    //       ).flat() as number[];
-    //       const { binData } = generateBinnedData(
-    //         item.effctsByValue[key],
-    //         100,
-    //         30,
-    //         "x"
-    //       );
-    //       return (
-    //         <Box display={"flex"} width={"100%"} alignItems={"center"} mb={1.5}>
-    //           <Box width={"20%"}>
-    //             <Text fontSize={"xs"} align="center" whiteSpace="pre-line">
-    //               {key}
-    //             </Text>
-    //           </Box>
-    //           <Box width={"15%"}>
-    //             <Text fontSize={"xs"} align="right">
-    //               {formatting(item.effctsByValue[key].length, "int")}
-    //             </Text>
-    //           </Box>
-    //           <Box width={"15%"}>
-    //             <Text fontSize={"xs"} align="right">
-    //               {formatting(
-    //                 item.effctsByValue[key].reduce((a, b) => a + b, 0),
-    //                 "float"
-    //               )}
-    //             </Text>
-    //           </Box>
-    //           <Box width={"50%"} display={"flex"} justifyContent={"center"}>
-    //             <svg width={120} height={36}>
-    //               <g transform="translate(10, 0)">
-    //                 {" "}
-    //                 <ViolinPlot
-    //                   data={binData}
-    //                   valueScale={xScale}
-    //                   width={26}
-    //                   height={100}
-    //                   horizontal={true}
-    //                   top={5}
-    //                   fill="grey"
-    //                 />
-    //                 <Axis
-    //                   scale={xScale}
-    //                   orientation={Orientation.bottom}
-    //                   top={18}
-    //                   numTicks={2}
-    //                   tickValues={[xScale.domain()[0], xScale.domain()[1]]}
-    //                 />
-    //                 {(() => {
-    //                   const medianValue = allEffectByValue.sort(
-    //                     (a, b) => a - b
-    //                   )[Math.floor(allEffectByValue.length / 2)];
-    //                   const medianX = xScale(medianValue);
-    //                   return (
-    //                     <line
-    //                       x1={medianX}
-    //                       y1={4} // ViolinPlot의 top 값
-    //                       x2={medianX}
-    //                       y2={32} // Axis의 top 값
-    //                       stroke="red"
-    //                       strokeWidth={1}
-    //                       strokeDasharray="2,2"
-    //                     />
-    //                   );
-    //                 })()}
-    //               </g>
-    //             </svg>
-    //           </Box>
-    //         </Box>
-    //       );
-    //     })}
-    // </Box>
   );
 };
 

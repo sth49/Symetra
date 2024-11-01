@@ -28,16 +28,17 @@ const HparamTable = () => {
   const data = useMemo(
     () =>
       exp?.hyperparams
-        .sort((a, b) => Math.abs(b.getEffect()) - Math.abs(a.getEffect()))
+        .sort((a, b) => b.getEffect() - a.getEffect())
         .map((hp, index) => ({
           id: index,
           name: hp.displayName,
           fullName: hp.name,
           displayName: hp.displayName,
           effect: hp.getEffect(),
-          positiveEffect: hp.getPositiveEffect(),
-          negativeEffect: hp.getNegativeEffect(),
+          // positiveEffect: hp.getPositiveEffect(),
+          // negativeEffect: hp.getNegativeEffect(),
           effctsByValue: hp.getEffectsByValue(),
+          idsByValue: hp.getIdsByValue(),
           dist: hp.name,
           type: hp.type,
           icon: hp.icon,
@@ -161,14 +162,6 @@ const HparamTable = () => {
               onClick={(e) => {
                 toggleRowSelection(index, e.shiftKey);
               }}
-              //   onMouseEnter={(e) => {
-              //     showTooltip({
-              //       tooltipLeft: e.clientX,
-              //       tooltipTop: e.clientY,
-              //       tooltipData: { key: item.fullName, value: item.name },
-              //     });
-              //   }}
-              //   onMouseLeave={hideTooltip}
             >
               <Tooltip label={row.original.fullName}>
                 <Text
@@ -190,7 +183,7 @@ const HparamTable = () => {
       },
       {
         id: "effect",
-        header: "Effect (+/-)",
+        header: "Effect",
         accessorKey: "effect",
         cell: (info) => {
           const { row } = info;
@@ -203,8 +196,7 @@ const HparamTable = () => {
                 toggleRowSelection(index, e.shiftKey);
               }}
             >
-              {formatting(row.original.positiveEffect, "float", 2)} /{" "}
-              {formatting(row.original.negativeEffect, "float", 2)}
+              {formatting(row.original.effect, "float")}
             </div>
           );
         },
@@ -225,6 +217,7 @@ const HparamTable = () => {
               width={80}
               height={30}
               trialIds={[]}
+              viewType="hparam"
             />
           );
         },
@@ -295,7 +288,7 @@ const HparamTable = () => {
   return (
     <div
       style={{
-        height: "calc(100% - 35px)",
+        height: "calc(100% - 35px - 60px)",
         width: "100%",
         position: "relative",
         overflow: "hidden",
