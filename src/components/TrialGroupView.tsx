@@ -420,7 +420,7 @@ const TrialGroupView = () => {
                     width={legendWidth / 5}
                     height={legendHeight / numThresholds}
                     fill={colorScale(i)}
-                    opacity={0.3}
+                    opacity={0.7}
                   />
                   <text
                     x={5 + legendWidth / 5}

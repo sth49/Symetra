@@ -131,14 +131,24 @@ const CoverageView: React.FC = () => {
       .y((d) => yScale(d.y)) // @ts-ignore
       .weight((d) => metricScale(d.metric))
       .size([
-        containerSize.width - margin.left - margin.right,
-        containerSize.height - margin.top - margin.bottom,
+        containerSize.width - margin.left,
+        containerSize.height - margin.top,
       ])
-      .bandwidth(10)
+      .bandwidth(12)
       .thresholds(numThresholds);
     // @ts-ignore
     return densityGenerator(data);
-  }, [data, xScale, yScale, metricScale, containerSize]);
+  }, [
+    data,
+    xScale,
+    yScale,
+    metricScale,
+    containerSize,
+    margin.bottom,
+    margin.left,
+    margin.right,
+    margin.top,
+  ]);
 
   const handleMouseDown = useCallback(
     (event) => {
@@ -536,7 +546,7 @@ const CoverageView: React.FC = () => {
                     ? "#718096"
                     : "#718096"
                 }
-                opacity={0.8}
+                opacity={0.7}
               />
             ))}
             {isLassoActive && tempLassoPoints.length > 0 && (

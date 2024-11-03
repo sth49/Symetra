@@ -220,7 +220,7 @@ const GroupDetailView = () => {
               <Badge
                 backgroundColor={`rgba(${hexToRgb(
                   colorScale(metricScale(currentSelectedGroup.getStats().avg))
-                ).join(", ")}, 0.5)`}
+                ).join(", ")}, 0.7)`}
                 color={"black"}
                 display={"flex"}
                 alignItems={"center"}
@@ -234,7 +234,7 @@ const GroupDetailView = () => {
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
               Silhouette Coefficient (Branch)
             </Text>
-            <Text fontSize="sm" align={"right"}>
+            {/* <Text fontSize="sm" align={"right"}>
               {formatting(
                 getBranchSilhouetteCoefficient(
                   exp.trials,
@@ -243,7 +243,7 @@ const GroupDetailView = () => {
                 ),
                 "float"
               )}
-            </Text>
+            </Text> */}
           </Box>
           {/* <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             <Text fontSize="sm" fontWeight={"bold"} color="gray.600">

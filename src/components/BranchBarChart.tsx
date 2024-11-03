@@ -106,7 +106,8 @@ const BranchBarChart = ({
                 xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - margin.left
               }
               height={height - margin.bottom - yScale(Number(bin.count))}
-              fill={colorScale(metricScale(Number(bin.x1)))}
+              fill={colorScale(metricScale(Number(bin.x0)))}
+              opacity={0.7}
               // fill={"#48BB78"}
               //   fill={hparam.getColorByValue(Number(bin.x1) - Number(bin.x0) / 2)}
             />

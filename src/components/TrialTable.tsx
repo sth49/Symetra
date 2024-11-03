@@ -5,7 +5,11 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
+  // getGroupedRowModel,
+  GroupingState,
 } from "@tanstack/react-table";
+// import { getGroupedRowModel } from "@tanstack/react-table";
+import { getGroupedRowModel } from "../model/getGroupedRowModel";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -15,6 +19,9 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { FaLayerGroup } from "react-icons/fa6";
+import BranchBarChart from "./BranchBarChart";
+import { HyperparamTypes } from "../model/hyperparam";
+import BarChart from "./BarChart";
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
 
@@ -63,6 +70,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
   ]);
   const [rowSelection, setRowSelection] = useState({});
 
+  const [grouping, setGrouping] = useState<GroupingState>([]);
   useEffect(() => {
     const visibility = {};
     hyperparams.forEach((param) => {
@@ -101,7 +109,6 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
         size: 30,
         enableSorting: false,
       },
-
       {
         id: "id",
         header: "ID",
@@ -111,12 +118,39 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
         meta: {
           align: "right",
         },
+        type: "string",
+        getGroupingValue: (row) => row.original.id,
+        aggregationFn: "count",
+        aggregatedCell: (info) => {
+          return info.getValue();
+        },
+        enableGrouping: false,
       },
       {
         id: "metric",
         header: "CVRG",
         accessorKey: "metric",
-        cell: (info) => formatting(info.getValue(), "int"),
+        type: "number",
+        aggregationFn: "numericalAggregationFn",
+        cell: (info) => {
+          console.log("info", info);
+          const { cell, row } = info;
+          // if (cell.getIsGrouped()) {
+          //   return "grouped";
+          // }
+          if (cell.getIsAggregated() || cell.getIsGrouped()) {
+            console.log("cell", cell);
+            const points = row.leafRows.map((row) => row.original.id);
+            console.log("points", points.sort());
+            return (
+              <Box display="flex" justifyContent="center" alignItems="center">
+                <BranchBarChart trialIds={points} />
+              </Box>
+            );
+          }
+
+          return formatting(info.getValue(), "float");
+        },
         meta: {
           align: "right",
         },
@@ -132,9 +166,27 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
             </div>
           ),
 
-          type: param.type,
+          // type: param.type,
+          type:
+            param.type === HyperparamTypes.Binary
+              ? "boolean"
+              : param.type === HyperparamTypes.Nominal ||
+                param.type === HyperparamTypes.Ordinal
+              ? "string"
+              : param.type === HyperparamTypes.Continuous
+              ? "number"
+              : "string",
           accessorKey: param.name,
           cell: (info) => {
+            // if (info.cell.getIsGrouped()) {
+            //   return info.getValue();
+            // }
+            if (info.cell.getIsAggregated() || info.cell.getIsGrouped()) {
+              const { cell, row } = info;
+              const trialIds = row.leafRows.map((row) => row.original.id);
+
+              return <BarChart dist={param.name} trialIds={trialIds} />;
+            }
             return info.getValue() === true
               ? "T"
               : info.getValue() === false
@@ -153,6 +205,15 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
             align: param.valueType === "int" ? "right" : "center",
             type: param.valueType,
           },
+          aggregationFn:
+            param.type === HyperparamTypes.Binary
+              ? "booleanAggregationFn"
+              : param.type === HyperparamTypes.Nominal ||
+                param.type === HyperparamTypes.Ordinal
+              ? "categoricalAggregationFn"
+              : param.type === HyperparamTypes.Continuous
+              ? "numericalAggregationFn"
+              : "mean",
         };
       }),
     ];
@@ -161,17 +222,49 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
   const table = useReactTable({
     data,
     columns,
+    aggregationFns: {
+      booleanAggregationFn: (columnId, leafRows, childRows) => {
+        const total = leafRows.length;
+        const trueCount = leafRows.filter(
+          (row) => row.original[columnId] === true
+        ).length;
+        return { trueCount, total };
+      },
+      categoricalAggregationFn: (columnId, leafRows, childRows) => {
+        const total = leafRows.length;
+        const counts = leafRows.reduce((acc, row) => {
+          const value = row.original[columnId];
+          acc[value] = (acc[value] || 0) + 1;
+          return acc;
+        }, {});
+        return { counts, total };
+      },
+      numericalAggregationFn: (columnId, leafRows, childRows) => {
+        const values = leafRows.map((row) => row.original[columnId]);
+        return values;
+      },
+    },
+
     columnResizeMode: "onChange",
     columnResizeDirection: "ltr",
     state: {
+      grouping,
       sorting,
       rowSelection,
       columnVisibility,
     },
+    initialState: {
+      columnPinning: {
+        left: ["check"],
+        right: [],
+      },
+    },
     onColumnVisibilityChange: setColumnVisibility,
+    onGroupingChange: setGrouping,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
     onRowSelectionChange: setRowSelection,
     debugTable: true,
     defaultColumn: {
@@ -244,7 +337,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
               new Set(Object.keys(rowSelection).map(Number))
             );
           }
-        }, 300);
+        }, 10);
 
         const visibleHeight = parentRef.current.clientHeight;
         setIsScrollNearBottom(
@@ -293,6 +386,9 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
       const scrollTop = parentContainer?.scrollTop || 0;
       const visibleHeight = parentContainer?.clientHeight || 0;
 
+      const container = document.querySelector(".container");
+      const containerRect = container?.getBoundingClientRect();
+
       const positions = selectedTrialArray
         .map((trialId) => {
           const index = rows.findIndex(
@@ -310,12 +406,12 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
 
             // Check if row is above visible area
             if (virtualPosition + 35 < scrollTop) {
-              top = tableRect.top;
+              top = tableRect.top - 35;
               positionType = "above";
             }
             // Check if row is below visible area
-            else if (virtualPosition > scrollTop + visibleHeight) {
-              top = tableRect.bottom;
+            else if (virtualPosition > scrollTop + visibleHeight - 35) {
+              top = containerRect.bottom + 5;
               positionType = "below";
             }
 
@@ -339,7 +435,8 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
             top = tableRect.top;
             positionType = "above";
           } else if (estimatedPosition > scrollTop + visibleHeight) {
-            top = tableRect.bottom;
+            // top = tableRect.bottom;
+            top = containerRect.bottom + 5;
             positionType = "below";
           }
 
@@ -386,9 +483,6 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
           }
         }
         setLastSelectedIndex(index);
-        // console.log("rows", rows[index]);
-        // console.log("trialId", trialId);
-        // console.log("newSelection", newSelection);
         updateSelectedTrials(new Set(Object.keys(newSelection).map(Number)));
         return newSelection;
       });
@@ -417,7 +511,8 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
         style={{
           overflow: "auto",
           // height: "100%",
-          height: "calc(100% - 60px)",
+          height: "calc(100% - 60px - 10px)",
+          marginBottom: "10px",
         }}
       >
         <div
@@ -511,7 +606,12 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
                             }}
                           >
                             <Icon
-                              color="gray.600"
+                              // color="gray.600"
+                              color={
+                                header.column.getIsSorted()
+                                  ? "blue.500"
+                                  : "gray.600"
+                              }
                               onClick={header.column.getToggleSortingHandler()}
                               as={
                                 (header.column.getIsSorted() as string) ===
@@ -523,7 +623,18 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
                                   : FaSort
                               }
                             />
-                            <Icon color="gray.600" as={FaLayerGroup} />
+                            {header.column.getCanGroup() && (
+                              <Icon
+                                // color="gray.600"
+                                color={
+                                  header.column.getIsGrouped()
+                                    ? "blue.500"
+                                    : "gray.600"
+                                }
+                                onClick={header.column.getToggleGroupingHandler()}
+                                as={FaLayerGroup}
+                              />
+                            )}
                           </div>
                         )}
 
@@ -582,9 +693,18 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
                             alignItems: "center",
                           }}
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
+                          {cell.getIsGrouped() ? (
+                            <>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </>
+                          ) : (
+                            flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )
                           )}
                         </td>
                       );
@@ -595,8 +715,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
             </tbody>
           </table>
         </div>
-        <div
-          className="virtual-table-bottom"
+        {/* <div
           style={{
             position: "absolute",
             width: "100%",
@@ -604,7 +723,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
             bottom: "0px",
             height: "30px",
           }}
-        ></div>
+        ></div> */}
 
         {/* <Box
           position="absolute"
@@ -655,6 +774,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
         display={"flex"}
         justifyContent={"space-between"}
         alignItems="center"
+        className="virtual-table-bottom"
       >
         <Text fontSize={"xs"} color="gray.600" p={2}>
           Choose trials to create a trial group (
