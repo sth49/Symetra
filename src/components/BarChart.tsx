@@ -1,11 +1,10 @@
 import { Box, Text } from "@chakra-ui/react";
-import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
+import { scaleBand, scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
 import { useCustomStore } from "../store";
 import {
   BinaryHyperparam,
   ContinuousHyperparam,
-  // DiscreteHyperparam,
   NominalHyperparam,
   OrdinalHyperparam,
 } from "../model/hyperparam";
