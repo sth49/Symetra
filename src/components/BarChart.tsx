@@ -13,9 +13,11 @@ import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { PatternLines } from "@visx/pattern";
 import { formatting } from "../model/utils";
 import { useConstDataStore } from "./store/constDataStore";
+import { ParentSize } from "@visx/responsive";
+
 type TooltipData = {
   key: string; // hparam name
-  value: any; // hparam value
+  value: string | number; // hparam value
   count: number; // trial count
 };
 
@@ -25,15 +27,14 @@ interface BarChartProps {
   viewType?: string;
   width: number;
   height: number;
-  // margin: { top: number; right: number; bottom: number; left: number };
 }
 
-const BarChart = ({
+const BarChartBase = ({
   dist,
   trialIds = [],
   viewType = "inter",
-  width = 50,
-  height = 40,
+  width,
+  height,
 }: BarChartProps) => {
   const {
     tooltipOpen,
@@ -46,9 +47,6 @@ const BarChart = ({
   const margin = { top: 2, right: 2, bottom: 2, left: 2 };
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
-    // TooltipInPortal is rendered in a separate child of <body /> and positioned
-    // with page coordinates which should be updated on scroll. consider using
-    // Tooltip or TooltipWithBounds if you don't need to render inside a Portal
     scroll: true,
   });
 
@@ -60,20 +58,33 @@ const BarChart = ({
     (state) => state.clickedHparamValue
   );
 
-  // const { setClickedHparamValue, clickedHparamValue } = useCustomStore();
-
-  // const data = exp?.trials.map((trial) => trial.params[dist]) as
-  //   | string[]
-  //   | number[];
   const data =
     trialIds.length > 0
       ? trialIds.map(
           (id) => exp?.trials.find((trial) => trial.id === id)?.params[dist]
         )
       : exp?.trials.map((trial) => trial.params[dist]);
+  const allData = exp?.trials.map((trial) => trial.params[dist]);
   const hparam = hyperparams.find((hparam) => hparam.name === dist);
-  //   console.log(data);
-  //   console.log(hparam?.name);
+
+  const handleBarClick = (binX0: string | number) => {
+    if (viewType !== "hparam") return;
+    if (clickedHparamValue?.name === dist) {
+      if (clickedHparamValue?.value[0] === binX0) {
+        setClickedHparamValue(null);
+      } else {
+        setClickedHparamValue({
+          name: dist,
+          value: [binX0],
+        });
+      }
+    } else {
+      setClickedHparamValue({
+        name: dist,
+        value: [binX0],
+      });
+    }
+  };
 
   if (
     hparam instanceof BinaryHyperparam ||
@@ -90,7 +101,7 @@ const BarChart = ({
       return acc;
     }, {} as { [key: string]: number });
 
-    const bins = keys.map((key, i) => ({
+    const bins = keys.map((key) => ({
       x0: key,
       x1: key,
       count: count[key] ? count[key] : 0,
@@ -99,7 +110,7 @@ const BarChart = ({
     const xScale = scaleBand({
       domain: bins.map((bin) => bin.x0),
       range: [0, width],
-      padding: 0.1,
+      padding: 0.02,
     });
 
     const yScale = scaleLinear({
@@ -108,7 +119,6 @@ const BarChart = ({
       clamp: true,
     });
 
-    // console
     const calculateOverlayBins = () => {
       if (!clickedHparamValue) return [];
 
@@ -139,9 +149,8 @@ const BarChart = ({
       <Box display="flex" justifyContent="center" alignItems="center">
         <svg width={width} height={height}>
           {bins.map((bin, i) => (
-            <>
+            <g key={i}>
               <Bar
-                key={i + 3}
                 x={xScale(bin.x0)}
                 y={yScale(Number(bin.count))}
                 width={xScale.bandwidth()}
@@ -168,49 +177,14 @@ const BarChart = ({
                 onMouseLeave={hideTooltip}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (viewType !== "hparam") return;
-                  if (clickedHparamValue?.name === dist) {
-                    if (clickedHparamValue?.value[0] === bin.x0) {
-                      setClickedHparamValue(null);
-                    } else {
-                      setClickedHparamValue({
-                        name: dist,
-                        value: [bin.x0],
-                      });
-                    }
-                  } else {
-                    setClickedHparamValue({
-                      name: dist,
-                      value: [bin.x0],
-                    });
-                  }
+                  handleBarClick(bin.x0);
                 }}
               />
-            </>
+            </g>
           ))}
           {viewType === "hparam" &&
             bins2.map((bin, i) => (
               <Bar
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (viewType !== "hparam") return;
-
-                  if (clickedHparamValue?.name === dist) {
-                    if (clickedHparamValue?.value[0] === bin.x0) {
-                      setClickedHparamValue(null);
-                    } else {
-                      setClickedHparamValue({
-                        name: dist,
-                        value: [bin.x0],
-                      });
-                    }
-                  } else {
-                    setClickedHparamValue({
-                      name: dist,
-                      value: [bin.x0],
-                    });
-                  }
-                }}
                 key={i}
                 x={xScale(bin.x0)}
                 y={yScale(Number(bin.count))}
@@ -219,6 +193,10 @@ const BarChart = ({
                 fill={"url(#pattern)"}
                 opacity={1}
                 stroke="#030f1b"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBarClick(bin.x0);
+                }}
               />
             ))}
           <PatternLines
@@ -248,13 +226,13 @@ const BarChart = ({
     const binCount = 5;
     const isInteger = data.every(Number.isInteger);
     const isSame = data.every((val, i, arr) => val === arr[0]);
-    const xMin = Math.min(...(data as number[]));
+    const xMin = Math.min(...(allData as number[]));
     const xMax =
       isInteger && isSame
         ? xMin + 10
         : isSame
         ? xMin + 0.5
-        : Math.max(...(data as number[]));
+        : Math.max(...(allData as number[]));
 
     const xScale = scaleLinear({
       domain: [xMin, xMax],
@@ -283,8 +261,6 @@ const BarChart = ({
       } else if (d === xMax) bins[binCount - 1].count++;
     });
 
-    // if (hpName === "metric") console.log(bins);
-
     const yScale = scaleLinear({
       domain: [0, Math.max(...bins.map((bin) => bin.count))],
       range: [height - margin.bottom, margin.top],
@@ -299,11 +275,6 @@ const BarChart = ({
             Number(trial.params[dist]) >= Number(bin.x0) &&
             Number(trial.params[dist]) < Number(bin.x1)
         );
-        // const overlayCount =
-        //   relevantTrials?.filter(
-        //     (trial) =>
-        //       trial.params[clickedHparamValue.name] === clickedHparamValue.value
-        //   ).length || 0;
         const overlayCount =
           relevantTrials?.filter((trial) =>
             clickedHparamValue.value.length === 1
@@ -327,16 +298,14 @@ const BarChart = ({
       <Box display="flex" justifyContent="center" alignItems="center">
         <svg width={width} height={height}>
           {bins.map((bin, i) => (
-            <>
+            <g key={i}>
               <Bar
-                key={i}
                 x={xScale(Number(bin.x0))}
                 y={yScale(Number(bin.count))}
                 width={
                   xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - margin.left
                 }
                 height={height - margin.bottom - yScale(Number(bin.count))}
-                // fill={"#48BB78"}
                 fill={hparam.getColorByValue(
                   Number(bin.x1) - Number(bin.x0) / 2
                 )}
@@ -366,26 +335,10 @@ const BarChart = ({
                 onMouseLeave={hideTooltip}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (viewType !== "hparam") return;
-
-                  if (clickedHparamValue?.name === dist) {
-                    if (clickedHparamValue?.value[0] === bin.x0) {
-                      setClickedHparamValue(null);
-                    } else {
-                      setClickedHparamValue({
-                        name: dist,
-                        value: [bin.x0, bin.x1],
-                      });
-                    }
-                  } else {
-                    setClickedHparamValue({
-                      name: dist,
-                      value: [bin.x0, bin.x1],
-                    });
-                  }
+                  handleBarClick(bin.x0);
                 }}
               />
-            </>
+            </g>
           ))}
           {viewType === "hparam" &&
             bins2.map((bin, i) => (
@@ -400,23 +353,7 @@ const BarChart = ({
                 stroke="#030f1b"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (viewType !== "hparam") return;
-
-                  if (clickedHparamValue?.name === dist) {
-                    if (clickedHparamValue?.value[0] === bin.x0) {
-                      setClickedHparamValue(null);
-                    } else {
-                      setClickedHparamValue({
-                        name: dist,
-                        value: [bin.x0, bin.x1],
-                      });
-                    }
-                  } else {
-                    setClickedHparamValue({
-                      name: dist,
-                      value: [bin.x0, bin.x1],
-                    });
-                  }
+                  handleBarClick(bin.x0);
                 }}
               />
             ))}
@@ -438,6 +375,30 @@ const BarChart = ({
   }
 
   return <Box>{dist}</Box>;
+};
+
+const BarChart = ({
+  dist,
+  trialIds,
+  viewType,
+  width,
+  height,
+}: BarChartProps) => {
+  return (
+    <div style={{ width: "100%", height: "100%" }}>
+      <ParentSize>
+        {({ width, height }) => (
+          <BarChartBase
+            dist={dist}
+            trialIds={trialIds}
+            viewType={viewType}
+            width={width}
+            height={height}
+          />
+        )}
+      </ParentSize>
+    </div>
+  );
 };
 
 export default BarChart;

@@ -1,28 +1,29 @@
 import { Box, Text } from "@chakra-ui/react";
-import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
+import { scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
 
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { formatting } from "../model/utils";
 import { useConstDataStore } from "./store/constDataStore";
 import { useMetricScale } from "../model/colorScale";
+import { ParentSize } from "@visx/responsive";
+
 type TooltipData = {
   key: string; // hparam name
-  value: any; // hparam value
+  value: string; // hparam value
   count: number; // trial count
 };
 
 interface BranchBarChartProps {
   trialIds: number[];
-  width: number;
-  height: number;
-  // margin: { top: number; right: number; bottom: number; left: number };
+  width?: number;
+  height?: number;
 }
 
 const BranchBarChart = ({
   trialIds = [],
   width = 100,
-  height = 40,
+  height = 30,
 }: BranchBarChartProps) => {
   const {
     tooltipOpen,
@@ -94,63 +95,69 @@ const BranchBarChart = ({
   });
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center">
-      <svg width={width} height={height}>
-        {bins.map((bin, i) => (
-          <>
-            <Bar
-              key={i}
-              x={xScale(Number(bin.x0))}
-              y={yScale(Number(bin.count))}
-              width={
-                xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - margin.left
-              }
-              height={height - margin.bottom - yScale(Number(bin.count))}
-              fill={colorScale(metricScale(Number(bin.x0)))}
-              opacity={0.7}
-              // fill={"#48BB78"}
-              //   fill={hparam.getColorByValue(Number(bin.x1) - Number(bin.x0) / 2)}
-            />
-            <Bar
-              x={xScale(Number(bin.x0))}
-              width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
-              height={height}
-              fill={"transparent"}
-              onMouseMove={(event) => {
-                showTooltip({
-                  tooltipData: {
-                    key: "Coverage",
-                    value: `${formatting(
-                      Number(bin.x0),
-                      isInteger ? "int" : "float"
-                    )} ~ ${formatting(
-                      Number(bin.x1),
-                      isInteger ? "int" : "float"
-                    )}`,
-                    count: bin.count,
-                  },
-                  tooltipLeft: event.clientX,
-                  tooltipTop: event.clientY,
-                });
-              }}
-              onMouseLeave={hideTooltip}
-            />
-          </>
-        ))}
-      </svg>
-      {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
-          <Box>
-            <Text fontWeight={"bold"} align={"left"} mb={2}>
-              {tooltipData.key} = {tooltipData.value}
-            </Text>
-            <Text align={"left"} mb={"2px"}>
-              {formatting(tooltipData.count, "int")} trials
-            </Text>
-          </Box>
-        </TooltipInPortal>
+    <ParentSize>
+      {({ width: parentWidth, height: parentHeight }) => (
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <svg width={parentWidth} height={parentHeight}>
+            {bins.map((bin, i) => (
+              <>
+                <Bar
+                  key={i}
+                  x={xScale(Number(bin.x0))}
+                  y={yScale(Number(bin.count))}
+                  width={
+                    xScale(Number(bin.x1)) -
+                    xScale(Number(bin.x0)) -
+                    margin.left
+                  }
+                  height={
+                    parentHeight - margin.bottom - yScale(Number(bin.count))
+                  }
+                  fill={colorScale(metricScale(Number(bin.x0)))}
+                  opacity={0.7}
+                />
+                <Bar
+                  x={xScale(Number(bin.x0))}
+                  width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
+                  height={parentHeight}
+                  fill={"transparent"}
+                  onMouseMove={(event) => {
+                    showTooltip({
+                      tooltipData: {
+                        key: "Coverage",
+                        value: `${formatting(
+                          Number(bin.x0),
+                          isInteger ? "int" : "float"
+                        )} ~ ${formatting(
+                          Number(bin.x1),
+                          isInteger ? "int" : "float"
+                        )}`,
+                        count: bin.count,
+                      },
+                      tooltipLeft: event.clientX,
+                      tooltipTop: event.clientY,
+                    });
+                  }}
+                  onMouseLeave={hideTooltip}
+                />
+              </>
+            ))}
+          </svg>
+          {tooltipOpen && tooltipData && (
+            <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
+              <Box>
+                <Text fontWeight={"bold"} align={"left"} mb={2}>
+                  {tooltipData.key} = {tooltipData.value}
+                </Text>
+                <Text align={"left"} mb={"2px"}>
+                  {formatting(tooltipData.count, "int")} trials
+                </Text>
+              </Box>
+            </TooltipInPortal>
+          )}
+        </Box>
       )}
-    </Box>
+    </ParentSize>
   );
 };
 

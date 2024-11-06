@@ -225,3 +225,10 @@ body {
 .link:hover {
   stroke: #ecc94b;
 } */
+
+.inter-group-view-item:hover {
+  background-color: #f0f0f0;
+}
+.hparam-extended-row:hover {
+  background-color: #f0f0f0;
+}

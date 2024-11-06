@@ -110,9 +110,19 @@ export class Hyperparam {
     if (isNaN(effect)) {
       return 0;
     }
-    return effect / this.shapValues.length;
+    return effect;
   }
 
+  getMeanEffect(): number {
+    return this.getEffect() / this.shapValues.length;
+  }
+
+  getAbsoluteEffect(trialIds: number[] = []): number {
+    return Math.abs(this.getEffect(trialIds));
+  }
+  getMeanAbsoluteEffect(): number {
+    return Math.abs(this.getMeanEffect());
+  }
   getPositiveEffect(trialIds: number[] = []): number {
     // shapValues 배열의 양수 합 계산
     if (trialIds.length > 0) {

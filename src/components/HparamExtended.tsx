@@ -72,13 +72,13 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   const columns = useMemo(
     () => [
       { label: `${item.name}`, key: "value", width: 80, align: "center" },
-      { label: "Count", key: "count", width: 60, align: "center" },
+      { label: "Count", key: "count", width: 60, align: "right" },
       {
         label: "Effect",
         key: "effect",
 
         width: 55,
-        align: "center",
+        align: "right",
       },
       {
         label: "Coverage",
@@ -129,7 +129,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
               borderBottom: "1px solid #ddd",
               cursor: "pointer",
               flexShrink: 0,
-              justifyContent: column.align,
+              justifyContent: "center",
               alignItems: "center",
               height: "35px",
               fontSize: "small",
@@ -165,6 +165,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
             display: "flex",
             alignItems: "center",
           }}
+          className="hparam-extended-row"
         >
           {columns.map((column) => (
             <div
@@ -174,70 +175,30 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                 padding: "2px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                whiteSpace: "normal",
                 flexShrink: 0,
                 display: "flex",
                 justifyContent: column.align,
                 fontSize: "small",
+                alignItems: "center",
+                height: "35px",
               }}
             >
               {column.key === "value" ? (
-                row[column.key]
+                <Text whiteSpace={"normal"} textAlign={"center"}>
+                  {row[column.key]}
+                </Text>
               ) : column.key === "count" ? (
                 formatting(row[column.key], "int")
               ) : column.key === "effect" ? (
-                <>
-                  {formatting(row[column.key], "float")}
-                  {/* {formatting(row["positiveEffect"], "float", 2) === "NaN"
-                    ? "-"
-                    : formatting(row["positiveEffect"], "float", 2)}{" "}
-                  /{" "}
-                  {formatting(row["negativeEffect"], "float", 2) === "NaN"
-                    ? "-"
-                    : formatting(row["negativeEffect"], "float", 2)} */}
-                </>
+                <>{formatting(row[column.key], "float")}</>
               ) : column.key === "distribution" ? (
                 <BranchBarChart
                   trialIds={row.trialIds}
                   width={100}
                   height={30}
                 />
-              ) : // <svg width={115} height={36}>
-              //   <g transform="translate(10, 0)">
-              //     {" "}
-              //     <ViolinPlot
-              //       data={row.binData}
-              //       valueScale={xScale}
-              //       width={26}
-              //       height={60}
-              //       horizontal={true}
-              //       top={5}
-              //       fill="grey"
-              //     />
-              //     <Axis
-              //       scale={xScale}
-              //       orientation={Orientation.bottom}
-              //       top={18}
-              //       numTicks={4}
-              //       tickValues={[xScale.domain()[0], xScale.domain()[1]]}
-              //     />
-              //     {(() => {
-              //       const medianX = xScale(medianValue);
-              //       return (
-              //         <line
-              //           x1={medianX}
-              //           y1={4} // ViolinPlot의 top 값
-              //           x2={medianX}
-              //           y2={32} // Axis의 top 값
-              //           stroke="#E53E3E"
-              //           strokeWidth={2}
-              //           strokeDasharray="2,2"
-              //         />
-              //       );
-              //     })()}
-              //   </g>
-              // </svg>
-              null}
+              ) : null}
             </div>
           ))}
         </div>

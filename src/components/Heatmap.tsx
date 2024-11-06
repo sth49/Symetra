@@ -1,19 +1,22 @@
 import { useMemo } from "react";
 import { Group } from "@visx/group";
-import genBins, { Bin, Bins } from "@visx/mock-data/lib/generators/genBins";
+import { Bin, Bins } from "@visx/mock-data/lib/generators/genBins";
 import { scaleLinear } from "@visx/scale";
 import { HeatmapRect } from "@visx/heatmap";
 import { useTooltipInPortal } from "@visx/tooltip";
 import { AxisBottom, AxisLeft } from "@visx/axis";
-
-interface ScatterPlotProps {
+import * as d3 from "d3";
+import { ParentSize } from "@visx/responsive";
+interface HeatmapBaseProps {
   result: any;
+  width?: number;
+  height?: number;
 }
 
 const cool1 = "#122549";
 const cool2 = "#b4fbde";
 
-const Heatmap = ({ result }: ScatterPlotProps) => {
+const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
     scroll: true,
@@ -38,8 +41,6 @@ const Heatmap = ({ result }: ScatterPlotProps) => {
   const bucketSizeMax = max(binData, (d) => bins(d).length);
 
   const margin = { top: 10, right: 10, bottom: 40, left: 50 };
-  const width = 250;
-  const height = 130;
 
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
@@ -60,6 +61,10 @@ const Heatmap = ({ result }: ScatterPlotProps) => {
     domain: [0, colorMax],
   });
 
+  const colorScale = d3
+    .scaleSequential(d3.interpolateBlues)
+    .domain([0, colorMax]);
+
   const opacityScale = scaleLinear<number>({
     range: [0.1, 1],
     domain: [0, colorMax],
@@ -71,14 +76,14 @@ const Heatmap = ({ result }: ScatterPlotProps) => {
   return (
     <div ref={containerRef} className="relative">
       <svg width={width} height={height} className="overflow-visible">
-        <rect width={width} height={height} rx={14} fill="#E2E8F0" />
+        {/* <rect width={width} height={height} rx={14} fill="#E2E8F0" /> */}
         <Group left={margin.left} top={margin.top}>
           <rect width={xMax} height={yMax} fill="#F7FAFC" rx={4} />
           <HeatmapRect
             data={binData}
             xScale={xScale}
             yScale={yScale}
-            colorScale={rectColorScale}
+            colorScale={colorScale}
             opacityScale={opacityScale}
             binWidth={binWidth}
             binHeight={binHeight}
@@ -106,7 +111,9 @@ const Heatmap = ({ result }: ScatterPlotProps) => {
                         fontSize={12}
                         textAnchor="middle"
                         dy=".33em"
-                        fill={bin.count ? "black" : "transparent"}
+                        // fill={bin.count ? "black" : "transparent"}
+                        // fill="white"
+                        fill={colorMax / 2 < bin.count ? "white" : "black"}
                       >
                         {bin.count}
                       </text>
@@ -146,6 +153,16 @@ const Heatmap = ({ result }: ScatterPlotProps) => {
         </Group>
       </svg>
     </div>
+  );
+};
+
+const Heatmap = (props: HeatmapBaseProps) => {
+  return (
+    <ParentSize>
+      {({ width, height }) => (
+        <HeatmapBase {...props} width={width} height={height} />
+      )}
+    </ParentSize>
   );
 };
 

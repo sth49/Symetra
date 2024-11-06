@@ -12,7 +12,7 @@ import { useCustomStore } from "../store";
 import { useEffect, useMemo, useState } from "react";
 import { calculateCorrelation } from "../model/correlation";
 import { useConstDataStore } from "./store/constDataStore";
-import { HparamIcons, HyperparamTypes } from "../model/hyperparam";
+import { HparamIcons, Hyperparam, HyperparamTypes } from "../model/hyperparam";
 import ScatterPlot from "./ScatterPlot";
 import { formatting } from "../model/utils";
 import Heatmap from "./Heatmap";
@@ -28,7 +28,10 @@ const IntraGroupView = () => {
 
   const [correlations, setCorrelations] = useState<Record<
     string,
-    { correlation: number }
+    {
+      hp: Hyperparam;
+      correlation: number;
+    }
   > | null>(null);
 
   useEffect(() => {
@@ -94,7 +97,7 @@ const IntraGroupView = () => {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
-        <Heading as="h5" size="sm" color="gray.600" p={2} width={"70%"}>
+        <Heading as="h5" size="sm" color="gray.600" p={2}>
           Intra Group Correlation
         </Heading>
       </Box>
@@ -103,14 +106,84 @@ const IntraGroupView = () => {
         height={`calc(100% - 35px)`}
         p={2}
         pt={0}
-        pb={0}
+        pb={2}
         display={"flex"}
         flexDirection={"column"}
         justifyContent={"space-between"}
       >
-        <Box w={"100%"} display={"flex"} justifyContent={"space-between"}>
-          <Box w={"100%"}>
-            {result && (
+        <Box
+          w={"100%"}
+          display={"flex"}
+          justifyContent={"space-between"}
+          height={"100%"}
+        >
+          <Box w={"40%"} overflowY={"auto"} height={"100%"} pr={2}>
+            {correlations &&
+              Object.entries(correlations)
+                .sort((a, b) => b[1].correlation - a[1].correlation)
+                .slice(0, 20)
+                .map(([key, value]) => (
+                  <Badge
+                    size={"sm"}
+                    width={"100%"}
+                    key={key}
+                    borderRadius="full"
+                    variant={result && result.key === key ? "solid" : "subtle"}
+                    justifyContent={"space-between"}
+                    display={"flex"}
+                    alignItems={"center"}
+                    mb={1}
+                    onClick={() => {
+                      setResult({
+                        key: key,
+                        value: value,
+                      });
+                    }}
+                  >
+                    <Box
+                      display={"flex"}
+                      alignItems={"center"}
+                      width={"80%"}
+                      // justifyContent={"space-between"}
+                    >
+                      <Text
+                        fontSize={"sm"}
+                        display={"flex"}
+                        alignItems={"center"}
+                      >
+                        <Icon
+                          as={
+                            value.hp.hp1.type === HyperparamTypes.Binary
+                              ? HparamIcons["Binary"]
+                              : HparamIcons["Continuous"]
+                          }
+                        />
+                        {value.hp.hp1.displayName}
+                      </Text>
+                      <Text fontSize={"sm"} p={"0 10px"}>
+                        {" x "}
+                      </Text>
+                      <Text
+                        fontSize={"sm"}
+                        display={"flex"}
+                        alignItems={"center"}
+                      >
+                        <Icon
+                          as={
+                            value.hp.hp2.type === HyperparamTypes.Binary
+                              ? HparamIcons["Binary"]
+                              : HparamIcons["Continuous"]
+                          }
+                        />
+                        {value.hp.hp2.displayName}
+                      </Text>
+                    </Box>
+                    <Text fontSize={"sm"} align={"right"}>
+                      {formatting(value.correlation, "float")}
+                    </Text>
+                  </Badge>
+                ))}
+            {/* {result && (
               <Box display={"flex"} w={"100%"} justifyContent={"space-around"}>
                 <Text fontSize={"sm"}>
                   {`${result.value.hp.hp1.displayName} X ${result.value.hp.hp2.displayName}`}
@@ -119,58 +192,24 @@ const IntraGroupView = () => {
                   {formatting(result.value.correlation, "float")}
                 </Text>
               </Box>
+            )} */}
+          </Box>
+          <Box w={"60%"} height={"100%"}>
+            {result &&
+            (result.value.type === "pearson" ||
+              result.value.type === "point-biserial") ? (
+              <>
+                <ScatterPlot result={result} />
+              </>
+            ) : result && result.value.type === "phi" ? (
+              <>
+                <Heatmap result={result} />
+              </>
+            ) : (
+              <></>
             )}
           </Box>
-          {result &&
-          (result.value.type === "pearson" ||
-            result.value.type === "point-biserial") ? (
-            <>
-              <ScatterPlot result={result} />
-            </>
-          ) : result && result.value.type === "phi" ? (
-            <>
-              <Heatmap result={result} />
-            </>
-          ) : (
-            <></>
-          )}
         </Box>
-        <HStack spacing={2} width={"100%"} overflowX={"auto"} display={"flex"}>
-          {correlations &&
-            Object.entries(correlations)
-              .sort((a, b) => b[1].correlation - a[1].correlation)
-              .slice(0, 20)
-              .map(([key, value]) => (
-                <Badge
-                  size={"sm"}
-                  key={key}
-                  borderRadius="full"
-                  variant={result && result.key === key ? "solid" : "subtle"}
-                  // colorScheme="green"
-                  onClick={() => {
-                    setResult({
-                      key: key,
-                      value: value,
-                    });
-                  }}
-                >
-                  <Icon
-                    as={
-                      value.hp.hp1.type === HyperparamTypes.Binary
-                        ? HparamIcons["Binary"]
-                        : HparamIcons["Continuous"]
-                    }
-                  />
-                  <Icon
-                    as={
-                      value.hp.hp2.type === HyperparamTypes.Binary
-                        ? HparamIcons["Binary"]
-                        : HparamIcons["Continuous"]
-                    }
-                  />
-                </Badge>
-              ))}
-        </HStack>
       </Box>
     </div>
   );

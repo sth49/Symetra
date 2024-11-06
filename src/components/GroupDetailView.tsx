@@ -10,12 +10,13 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { formatting, hexToRgb } from "../model/utils";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
-import BarChart from "./BarChart";
+
+import { TbCircleDotted, TbCircleFilled } from "react-icons/tb";
 import { useMetricScale } from "../model/colorScale";
 import {
   AlertDialog,
@@ -25,11 +26,7 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
 } from "@chakra-ui/react";
-import {
-  getAttributeSilhouetteCoefficient,
-  getBranchSilhouetteCoefficient,
-} from "../model/silhouetteCoefficient";
-import { FaLightbulb } from "react-icons/fa";
+
 import { calculateCorrelation } from "../model/correlation";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
@@ -47,77 +44,13 @@ const GroupDetailView = () => {
   const [editName, setEditName] = useState("");
   const [mode, setMode] = useState("view");
 
-  const { exp, hyperparams } = useConstDataStore();
-  const [trialIds, setTrialIds] = useState<number[]>([]);
+  const { exp } = useConstDataStore();
 
-  const [sortConfig, setSortConfig] = useState({
-    key: null,
-    direction: "none", // ascending or descending
-  });
-  const [sortedData, setSortedData] = useState([]);
   const { metricScale, colorScale } = useMetricScale();
-  const requestSort = useCallback((key) => {
-    setSortConfig((prevConfig) => ({
-      key:
-        prevConfig.key === key && prevConfig.direction === "descending"
-          ? null
-          : key,
-      direction:
-        prevConfig.key === key && prevConfig.direction === "ascending"
-          ? "descending"
-          : "ascending",
-    }));
-  }, []);
-
-  const data = useMemo(
-    () =>
-      exp?.hyperparams
-        .sort(
-          (a, b) =>
-            Math.abs(b.getEffect(trialIds)) - Math.abs(a.getEffect(trialIds))
-        )
-        .map((hp, index) => ({
-          id: index,
-          name: hp.displayName,
-          fullName: hp.name,
-          displayName: hp.displayName,
-          effect: hp.getEffect(trialIds),
-          trialIds: trialIds,
-          dist: hp.name,
-          type: hp.type,
-        })),
-
-    [exp, trialIds]
-  );
-
-  useEffect(() => {
-    let sortedItems = [...data];
-    if (sortConfig.key !== null) {
-      sortedItems.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === "ascending" ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === "ascending" ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-
-    setSortedData(sortedItems);
-  }, [data, sortConfig]);
 
   useEffect(() => {
     if (currentSelectedGroup) {
       setEditName(currentSelectedGroup.name);
-      setTrialIds(currentSelectedGroup.trials.map((trial) => trial.id));
-      // console.log(
-      //   getBranchSilhouetteCoefficient(
-      //     exp.trials,
-      //     currentSelectedGroup.trials,
-      //     exp.metric.totalBranch
-      //   )
-      // );
       calculateCorrelation(
         currentSelectedGroup.trials,
         exp.hyperparams[5],
@@ -138,12 +71,7 @@ const GroupDetailView = () => {
         >
           <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             {mode === "view" ? (
-              <Box
-                display={"flex"}
-                alignItems={"center"}
-                width={"50%"}
-                justifyContent={"space-between"}
-              >
+              <Box display={"flex"} alignItems={"center"} width={"50%"}>
                 <Text
                   fontSize="sm"
                   align={"right"}
@@ -154,7 +82,27 @@ const GroupDetailView = () => {
                   display={"flex"}
                   alignItems={"center"}
                 >
-                  <Icon as={FaLightbulb} color={"gray.600"} mr={1} />
+                  <Box position="relative" width="24px" height="24px">
+                    <Icon
+                      as={TbCircleFilled}
+                      color={colorScale(
+                        metricScale(currentSelectedGroup.getStats().avg)
+                      )}
+                      opacity={0.7}
+                      position="absolute"
+                      left="50%"
+                      top="50%"
+                      transform="translate(-50%, -50%)"
+                    />
+                    <Icon
+                      as={TbCircleDotted}
+                      color={"gray.600"}
+                      position="absolute"
+                      left="50%"
+                      top="50%"
+                      transform="translate(-50%, -50%)"
+                    />
+                  </Box>
                   {currentSelectedGroup.name}{" "}
                   {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
                 </Text>
@@ -193,7 +141,6 @@ const GroupDetailView = () => {
                       setCurrentSelectedGroup(newCurrentSelectedGroup);
                       const newGroups = groups.clone();
                       newGroups.editGroup(newCurrentSelectedGroup);
-                      console.log(newGroups);
                       setGroups(newGroups);
                       setMode("view");
                     }}
@@ -230,36 +177,6 @@ const GroupDetailView = () => {
               </Badge>
             </Box>
           </Box>
-          <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
-            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-              Silhouette Coefficient (Branch)
-            </Text>
-            {/* <Text fontSize="sm" align={"right"}>
-              {formatting(
-                getBranchSilhouetteCoefficient(
-                  exp.trials,
-                  currentSelectedGroup.trials,
-                  exp.metric.totalBranch
-                ),
-                "float"
-              )}
-            </Text> */}
-          </Box>
-          {/* <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
-            <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-              Silhouette Coefficient (Hyperparameter)
-            </Text>
-            <Text fontSize="sm" align={"right"}>
-              {formatting(
-                getAttributeSilhouetteCoefficient(
-                  exp.trials,
-                  currentSelectedGroup.trials,
-                  exp.hyperparams
-                ),
-                "float"
-              )}
-            </Text>
-          </Box> */}
         </Box>
       ) : (
         <Text fontSize="md">
@@ -290,9 +207,10 @@ const GroupDetailView = () => {
                 colorScheme="red"
                 onClick={() => {
                   const newGroups = groups.clone();
+
                   newGroups.deleteGroup(currentSelectedGroup.id);
+                  setCurrentSelectedGroup(newGroups.groups[0]);
                   setGroups(newGroups);
-                  setCurrentSelectedGroup(null);
                   onClose();
                 }}
                 ml={3}

@@ -33,6 +33,19 @@ import { TbLassoOff } from "react-icons/tb";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
 import { useMetricScale } from "../model/colorScale";
+
+// Throttle helper function with requestAnimationFrame for smoother performance
+const throttle = (func: Function) => {
+  let rafId: number | null = null;
+  return function (...args: any[]) {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      func.apply(this, args);
+      rafId = null;
+    });
+  };
+};
+
 const CoverageView: React.FC = () => {
   const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
@@ -83,7 +96,6 @@ const CoverageView: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
 
-  // console.log(clickedHparam);
   const margin = { top: 80, right: 40, bottom: 160, left: 40 };
 
   const legendWidth = 100;
@@ -159,11 +171,30 @@ const CoverageView: React.FC = () => {
       point.y = event.clientY;
       const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
       setTempLassoPoints([{ x: svgPoint.x, y: svgPoint.y }]);
-      setSelectedPoints(new Set()); // 선택된 점들 초기화
+      setSelectedPoints(new Set());
       setIsDrawing(true);
     },
     [isLassoActive]
   );
+
+  // Optimized update function using requestAnimationFrame
+  const updateSelectedPoints = useCallback(
+    throttle((lassoPoints) => {
+      if (lassoPoints.length < 3) return;
+
+      const polygon = lassoPoints.map((p) => [p.x, p.y]);
+      const selected = new Set(
+        data
+          .filter((d) =>
+            d3.polygonContains(polygon, [xScale(d.x), yScale(d.y)])
+          )
+          .map((d) => d.id)
+      );
+      setSelectedPoints(selected);
+    }),
+    [data, xScale, yScale]
+  );
+
   const handleMouseMove = useCallback(
     (event) => {
       if (!isLassoActive || !isDrawing) return;
@@ -179,23 +210,7 @@ const CoverageView: React.FC = () => {
       setTempLassoPoints(newTempLassoPoints);
       updateSelectedPoints(newTempLassoPoints);
     },
-    [isLassoActive, isDrawing, tempLassoPoints]
-  );
-  const updateSelectedPoints = useCallback(
-    (lassoPoints) => {
-      if (lassoPoints.length < 3) return; // 최소 3개의 점이 필요합니다
-
-      const polygon = lassoPoints.map((p) => [p.x, p.y]);
-      const selected = new Set(
-        data
-          .filter((d) =>
-            d3.polygonContains(polygon, [xScale(d.x), yScale(d.y)])
-          )
-          .map((d) => d.id)
-      );
-      setSelectedPoints(selected);
-    },
-    [data, xScale, yScale]
+    [isLassoActive, isDrawing, tempLassoPoints, updateSelectedPoints]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -204,8 +219,6 @@ const CoverageView: React.FC = () => {
   }, [isLassoActive, isDrawing]);
 
   const confirmLasso = useCallback(() => {
-    // groups.addGroup(exp.trials.filter((trial) => selectedPoints.has(trial.id)));
-    // setGroups(groups);
     const updatedGroups = groups.clone();
     updatedGroups.addGroup(
       exp.trials.filter((trial) => selectedPoints.has(trial.id))
@@ -533,9 +546,7 @@ const CoverageView: React.FC = () => {
                     ? exp?.hyperparams
                         .find((hp) => hp.name === selected)
                         ?.getColor(i)
-                    : // : selectedTrials.includes(d.id)
-                      // ? "#2B6CB0"
-                      "#CBD5E0"
+                    : "#CBD5E0"
                 }
                 stroke={
                   selectedPoints.has(d.id)
@@ -573,10 +584,9 @@ const CoverageView: React.FC = () => {
                         width={legendWidth / 5}
                         height={legendHeight / numThresholds}
                         fill={colorScale(i)}
-                        opacity={0.3}
+                        opacity={0.7}
                       />
                       <text
-                        // x={svgRect.width - legendWidth / 2 - 50}
                         x={10 + legendWidth / 5 + 5}
                         y={
                           (i + 0.6) * (legendHeight / numThresholds) +
@@ -646,11 +656,6 @@ const CoverageView: React.FC = () => {
                                 legendMargin.top
                               }
                               width={legendWidth / 5}
-                              // stroke={
-                              //   hyperparams.find(
-                              //     (hp) => hp.name === selected
-                              //   ) instanceof BinaryHyperparam && "gray"
-                              // }
                               height={
                                 legendHeight /
                                 hyperparams
@@ -660,7 +665,6 @@ const CoverageView: React.FC = () => {
                               fill={hyperparams
                                 .find((hp) => hp.name === selected)
                                 ?.getColorByValue(val)}
-                              // opacity={0.3}
                             />
                             <text
                               x={legendWidth / 5 + 15}
@@ -680,12 +684,6 @@ const CoverageView: React.FC = () => {
                               dominantBaseline="middle"
                               fill="#4A5568"
                             >
-                              {/* {val === true
-                              ? "True"
-                              : val === false
-                              ? "False"
-                              : val}
-                               */}
                               {val}
                             </text>
                           </>
@@ -853,55 +851,6 @@ const CoverageView: React.FC = () => {
           </Button>
         </Box>
       </Box>
-
-      {/* <Box
-        position="absolute"
-        bg="white"
-        boxShadow="lg"
-        borderRadius="md"
-        bottom={"0px"}
-        left="50%"
-        width={"90%"}
-        transform="translate(-50%, -50%)" // Center the box
-        p={1}
-        zIndex={10}
-        display={"flex"}
-        justifyContent={"space-between"}
-        alignItems="center"
-      >
-        <Text fontSize={"xs"} color="gray.600" p={2} userSelect={"none"}>
-          Choose trials to create a trial group (
-          {formatting(selectedPoints.size, "int")} {" / "}
-          {formatting(data.length, "int")}
-          {" Selected"})
-        </Text>
-        <Box display={"flex"}>
-          <IconButton
-            aria-label="Lasso"
-            icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
-            onClick={() => {
-              if (isLassoActive) {
-                cancelLasso();
-              } else {
-                setIsLassoActive(true);
-                setSelectedPoints(new Set());
-              }
-            }}
-            size="xs"
-            colorScheme={isLassoActive ? "red" : "blue"}
-            mr={1}
-          />
-          <Button
-            onClick={confirmLasso}
-            size="xs"
-            colorScheme="blue"
-            isDisabled={tempLassoPoints.length < 3}
-            mr={1}
-          >
-            Create Trial Group
-          </Button>
-        </Box>
-      </Box> */}
     </Box>
   );
 };

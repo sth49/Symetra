@@ -7,9 +7,24 @@ import { useMemo } from "react";
 import { extent } from "d3";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { localPoint } from "@visx/event";
+import { ParentSize } from "@visx/responsive";
 
-interface ScatterPlotProps {
-  result: any;
+interface ScatterPlotBaseProps {
+  result: {
+    value: {
+      type: string;
+      value: {
+        val1: (number | boolean)[];
+        val2: number[];
+      };
+      hp: {
+        hp1: { displayName: string };
+        hp2: { displayName: string };
+      };
+    };
+  };
+  width?: number;
+  height?: number;
 }
 
 interface TooltipData {
@@ -19,7 +34,7 @@ interface TooltipData {
   hp2: { displayName: string };
 }
 
-const ScatterPlot = ({ result }: ScatterPlotProps) => {
+const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
   const {
     tooltipData,
     tooltipLeft,
@@ -49,45 +64,35 @@ const ScatterPlot = ({ result }: ScatterPlotProps) => {
     });
   };
 
-  const width = 250;
-  const height = 130;
   const margin = { top: 10, right: 10, bottom: 35, left: 50 };
 
-  const x = (d) => d.val1;
-  const y = (d) => d.val2;
+  const x = (d: TooltipData) => d.val1;
+  const y = (d: TooltipData) => d.val2;
 
   const data = useMemo(() => {
-    return (
-      (result &&
-        result.value.value.val1.map((val1, i) => {
-          return {
-            val1: val1,
-            val2: result.value.value.val2[i],
-            hp1: result.value.hp.hp1,
-            hp2: result.value.hp.hp2,
-          };
-        })) ||
-      []
-    );
+    return result.value.value.val1.map((val1, i) => ({
+      val1,
+      val2: result.value.value.val2[i],
+      hp1: result.value.hp.hp1,
+      hp2: result.value.hp.hp2,
+    }));
   }, [result]);
 
   const xScale = useMemo(() => {
     if (result.value.type === "pearson") {
-      return scaleLinear({
+      return scaleLinear<number>({
         range: [0, width - margin.left - margin.right],
-        domain: extent(data, x),
+        domain: extent(data, x) as [number, number],
         nice: true,
       });
     } else {
-      // Boolean 값을 위한 scaleBand 설정
-      const booleanScale = scaleBand({
+      const booleanScale = scaleBand<boolean>({
         range: [0, width - margin.left - margin.right],
-        domain: [true, false], // 도메인 순서를 [true, false]로 변경
+        domain: [true, false],
         padding: 0.4,
       });
 
-      // getCenterValue 함수 추가
-      booleanScale.getCenterValue = (value: boolean) => {
+      (booleanScale as any).getCenterValue = (value: boolean) => {
         const bandWidth = booleanScale.bandwidth();
         const start = booleanScale(value);
         return start + bandWidth / 2;
@@ -95,20 +100,20 @@ const ScatterPlot = ({ result }: ScatterPlotProps) => {
 
       return booleanScale;
     }
-  }, [result]);
+  }, [result, width]);
 
   const yScale = useMemo(() => {
-    return scaleLinear({
+    return scaleLinear<number>({
       range: [height - margin.top - margin.bottom, 0],
-      domain: extent(data, y),
+      domain: extent(data, y) as [number, number],
       nice: true,
     });
-  }, [result]);
+  }, [result, height]);
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <svg width={width} height={height}>
-        <rect width={width} height={height} fill="#E2E8F0" rx={14} />
+        {/* <rect width={width} height={height} fill="#ffffff" rx={14} /> */}
         <Group
           transform={`translate(${margin.left}, ${margin.top})`}
           width={width - margin.left - margin.right}
@@ -117,7 +122,7 @@ const ScatterPlot = ({ result }: ScatterPlotProps) => {
           <rect
             width={width - margin.left - margin.right}
             height={height - margin.top - margin.bottom}
-            fill="#F7FAFC"
+            fill="#ffffff"
           />
           <AxisBottom
             scale={xScale}
@@ -153,8 +158,8 @@ const ScatterPlot = ({ result }: ScatterPlotProps) => {
               key={i}
               cx={
                 result.value.type === "pearson"
-                  ? xScale(point.val1)
-                  : (xScale as any).getCenterValue(point.val1)
+                  ? xScale(point.val1 as number)
+                  : (xScale as any).getCenterValue(point.val1 as boolean)
               }
               cy={yScale(point.val2)}
               r={3}
@@ -192,6 +197,16 @@ const ScatterPlot = ({ result }: ScatterPlotProps) => {
         </TooltipInPortal>
       )}
     </div>
+  );
+};
+
+const ScatterPlot = (props: ScatterPlotBaseProps) => {
+  return (
+    <ParentSize>
+      {({ width, height }) => (
+        <ScatterPlotBase {...props} width={width} height={height} />
+      )}
+    </ParentSize>
   );
 };
 

@@ -28,15 +28,13 @@ const HparamTable = () => {
   const data = useMemo(
     () =>
       exp?.hyperparams
-        .sort((a, b) => b.getEffect() - a.getEffect())
+        .sort((a, b) => a.displayName.localeCompare(b.displayName))
         .map((hp, index) => ({
           id: index,
           name: hp.displayName,
           fullName: hp.name,
           displayName: hp.displayName,
-          effect: hp.getEffect(),
-          // positiveEffect: hp.getPositiveEffect(),
-          // negativeEffect: hp.getNegativeEffect(),
+          effect: hp.getMeanAbsoluteEffect(),
           effctsByValue: hp.getEffectsByValue(),
           idsByValue: hp.getIdsByValue(),
           dist: hp.name,
@@ -139,7 +137,7 @@ const HparamTable = () => {
             />
           );
         },
-        size: 46,
+        size: 45,
         meta: {
           align: "left",
         },
@@ -183,7 +181,7 @@ const HparamTable = () => {
       },
       {
         id: "effect",
-        header: "Effect",
+        header: "Abs. Effect",
         accessorKey: "effect",
         cell: (info) => {
           const { row } = info;
@@ -249,7 +247,7 @@ const HparamTable = () => {
             />
           );
         },
-        size: 46,
+        size: 45,
         meta: {
           align: "right",
         },
@@ -263,7 +261,12 @@ const HparamTable = () => {
     selectedRows,
     isMultiSelect,
   ]);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "effect",
+      desc: true,
+    },
+  ]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const table = useReactTable({
     data,
@@ -375,7 +378,6 @@ const HparamTable = () => {
                 <>
                   <tr
                     key={row.id}
-                    // className="hparam-table-row"
                     className={`hparam-table-row ${
                       selectedRows.has(index) ? "selected" : ""
                     }`}
@@ -397,6 +399,7 @@ const HparamTable = () => {
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
                             alignItems: "center",
+                            height: "35px",
                           }}
                         >
                           {flexRender(
@@ -409,7 +412,7 @@ const HparamTable = () => {
                   </tr>
                   {row.getIsExpanded() && (
                     <tr>
-                      <td colSpan={5} style={{ backgroundColor: "#f9f9f9" }}>
+                      <td colSpan={6} style={{ backgroundColor: "#f9f9f9" }}>
                         <HparamExtended item={row.original} />
                       </td>
                     </tr>

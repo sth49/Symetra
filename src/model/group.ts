@@ -81,6 +81,27 @@ export class Group {
     }
     return unionSet;
   }
+
+  getBranches() {
+    //format {3: 45, } means branch 3 has 45 trials
+    const branchCount = {};
+    for (let i = 1; i < 3365 + 1; i++) {
+      branchCount[i] = 0;
+    }
+    this.trials.forEach((trial) => {
+      trial.branch.forEach((b) => {
+        if (branchCount[b] === undefined) {
+          branchCount[b] = 1;
+        } else {
+          branchCount[b]++;
+        }
+      });
+    });
+    Object.keys(branchCount).forEach((key) => {
+      branchCount[key] = branchCount[key] / this.trials.length;
+    });
+    return Object.entries(branchCount).sort(([, a], [, b]) => b - a);
+  }
   // getBranches() {
   //   const branches = this.trials.map((trial) =>
   //     Object.values(trial.branch).map((b, index) =>

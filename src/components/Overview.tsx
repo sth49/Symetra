@@ -34,10 +34,13 @@ const Overview = () => {
       {/* <Heading as="h5" size="sm" color={"blackAlpha.600"} padding={4}>
         Dataset
       </Heading> */}
-      <Heading fontSize={"larger"} display={"flex"}>
+      <Box display={"flex"} alignItems={"center"}>
         <Icon as={AiFillRocket} color="gray.600" />
-        ViSTrics
-      </Heading>
+        <Heading as="h4" fontSize={"larger"} display={"flex"}>
+          ViSTrics
+        </Heading>
+      </Box>
+
       <Box display={"flex"} w={"70%"} justifyContent={"space-between"}>
         <Box display={"flex"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
