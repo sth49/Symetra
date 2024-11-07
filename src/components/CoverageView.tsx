@@ -803,7 +803,7 @@ const CoverageView: React.FC = () => {
         </Box>
       </Box>
       <Box
-        height={"60px"}
+        height={"20px"}
         p={1}
         zIndex={10}
         display={"flex"}
