@@ -7,7 +7,7 @@ import { HparamIcons, Hyperparam, HyperparamTypes } from "../model/hyperparam";
 import ScatterPlot from "./ScatterPlot";
 import { formatting } from "../model/utils";
 import Heatmap from "./Heatmap";
-
+import { IoClose } from "react-icons/io5";
 const IntraGroupView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -108,7 +108,7 @@ const IntraGroupView = () => {
           justifyContent={"space-between"}
           height={"100%"}
         >
-          <Box w={"40%"} overflowY={"auto"} height={"100%"} pr={2}>
+          <Box w={"50%"} overflowY={"auto"} height={"100%"} pr={2}>
             {correlations &&
               Object.entries(correlations)
                 .sort((a, b) => b[1].correlation - a[1].correlation)
@@ -124,6 +124,7 @@ const IntraGroupView = () => {
                     display={"flex"}
                     alignItems={"center"}
                     mb={1}
+                    p={1}
                     userSelect={"none"}
                     onClick={() => {
                       setResult({
@@ -149,7 +150,8 @@ const IntraGroupView = () => {
                         {value.hp.hp1.displayName}
                       </Text>
                       <Text fontSize={"sm"} p={"0 10px"} fontWeight={"normal"}>
-                        {" X "}
+                        {/* {" X "} */}
+                        <Icon as={IoClose} />
                       </Text>
                       <Text
                         fontSize={"sm"}
@@ -175,7 +177,7 @@ const IntraGroupView = () => {
                   </Badge>
                 ))}
           </Box>
-          <Box w={"60%"} height={"100%"}>
+          <Box w={"50%"} height={"100%"}>
             {result &&
             (result.value.type === "pearson" ||
               result.value.type === "point-biserial") ? (

@@ -19,6 +19,7 @@ import { HyperparamTypes } from "../model/hyperparam";
 import BarChart from "./BarChart";
 import { MdDeselect } from "react-icons/md";
 // Memoize expensive calculations
+import { useMetricScale } from "../model/colorScale";
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
 
@@ -43,7 +44,6 @@ interface TrialTableProps {
 const TrialTable = ({ showControls = false }: TrialTableProps) => {
   const { exp, hyperparams } = useConstDataStore();
 
-  // Memoize data transformation
   const data = useMemo(
     () =>
       exp?.trials
@@ -64,6 +64,7 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
   ]);
   const [rowSelection, setRowSelection] = useState({});
   const [grouping, setGrouping] = useState<GroupingState>([]);
+  const { colorScale, metricScale } = useMetricScale();
 
   // Update column visibility when hyperparams change
   useEffect(() => {
@@ -130,7 +131,15 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
               </Box>
             );
           }
-          return formatting(info.getValue(), "float");
+          return (
+            <Box
+              background={colorScale(metricScale(cell.getValue()))}
+              color={cell.getValue() > 1000 ? "black" : "white"}
+              width={"100%"}
+            >
+              {formatting(info.getValue(), "float")}
+            </Box>
+          );
         },
         meta: { align: "right" },
         size: 70,

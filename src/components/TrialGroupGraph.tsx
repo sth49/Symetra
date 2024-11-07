@@ -119,8 +119,10 @@ const TrialGroupGraph = () => {
       (group, i) => ({
         id: group.id,
         name: group.name,
-        x: (((i % 3) + 0.25) * boxRef.current?.clientWidth) / 5,
-        y: (Math.floor(i / 3) * boxHeight) / 4 + boxHeight / 8,
+        // x: (((i % 3) + 0.25) * boxRef.current?.clientWidth) / 5,
+        // y: (Math.floor(i / 3) * boxHeight) / 4 + boxHeight / 8,
+        x: (((i % 4) + 0.25) * boxRef.current?.clientWidth) / 7,
+        y: (Math.floor(i / 4) * boxHeight) / 4.5 + boxHeight / 6,
         length: group.getLength(),
         stats: group.getStats(),
       }),
@@ -359,7 +361,7 @@ const TrialGroupGraph = () => {
             </ParentSize>
           </Box>
 
-          <Box>
+          {/* <Box>
             <svg width={legendWidth} height={legendHeight + legendMargin.top}>
               {thresholdRanges.map((range, i) => (
                 <React.Fragment key={`legend-${i}`}>
@@ -400,7 +402,7 @@ const TrialGroupGraph = () => {
                 Coverage
               </text>
             </svg>
-          </Box>
+          </Box> */}
         </Box>
       ) : (
         <Box p={4} bg="gray.100" m={2} height={"100%"}>

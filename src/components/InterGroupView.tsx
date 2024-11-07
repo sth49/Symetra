@@ -198,17 +198,53 @@ const InterGroupView = () => {
                   className="inter-group-view-item"
                 >
                   <Box width={"20%"} pl={2}>
-                    <Text fontSize={"sm"} fontWeight={"bold"}>
-                      Mean CVRG
-                    </Text>
+                    <Text fontSize={"sm"}>Count</Text>
                   </Box>
                   <Box width={"40%"}>
+                    <Text align={"center"} fontSize={"sm"}>
+                      {/* {formatting(stats["mean"].group1, stats["mean"].type)} */}
+                      {formatting(currentSelectedGroup.trials.length, "int")}
+                    </Text>
+                  </Box>
+
+                  <Box width={"40%"}>
+                    <Text align={"center"} fontSize={"sm"}>
+                      {/* {formatting(stats["mean"].group2, stats["mean"].type)} */}
+                      {formatting(group2.trials.length, "int")}
+                    </Text>
+                  </Box>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "5px 0",
+                  }}
+                  className="inter-group-view-item"
+                >
+                  <Box width={"20%"} pl={2}>
+                    <Text fontSize={"sm"}>Mean CVRG</Text>
+                  </Box>
+                  <Box
+                    width={"40%"}
+                    background={colorScale(
+                      metricScale(stats["mean"].group1) || 0
+                    )}
+                    color={stats["mean"].group1 < 1000 ? "white" : "black"}
+                  >
                     <Text align={"center"} fontSize={"sm"}>
                       {formatting(stats["mean"].group1, stats["mean"].type)}
                     </Text>
                   </Box>
 
-                  <Box width={"40%"}>
+                  <Box
+                    width={"40%"}
+                    background={colorScale(
+                      metricScale(stats["mean"].group2) || 0
+                    )}
+                    color={stats["mean"].group2 < 1000 ? "white" : "black"}
+                  >
                     <Text align={"center"} fontSize={"sm"}>
                       {formatting(stats["mean"].group2, stats["mean"].type)}
                     </Text>

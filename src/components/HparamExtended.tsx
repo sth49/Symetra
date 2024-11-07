@@ -10,6 +10,7 @@ import { HyperparamTypes } from "../model/hyperparam";
 import BranchBarChart from "./BranchBarChart";
 import { useConstDataStore } from "./store/constDataStore";
 import * as d3 from "d3";
+import { useMetricScale } from "../model/colorScale";
 interface HparamExtendedProps {
   item;
 }
@@ -21,6 +22,8 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   });
   const exp = useConstDataStore((state) => state.exp);
   const [sortedData, setSortedData] = useState([]);
+
+  const { metricScale, colorScale } = useMetricScale();
 
   // console.log("item", item);
   const data = useMemo(() => {
@@ -180,7 +183,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                 display: "flex",
                 justifyContent: column.align,
                 fontSize: "small",
-                alignItems: "center",
+                alignItems: "end",
                 height: "35px",
               }}
             >
@@ -203,16 +206,26 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
           ))}
         </div>
       ))}
-      <Text
-        fontSize={"xs"}
-        color="gray.600"
-        align="center"
-        whiteSpace="pre-line"
-        mb={3}
-        mt={1}
-      >
-        Median branch coverage value: {formatting(medianValue, "float")}
-      </Text>
+      <Box display={"flex"} justifyContent={"center"} mb={3} mt={1}>
+        <Text
+          fontSize={"xs"}
+          color="gray.600"
+          align="center"
+          whiteSpace="pre-line"
+        >
+          Median Coverage
+        </Text>
+        <Text
+          fontSize={"xs"}
+          color={medianValue < 1000 ? "white" : "black"}
+          align="center"
+          whiteSpace="pre-line"
+          ml={2}
+          background={colorScale(metricScale(medianValue))}
+        >
+          {formatting(medianValue, "float")}
+        </Text>
+      </Box>
     </div>
   );
 };

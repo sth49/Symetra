@@ -46,55 +46,65 @@ const TrialGroupTable = () => {
         </Box>
         <Box width={"60%"} display={"flex"} justifyContent={"center"}>
           <Text align={"center"} fontWeight={"bold"} color={"gray.600"}>
-            Branch Distribution
+            Covered Branch
           </Text>
         </Box>
       </div>
       <div
-        style={{ height: `calc(100% - 35px)` }}
-        onMouseLeave={handleMouseLeave}
+        style={{
+          height: "calc(100% - 30px)",
+          width: "100%",
+          position: "relative",
+          overflowY: "auto",
+          paddingRight: "4px",
+        }}
       >
-        {groups.groups.map((group, idx) => (
-          <div
-            key={idx} // key값은 index로 설정
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "4px",
-              height: "35px",
-              overflowY: "auto",
-              userSelect: "none",
-            }}
-            className="trial-group-table-row"
-            onMouseEnter={() => handleMouseEnter(group)}
-            onMouseLeave={handleMouseLeave}
-            onClick={() => setCurrentSelectedGroup(group)}
-          >
-            <Box width={"20%"}>
-              <Text align={"left"} fontSize={"sm"}>
-                {group.name}
-              </Text>
-            </Box>
-            <Box
-              width={"20%"}
-              display={"flex"}
-              justifyContent={"right"}
-              fontSize={"sm"}
+        <div
+          style={{ height: `calc(100% - 35px)` }}
+          onMouseLeave={handleMouseLeave}
+        >
+          {groups.groups.map((group, idx) => (
+            <div
+              key={idx} // key값은 index로 설정
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "4px",
+                height: "35px",
+                overflowY: "auto",
+                userSelect: "none",
+              }}
+              className="trial-group-table-row"
+              onMouseEnter={() => handleMouseEnter(group)}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => setCurrentSelectedGroup(group)}
             >
-              <Text align={"center"}>
-                {formatting(group.trials.length, "int")}
-              </Text>
-            </Box>
-            <Box
-              width={"60%"}
-              height={"100%"}
-              display={"flex"}
-              justifyContent={"center"}
-            >
-              <AreaChart trialGroup={group} />
-            </Box>
-          </div>
-        ))}
+              <Box width={"20%"}>
+                <Text align={"left"} fontSize={"sm"}>
+                  {group.name}
+                </Text>
+              </Box>
+              <Box
+                width={"20%"}
+                display={"flex"}
+                justifyContent={"right"}
+                fontSize={"sm"}
+              >
+                <Text align={"center"}>
+                  {formatting(group.trials.length, "int")}
+                </Text>
+              </Box>
+              <Box
+                width={"60%"}
+                height={"100%"}
+                display={"flex"}
+                justifyContent={"center"}
+              >
+                <AreaChart trialGroup={group} />
+              </Box>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

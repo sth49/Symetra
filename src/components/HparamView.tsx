@@ -5,8 +5,10 @@ import HparamTable from "./HparamTable";
 import { formatting } from "../model/utils";
 
 import { FaEyeSlash } from "react-icons/fa6";
+import { useMetricScale } from "../model/colorScale";
 const HparamView = () => {
   const { exp, hyperparams } = useConstDataStore();
+  const { metricScale, colorScale } = useMetricScale();
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box
@@ -28,9 +30,20 @@ const HparamView = () => {
         justifyContent={"space-around"}
         alignContent={"center"}
       >
-        <Text fontSize={"xs"} align="center" color="gray.600">
-          Base value: {formatting(exp.metric.baseValue, "float")}
-        </Text>
+        <Box display={"flex"} justifyContent={"center"}>
+          <Text fontSize={"xs"} align="center" color="gray.600">
+            Base value
+          </Text>
+          <Text
+            fontSize={"xs"}
+            align="center"
+            color={exp.metric.baseValue < 1000 ? "white" : "black"}
+            ml={2}
+            background={colorScale(metricScale(exp.metric.baseValue))}
+          >
+            {formatting(exp.metric.baseValue, "float")}
+          </Text>
+        </Box>
         <Button size={"xs"} alignSelf={"center"} colorScheme={"blue"}>
           <Icon as={FaEyeSlash} mr={2} />
           Hide hyperparameters with effect under 0.5

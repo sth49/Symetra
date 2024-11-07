@@ -14,7 +14,7 @@ import GroupDetailView from "./GroupDetailView";
 import TrialGroupTable from "./TrialGroupTable";
 
 const TrialGroupView = () => {
-  const [visible, setVisible] = useState(true);
+  // const [visible, setVisible] = useState(true);
   const { exp } = useConstDataStore();
   const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
@@ -54,21 +54,21 @@ const TrialGroupView = () => {
           alignItems="center"
           width="140px"
         >
-          <FormLabel htmlFor="metric-switch" mb={0}>
+          {/* <FormLabel htmlFor="metric-switch" mb={0}>
             <Text fontSize="xs" color="gray.600" userSelect={"none"}>
               Show Graph
             </Text>
-          </FormLabel>
-          <Switch
+          </FormLabel> */}
+          {/* <Switch
             id="metric-switch"
             onChange={() => setVisible(!visible)}
             isChecked={visible}
             size={"sm"}
-          />
+          /> */}
         </FormControl>
       </Box>
       <Box height={`calc(100% - 35px - 35px)`}>
-        {visible ? <TrialGroupGraph /> : <TrialGroupTable />}
+        <TrialGroupGraph />
       </Box>
       <GroupDetailView />
     </div>

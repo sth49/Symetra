@@ -207,6 +207,7 @@ const CoverageView: React.FC = () => {
         ...tempLassoPoints,
         { x: svgPoint.x, y: svgPoint.y },
       ];
+      // console.log(newTempLassoPoints);
       setTempLassoPoints(newTempLassoPoints);
       updateSelectedPoints(newTempLassoPoints);
     },
@@ -835,7 +836,7 @@ const CoverageView: React.FC = () => {
             onClick={confirmLasso}
             size="xs"
             colorScheme="blue"
-            isDisabled={tempLassoPoints.length < 3}
+            isDisabled={selectedPoints.size < 3}
             mr={1}
           >
             Create Trial Group

@@ -162,7 +162,7 @@ const GroupDetailView = () => {
               pl={2}
             >
               <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                Mean CVRG
+                Mean Coverage
               </Text>
               <Badge
                 backgroundColor={`rgba(${hexToRgb(
