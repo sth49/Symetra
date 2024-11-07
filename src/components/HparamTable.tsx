@@ -449,8 +449,7 @@ const HparamTable = () => {
                               fontSize={"10px"}
                             >
                               <Icon as={FaEye} />
-                              Show selected hyperparameters ({selectedRows.size}
-                              )
+                              Show selected parameters ({selectedRows.size})
                             </Button>
                             <Button
                               size={"xs"}
@@ -466,8 +465,7 @@ const HparamTable = () => {
                               fontSize={"10px"}
                             >
                               <Icon as={FaEyeSlash} />
-                              Hide selected hyperparameters ({selectedRows.size}
-                              )
+                              Hide selected parameters ({selectedRows.size})
                             </Button>
                           </Box>
                         </td>

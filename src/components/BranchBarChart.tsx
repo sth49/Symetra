@@ -32,7 +32,7 @@ const BranchBarChart = ({
     hideTooltip,
     showTooltip,
   } = useTooltip<TooltipData>();
-  const margin = { top: 2, right: 2, bottom: 2, left: 2 };
+  const margin = { top: 2, right: 2, bottom: 5, left: 2 };
 
   const { TooltipInPortal } = useTooltipInPortal({
     scroll: true,

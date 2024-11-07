@@ -4,22 +4,20 @@ import {
   Heading,
   Icon,
   IconButton,
-  Tag,
-  TagLabel,
   Text,
+  Tooltip,
 } from "@chakra-ui/react";
 import { HparamIcons, HyperparamTypes } from "../model/hyperparam";
 import { formatting } from "../model/utils";
 
 import { AiFillRocket } from "react-icons/ai";
-import { useCustomStore } from "../store";
 import { IoMdSettings } from "react-icons/io";
 import { useConstDataStore } from "./store/constDataStore";
+import { useMetricScale } from "../model/colorScale";
+import * as d3 from "d3";
 const Overview = () => {
-  // console.log(
-  //   data.data.hyperparams.filter((hp) => hp.type === HyperparamTypes.Boolean)
-  //     .length
-  // );
+  const { metricScale, colorScale } = useMetricScale();
+
   const { exp } = useConstDataStore();
   return (
     <Box
@@ -28,12 +26,8 @@ const Overview = () => {
       display={"flex"}
       justifyContent={"space-between"}
       alignItems={"center"}
-      // pr={1}
-      // pl={1}
+      userSelect={"none"}
     >
-      {/* <Heading as="h5" size="sm" color={"blackAlpha.600"} padding={4}>
-        Dataset
-      </Heading> */}
       <Box display={"flex"} alignItems={"center"}>
         <Icon as={AiFillRocket} color="gray.600" />
         <Heading as="h4" fontSize={"larger"} display={"flex"}>
@@ -41,8 +35,8 @@ const Overview = () => {
         </Heading>
       </Box>
 
-      <Box display={"flex"} w={"70%"} justifyContent={"space-between"}>
-        <Box display={"flex"}>
+      <Box display={"flex"} w={"90%"} justifyContent={"space-around"}>
+        <Box display={"flex"} alignItems={"center"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
             Dataset
           </Text>
@@ -50,7 +44,7 @@ const Overview = () => {
             {exp?.name}
           </Text>
         </Box>
-        <Box display={"flex"}>
+        <Box display={"flex"} alignItems={"center"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
             Trials
           </Text>
@@ -58,9 +52,9 @@ const Overview = () => {
             {formatting(exp.trials.length, "int")}
           </Text>
         </Box>
-        <Box display={"flex"}>
+        <Box display={"flex"} alignItems={"center"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Hyperparameters
+            Parameters
           </Text>
           <Text fontSize="sm" color={"gray.600"}>
             {exp?.hyperparams.length}
@@ -87,93 +81,42 @@ const Overview = () => {
               </Box>
             );
           })}
+        <Box display={"flex"} alignItems={"center"}>
+          <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
+            Branch Coverage
+          </Text>
+          <Box display={"flex"} alignItems={"center"}>
+            <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
+              <Tooltip label={"Total"}>
+                {formatting(exp.metric.totalBranch, "float")}
+              </Tooltip>
+            </Text>
+            (
+            <Tooltip label={"Median"}>
+              <Badge
+                backgroundColor={colorScale(
+                  metricScale(d3.median(exp.trials.map((t) => t.metric)))
+                )}
+                color={"black"}
+                display={"flex"}
+                alignItems={"center"}
+                fontWeight={"normal"}
+                p={0.5}
+              >
+                {formatting(d3.median(exp.trials.map((t) => t.metric)), "int")}
+              </Badge>
+            </Tooltip>
+            )
+          </Box>
+        </Box>
       </Box>
-      <IconButton
+      {/* <IconButton
         mr={"2px"}
         size={"sm"}
         aria-label="Settings"
         icon={<IoMdSettings />}
         color={"gray.600"}
-        // colorScheme="blue"
-        // variant="outline"
-      ></IconButton>
-
-      {/* <Badge variant={"solid"} colorScheme={"green"}>
-        <Box display={"flex"} alignItems={"center"}>
-          <Icon as={MdTimeline} mr={1} />
-          <Text fontSize="10px" fontWeight={"bold"} pr={1}>
-            Continuous
-          </Text>
-          <Text fontSize="10px">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Continuous
-              ).length
-            }
-          </Text>
-        </Box>
-      </Badge>
-      <Badge variant={"solid"} colorScheme={"green"}>
-        <Box display={"flex"} alignItems={"center"}>
-          <Icon as={MdOutlineLeaderboard} mr={1} />
-          <Text fontSize="10px" fontWeight={"bold"} pr={1}>
-            Discrete
-          </Text>
-          <Text fontSize="10px">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Discrete
-              ).length
-            }
-          </Text>
-        </Box>
-      </Badge>
-      <Badge variant={"solid"} colorScheme={"green"}>
-        <Box display={"flex"} alignItems={"center"}>
-          <Icon as={RxComponentBoolean} mr={1} />
-          <Text fontSize="10px" fontWeight={"bold"} pr={1}>
-            Binary
-          </Text>
-          <Text fontSize="10px">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Binary
-              ).length
-            }
-          </Text>
-        </Box>
-      </Badge>
-
-      <Badge variant={"solid"} colorScheme={"green"}>
-        <Box display={"flex"} alignItems={"center"}>
-          <Icon as={MdCategory} mr={1} />
-          <Text fontSize="10px" fontWeight={"bold"} pr={1}>
-            Nominal
-          </Text>
-          <Text fontSize="10px">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Nominal
-              ).length
-            }
-          </Text>
-        </Box>
-      </Badge>
-      <Badge variant={"solid"} colorScheme={"green"}>
-        <Box display={"flex"} alignItems={"center"}>
-          <Icon as={MdOutlineHdrStrong} mr={1} />
-          <Text fontSize="10px" fontWeight={"bold"} pr={1}>
-            Ordinal
-          </Text>
-          <Text fontSize="10px">
-            {
-              data.data.hyperparams.filter(
-                (hp) => hp.type === HyperparamTypes.Ordinal
-              ).length
-            }
-          </Text>
-        </Box>
-      </Badge> */}
+      ></IconButton> */}
     </Box>
   );
 };

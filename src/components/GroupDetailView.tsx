@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Heading,
   Icon,
   IconButton,
   Text,
@@ -165,9 +164,9 @@ const GroupDetailView = () => {
                 Mean Coverage
               </Text>
               <Badge
-                backgroundColor={`rgba(${hexToRgb(
-                  colorScale(metricScale(currentSelectedGroup.getStats().avg))
-                ).join(", ")}, 0.7)`}
+                backgroundColor={colorScale(
+                  metricScale(currentSelectedGroup.getStats().avg)
+                )}
                 color={"black"}
                 display={"flex"}
                 alignItems={"center"}

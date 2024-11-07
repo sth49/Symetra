@@ -441,7 +441,7 @@ const TrialGroupGraph = () => {
                   overflowWrap="break-word"
                   whiteSpace="normal"
                 >
-                  # of statistically different hyperparameters:{" "}
+                  # of statistically different parameters:{" "}
                   {formatting(tooltipData.count, "int")} / {hyperparams.length}
                 </Text>
               </>

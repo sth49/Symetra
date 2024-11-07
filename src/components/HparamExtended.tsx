@@ -23,8 +23,6 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   const exp = useConstDataStore((state) => state.exp);
   const [sortedData, setSortedData] = useState([]);
 
-  const { metricScale, colorScale } = useMetricScale();
-
   // console.log("item", item);
   const data = useMemo(() => {
     return Object.keys(item.effctsByValue).map((key) => {
@@ -183,7 +181,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                 display: "flex",
                 justifyContent: column.align,
                 fontSize: "small",
-                alignItems: "end",
+                alignItems: "center",
                 height: "35px",
               }}
             >
@@ -206,7 +204,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
           ))}
         </div>
       ))}
-      <Box display={"flex"} justifyContent={"center"} mb={3} mt={1}>
+      {/* <Box display={"flex"} justifyContent={"center"} mb={3} mt={1}>
         <Text
           fontSize={"xs"}
           color="gray.600"
@@ -225,7 +223,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
         >
           {formatting(medianValue, "float")}
         </Text>
-      </Box>
+      </Box> */}
     </div>
   );
 };
