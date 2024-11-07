@@ -1,7 +1,6 @@
 import { Box, Text } from "@chakra-ui/react";
 import { scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
-
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { formatting } from "../model/utils";
 import { useConstDataStore } from "./store/constDataStore";
@@ -100,9 +99,8 @@ const BranchBarChart = ({
         <Box display="flex" justifyContent="center" alignItems="center">
           <svg width={parentWidth} height={parentHeight}>
             {bins.map((bin, i) => (
-              <>
+              <g key={i}>
                 <Bar
-                  key={i}
                   x={xScale(Number(bin.x0))}
                   y={yScale(Number(bin.count))}
                   width={
@@ -110,9 +108,10 @@ const BranchBarChart = ({
                     xScale(Number(bin.x0)) -
                     margin.left
                   }
-                  height={
+                  height={Math.max(
+                    0,
                     parentHeight - margin.bottom - yScale(Number(bin.count))
-                  }
+                  )}
                   fill={colorScale(metricScale(Number(bin.x0)))}
                   opacity={0.7}
                 />
@@ -140,7 +139,7 @@ const BranchBarChart = ({
                   }}
                   onMouseLeave={hideTooltip}
                 />
-              </>
+              </g>
             ))}
           </svg>
           {tooltipOpen && tooltipData && (

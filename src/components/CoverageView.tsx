@@ -265,7 +265,6 @@ const CoverageView: React.FC = () => {
 
   const drawConnectionLine = useCallback(() => {
     if (!selectedTrials || !selectedRowPositions.length || !svgRef.current) {
-      console.log("return null");
       return null;
     }
     const tableContainer = document.querySelector(".virtual-table");
@@ -284,7 +283,6 @@ const CoverageView: React.FC = () => {
         const selectedTrial = selectedRowPosition.trialId;
 
         const selectedPoint = data.find((d) => d.id === selectedTrial);
-        console.log("selectedPoint", selectedPoint);
 
         if (!selectedPoint) {
           return null;
@@ -629,12 +627,6 @@ const CoverageView: React.FC = () => {
                   .find((hp) => hp.name === selected)
                   ?.scale.domain()
                   .map((val, i) => {
-                    console.log("val", val);
-                    console.log(
-                      "type",
-
-                      typeof val
-                    );
                     if (val === true || val === false) return null;
                     return (
                       <React.Fragment key={`legend-${i}`}>
@@ -795,7 +787,6 @@ const CoverageView: React.FC = () => {
             {selectedTrials && selectedRowPositions && drawConnectionLine()}
             {selectedTrials &&
               selectedTrials.map((trialId, i) => {
-                console.log("trialId", trialId);
                 const selectedPoint = data.find((d) => d.id === trialId);
                 return (
                   <circle

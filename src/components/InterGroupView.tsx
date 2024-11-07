@@ -27,7 +27,6 @@ const InterGroupView = () => {
       return false;
     })[0]
   );
-  console.log("Group2", group2);
 
   const stats = useMemo(() => {
     if (!currentSelectedGroup || !group2) {

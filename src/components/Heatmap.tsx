@@ -7,14 +7,12 @@ import { useTooltipInPortal } from "@visx/tooltip";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import * as d3 from "d3";
 import { ParentSize } from "@visx/responsive";
+
 interface HeatmapBaseProps {
   result: any;
   width?: number;
   height?: number;
 }
-
-const cool1 = "#122549";
-const cool2 = "#b4fbde";
 
 const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
@@ -56,11 +54,6 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
     range: [0, yMax], // y축 방향 수정
   });
 
-  const rectColorScale = scaleLinear<string>({
-    range: [cool1, cool2],
-    domain: [0, colorMax],
-  });
-
   const colorScale = d3
     .scaleSequential(d3.interpolateBlues)
     .domain([0, colorMax]);
@@ -76,9 +69,7 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
   return (
     <div ref={containerRef} className="relative">
       <svg width={width} height={height} className="overflow-visible">
-        {/* <rect width={width} height={height} rx={14} fill="#E2E8F0" /> */}
         <Group left={margin.left} top={margin.top}>
-          <rect width={xMax} height={yMax} fill="#F7FAFC" rx={4} />
           <HeatmapRect
             data={binData}
             xScale={xScale}
@@ -92,14 +83,13 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
             {(heatmap) =>
               heatmap.map((heatmapBins) =>
                 heatmapBins.map((bin, i) => {
-                  console.log(bin);
                   return (
                     <g key={i}>
                       <rect
                         key={`heatmap-rect-${bin.row}-${bin.column}`}
                         className="visx-heatmap-rect"
                         width={bin.width}
-                        height={bin.height}
+                        height={Math.max(0, bin.height)} // height 값을 0 이상으로 설정
                         x={bin.x}
                         y={bin.y}
                         fill={bin.color}
@@ -111,8 +101,6 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
                         fontSize={12}
                         textAnchor="middle"
                         dy=".33em"
-                        // fill={bin.count ? "black" : "transparent"}
-                        // fill="white"
                         fill={colorMax / 2 < bin.count ? "white" : "black"}
                       >
                         {bin.count}

@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Box,
-  Grid,
-  GridItem,
-  Heading,
-  HStack,
-  Icon,
-  Text,
-} from "@chakra-ui/react";
+import { Badge, Box, Heading, Icon, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { useEffect, useMemo, useState } from "react";
 import { calculateCorrelation } from "../model/correlation";
@@ -133,6 +124,7 @@ const IntraGroupView = () => {
                     display={"flex"}
                     alignItems={"center"}
                     mb={1}
+                    userSelect={"none"}
                     onClick={() => {
                       setResult({
                         key: key,
@@ -140,16 +132,12 @@ const IntraGroupView = () => {
                       });
                     }}
                   >
-                    <Box
-                      display={"flex"}
-                      alignItems={"center"}
-                      width={"80%"}
-                      // justifyContent={"space-between"}
-                    >
+                    <Box display={"flex"} alignItems={"center"} width={"85%"}>
                       <Text
                         fontSize={"sm"}
                         display={"flex"}
                         alignItems={"center"}
+                        width={"35%"}
                       >
                         <Icon
                           as={
@@ -160,13 +148,16 @@ const IntraGroupView = () => {
                         />
                         {value.hp.hp1.displayName}
                       </Text>
-                      <Text fontSize={"sm"} p={"0 10px"}>
-                        {" x "}
+                      <Text fontSize={"sm"} p={"0 10px"} fontWeight={"normal"}>
+                        {" X "}
                       </Text>
                       <Text
                         fontSize={"sm"}
                         display={"flex"}
+                        align={"right"}
                         alignItems={"center"}
+                        width={"35%"}
+                        justifyContent={"right"}
                       >
                         <Icon
                           as={
@@ -183,16 +174,6 @@ const IntraGroupView = () => {
                     </Text>
                   </Badge>
                 ))}
-            {/* {result && (
-              <Box display={"flex"} w={"100%"} justifyContent={"space-around"}>
-                <Text fontSize={"sm"}>
-                  {`${result.value.hp.hp1.displayName} X ${result.value.hp.hp2.displayName}`}
-                </Text>
-                <Text fontSize={"sm"} align={"center"}>
-                  {formatting(result.value.correlation, "float")}
-                </Text>
-              </Box>
-            )} */}
           </Box>
           <Box w={"60%"} height={"100%"}>
             {result &&

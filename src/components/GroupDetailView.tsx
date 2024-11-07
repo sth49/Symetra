@@ -60,7 +60,7 @@ const GroupDetailView = () => {
   }, [currentSelectedGroup]);
 
   return (
-    <Box style={{ height: "100%", width: "100%" }} p={2}>
+    <Box style={{ height: "100%", width: "100%" }} p={1}>
       {currentSelectedGroup ? (
         <Box
           width={"100%"}

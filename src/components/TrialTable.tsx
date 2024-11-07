@@ -11,13 +11,13 @@ import { getGroupedRowModel } from "../model/getGroupedRowModel";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Box, Button, Icon, Text } from "@chakra-ui/react";
+import { Box, Button, Icon, IconButton, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { FaSort, FaSortUp, FaSortDown, FaLayerGroup } from "react-icons/fa6";
 import BranchBarChart from "./BranchBarChart";
 import { HyperparamTypes } from "../model/hyperparam";
 import BarChart from "./BarChart";
-
+import { MdDeselect } from "react-icons/md";
 // Memoize expensive calculations
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
@@ -421,10 +421,13 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
             newSelection[rows[i].id] = true;
           }
           setIsMultiSelect(true);
-        } else if (isMultiSelect) {
-          Object.keys(newSelection).forEach((key) => delete newSelection[key]);
-          setIsMultiSelect(false);
-        } else {
+        }
+
+        // else if (isMultiSelect) {
+        //   Object.keys(newSelection).forEach((key) => delete newSelection[key]);
+        //   setIsMultiSelect(false);
+        // }
+        else {
           if (newSelection[trialId]) {
             delete newSelection[trialId];
           } else {
@@ -668,27 +671,44 @@ const TrialTable = ({ showControls = false }: TrialTableProps) => {
           {formatting(Object.keys(rowSelection).length, "int")} {" / "}
           {formatting(data.length, "int")} Selected)
         </Text>
-        <Button
-          size="xs"
-          colorScheme="blue"
-          variant="solid"
-          isDisabled={selectedTrials.length === 0}
-          mr={1}
-          onClick={() => {
-            const updatedGroups = groups.clone();
-            updatedGroups.addGroup(
-              exp?.trials.filter((trial) =>
-                selectedTrials.includes(trial.id)
-              ) ?? []
-            );
-            setGroups(updatedGroups);
-            setRowSelection({});
-            setSelectedRowPositions([]);
-            setSelectedTrials([]);
-          }}
-        >
-          Create Trial Group
-        </Button>
+        <Box display={"flex"}>
+          <IconButton
+            aria-label="Lasso"
+            // icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
+            icon={<MdDeselect />}
+            onClick={() => {
+              setRowSelection({});
+              setSelectedRowPositions([]);
+              setSelectedTrials([]);
+            }}
+            size="xs"
+            colorScheme="red"
+            isDisabled={Object.keys(rowSelection).length === 0}
+            mr={1}
+          />
+
+          <Button
+            size="xs"
+            colorScheme="blue"
+            variant="solid"
+            isDisabled={selectedTrials.length === 0}
+            mr={1}
+            onClick={() => {
+              const updatedGroups = groups.clone();
+              updatedGroups.addGroup(
+                exp?.trials.filter((trial) =>
+                  selectedTrials.includes(trial.id)
+                ) ?? []
+              );
+              setGroups(updatedGroups);
+              setRowSelection({});
+              setSelectedRowPositions([]);
+              setSelectedTrials([]);
+            }}
+          >
+            Create Trial Group
+          </Button>
+        </Box>
       </Box>
     </div>
   );

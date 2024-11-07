@@ -63,7 +63,7 @@ function App() {
         <Box display={"flex"}>
           {exp ? (
             <>
-              <Box width="320px" height="calc(100vh - 44px)">
+              <Box width="330px" height="calc(100vh - 44px)">
                 <Box height="99%" bg="white" m={1} mr={0.5} mt={0.5}>
                   <HparamView />
                 </Box>
@@ -71,7 +71,7 @@ function App() {
               <Box
                 display="flex"
                 flexDir="column"
-                width="calc(100% - 320px)"
+                width="calc(100% - 330px)"
                 height="calc(100vh - 44px)"
               >
                 <Box display="flex" width="100%">
@@ -101,12 +101,12 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"20%"} m={0.5} bg="white" mr={1} mb={0}>
+                    <Box height={"25%"} m={0.5} bg="white" mr={1} mb={0}>
                       <TrialGroupView />
                     </Box>
-                    <Box height={"5%"} m={0.5} bg="white" mr={1} mt={0}>
+                    {/* <Box height={"5%"} m={0.5} bg="white" mr={1} mt={0}>
                       <GroupDetailView />
-                    </Box>
+                    </Box> */}
                     <Box height={"25%"} m={0.5} bg="white" mr={1}>
                       <IntraGroupView />
                     </Box>

@@ -154,7 +154,10 @@ const BarChartBase = ({
                 x={xScale(bin.x0)}
                 y={yScale(Number(bin.count))}
                 width={xScale.bandwidth()}
-                height={height - margin.bottom - yScale(Number(bin.count))}
+                height={Math.max(
+                  0,
+                  height - margin.bottom - yScale(Number(bin.count))
+                )}
                 fill={hparam.getColorByValue(bin.x0)}
                 opacity={1}
               />
@@ -189,7 +192,10 @@ const BarChartBase = ({
                 x={xScale(bin.x0)}
                 y={yScale(Number(bin.count))}
                 width={xScale.bandwidth()}
-                height={height - margin.bottom - yScale(Number(bin.count))}
+                height={Math.max(
+                  0,
+                  height - margin.bottom - yScale(Number(bin.count))
+                )}
                 fill={"url(#pattern)"}
                 opacity={1}
                 stroke="#030f1b"
@@ -302,17 +308,24 @@ const BarChartBase = ({
               <Bar
                 x={xScale(Number(bin.x0))}
                 y={yScale(Number(bin.count))}
-                width={
+                width={Math.max(
+                  0,
                   xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - margin.left
-                }
-                height={height - margin.bottom - yScale(Number(bin.count))}
+                )}
+                height={Math.max(
+                  0,
+                  height - margin.bottom - yScale(Number(bin.count))
+                )}
                 fill={hparam.getColorByValue(
                   Number(bin.x1) - Number(bin.x0) / 2
                 )}
               />
               <Bar
                 x={xScale(Number(bin.x0))}
-                width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
+                width={Math.max(
+                  0,
+                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1
+                )}
                 height={height}
                 fill={"transparent"}
                 onMouseMove={(event) => {
@@ -346,8 +359,14 @@ const BarChartBase = ({
                 key={i}
                 x={xScale(Number(bin.x0))}
                 y={yScale(Number(bin.count))}
-                width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
-                height={height - margin.bottom - yScale(Number(bin.count))}
+                width={Math.max(
+                  0,
+                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1
+                )}
+                height={Math.max(
+                  0,
+                  height - margin.bottom - yScale(Number(bin.count))
+                )}
                 fill={"url(#pattern)"}
                 opacity={1}
                 stroke="#030f1b"

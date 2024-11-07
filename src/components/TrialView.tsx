@@ -16,7 +16,6 @@ const TrialView = () => {
   const [visible, setVisible] = useState(false);
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      {/* <h1>Trial View</h1> */}
       <Box
         display={"flex"}
         justifyContent={"space-between"}
