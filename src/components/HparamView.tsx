@@ -6,6 +6,7 @@ import { formatting } from "../model/utils";
 
 import { FaEyeSlash } from "react-icons/fa6";
 import { useMetricScale } from "../model/colorScale";
+import MetricBadge from "./MetricBadge";
 const HparamView = () => {
   const { exp, hyperparams } = useConstDataStore();
   const { metricScale, colorScale } = useMetricScale();
@@ -22,19 +23,11 @@ const HparamView = () => {
         </Heading>
       </Box>
       <Box display={"flex"} justifyContent={"center"}>
-        <Text fontSize={"xs"} align="center" color="gray.600">
+        <Text fontSize={"xs"} align="center" color="gray.600" mr={2}>
           Base Branch Coverage
         </Text>
-        <Badge
-          backgroundColor={colorScale(metricScale(exp.metric.baseValue))}
-          color={"black"}
-          display={"flex"}
-          alignItems={"center"}
-          fontWeight={"normal"}
-          ml={2}
-        >
-          {formatting(exp.metric.baseValue, "float")}
-        </Badge>
+
+        <MetricBadge metricValue={exp.metric.baseValue} type="float" />
       </Box>
       <HparamTable />
       <Box
@@ -42,7 +35,7 @@ const HparamView = () => {
         display={"flex"}
         justifyContent={"space-around"}
         alignContent={"center"}
-        p={2}
+        p={1}
       >
         <Button size={"xs"} alignSelf={"center"} colorScheme={"blue"}>
           <Icon as={FaEyeSlash} mr={2} />

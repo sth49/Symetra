@@ -101,12 +101,9 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"25%"} m={0.5} bg="white" mr={1} mb={0}>
+                    <Box height={"25%"} m={0.5} bg="white" mr={1} mb={0.5}>
                       <TrialGroupView />
                     </Box>
-                    {/* <Box height={"5%"} m={0.5} bg="white" mr={1} mt={0}>
-                      <GroupDetailView />
-                    </Box> */}
                     <Box height={"25%"} m={0.5} bg="white" mr={1}>
                       <IntraGroupView />
                     </Box>

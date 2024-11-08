@@ -47,25 +47,6 @@ const TrialGroupView = () => {
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Trial Group View
         </Heading>
-
-        <FormControl
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          width="140px"
-        >
-          {/* <FormLabel htmlFor="metric-switch" mb={0}>
-            <Text fontSize="xs" color="gray.600" userSelect={"none"}>
-              Show Graph
-            </Text>
-          </FormLabel> */}
-          {/* <Switch
-            id="metric-switch"
-            onChange={() => setVisible(!visible)}
-            isChecked={visible}
-            size={"sm"}
-          /> */}
-        </FormControl>
       </Box>
       <Box height={`calc(100% - 35px - 35px)`}>
         <TrialGroupGraph />

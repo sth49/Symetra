@@ -1,5 +1,4 @@
 import {
-  Badge,
   Box,
   Button,
   ButtonGroup,
@@ -11,7 +10,7 @@ import {
 import { useCustomStore } from "../store";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
-import { formatting, hexToRgb } from "../model/utils";
+import { formatting } from "../model/utils";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
 
@@ -27,6 +26,7 @@ import {
 } from "@chakra-ui/react";
 
 import { calculateCorrelation } from "../model/correlation";
+import MetricBadge from "./MetricBadge";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -158,22 +158,16 @@ const GroupDetailView = () => {
               display={"flex"}
               justifyContent={"space-between"}
               width={"50%"}
+              alignItems={"center"}
               pl={2}
             >
               <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
                 Mean Coverage
               </Text>
-              <Badge
-                backgroundColor={colorScale(
-                  metricScale(currentSelectedGroup.getStats().avg)
-                )}
-                color={"black"}
-                display={"flex"}
-                alignItems={"center"}
-                fontWeight={"normal"}
-              >
-                {formatting(currentSelectedGroup.getStats().avg, "float")}
-              </Badge>
+              <MetricBadge
+                metricValue={currentSelectedGroup.getStats().avg}
+                type={"float"}
+              />
             </Box>
           </Box>
         </Box>
@@ -206,7 +200,6 @@ const GroupDetailView = () => {
                 colorScheme="red"
                 onClick={() => {
                   const newGroups = groups.clone();
-
                   newGroups.deleteGroup(currentSelectedGroup.id);
                   setCurrentSelectedGroup(newGroups.groups[0]);
                   setGroups(newGroups);

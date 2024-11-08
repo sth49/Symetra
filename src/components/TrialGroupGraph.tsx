@@ -4,12 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Graph } from "@visx/network";
 import { performStatisticalTest } from "../model/statistic";
 import * as d3 from "d3";
-import { formatting } from "../model/utils";
+import { formatting, getTextColor } from "../model/utils";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { useConstDataStore } from "./store/constDataStore";
 import { useMetricScale } from "../model/colorScale";
 import { ParentSize } from "@visx/responsive";
-import React from "react";
 
 type TooltipData = {
   key: string;
@@ -66,19 +65,6 @@ const TrialGroupGraph = () => {
   const boxRef = useRef<HTMLDivElement>(null);
   const [boxHeight, setBoxHeight] = useState(0);
   const { metricScale, colorScale } = useMetricScale();
-  const legendWidth = 100;
-  const legendHeight = 100;
-  const legendMargin = { top: 25, right: 20 };
-
-  const numThresholds = 5;
-  const thresholdRanges = useMemo(() => {
-    const scale = metricScale.copy().range(metricScale.domain());
-    const ticks = scale.ticks(numThresholds);
-    return ticks.map((tick, i) => [
-      tick,
-      i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
-    ]);
-  }, [metricScale]);
 
   const {
     tooltipOpen,
@@ -214,8 +200,6 @@ const TrialGroupGraph = () => {
         }}
         onClick={() => handleNodeClick(node.id)}
       >
-        <circle r={30} cx={node.x} cy={node.y} fill={"white"} />
-
         <circle
           r={30}
           cx={node.x}
@@ -240,16 +224,17 @@ const TrialGroupGraph = () => {
           textAnchor="middle"
           fontSize={10}
           fontWeight={"bold"}
+          fill={getTextColor(colorScale(metricScale(Number(node.stats.avg))))}
         >
           {node.name}
         </text>
-
         <text
           className="node-text"
           x={node.x}
           y={node.y + 13}
           textAnchor="middle"
           fontSize={8}
+          fill={getTextColor(colorScale(metricScale(Number(node.stats.avg))))}
         >
           {formatting(node.length, "int") + " trials"}
         </text>
@@ -360,49 +345,6 @@ const TrialGroupGraph = () => {
               )}
             </ParentSize>
           </Box>
-
-          {/* <Box>
-            <svg width={legendWidth} height={legendHeight + legendMargin.top}>
-              {thresholdRanges.map((range, i) => (
-                <React.Fragment key={`legend-${i}`}>
-                  <rect
-                    x={0}
-                    y={i * (legendHeight / numThresholds) + legendMargin.top}
-                    width={legendWidth / 5}
-                    height={legendHeight / numThresholds}
-                    fill={colorScale(i)}
-                    opacity={0.7}
-                  />
-                  <text
-                    x={5 + legendWidth / 5}
-                    y={
-                      (i + 0.6) * (legendHeight / numThresholds) +
-                      legendMargin.top
-                    }
-                    fontSize="12"
-                    textAnchor="start"
-                    dominantBaseline="middle"
-                    fill="#4A5568"
-                  >
-                    {`${formatting(range[0], "int")} - ${formatting(
-                      range[1],
-                      "int"
-                    )}`}
-                  </text>
-                </React.Fragment>
-              ))}
-              <text
-                x={0}
-                y={legendMargin.top - 8}
-                fontSize="14"
-                textAnchor="start"
-                fontWeight="bold"
-                fill="#4A5568"
-              >
-                Coverage
-              </text>
-            </svg>
-          </Box> */}
         </Box>
       ) : (
         <Box p={4} bg="gray.100" m={2} height={"100%"}>

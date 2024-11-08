@@ -50,7 +50,8 @@ const BarChartBase = ({
     scroll: true,
   });
 
-  const { exp, hyperparams } = useConstDataStore();
+  const { exp } = useConstDataStore();
+  const hyperparams = exp?.hyperparams;
   const setClickedHparamValue = useCustomStore(
     (state) => state.setClickedHparamValue
   );

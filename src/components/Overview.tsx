@@ -15,6 +15,8 @@ import { IoMdSettings } from "react-icons/io";
 import { useConstDataStore } from "./store/constDataStore";
 import { useMetricScale } from "../model/colorScale";
 import * as d3 from "d3";
+import MetricLegend from "./MetricLegend";
+import MetricBadge from "./MetricBadge";
 const Overview = () => {
   const { metricScale, colorScale } = useMetricScale();
 
@@ -35,7 +37,7 @@ const Overview = () => {
         </Heading>
       </Box>
 
-      <Box display={"flex"} w={"90%"} justifyContent={"space-around"}>
+      <Box display={"flex"} w={"90%"} justifyContent={"space-between"}>
         <Box display={"flex"} alignItems={"center"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
             Dataset
@@ -85,7 +87,7 @@ const Overview = () => {
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
             Branch Coverage
           </Text>
-          <Box display={"flex"} alignItems={"center"}>
+          <Box display={"flex"} alignItems={"center"} pr={3}>
             <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
               <Tooltip label={"Total"}>
                 {formatting(exp.metric.totalBranch, "float")}
@@ -93,30 +95,16 @@ const Overview = () => {
             </Text>
             (
             <Tooltip label={"Median"}>
-              <Badge
-                backgroundColor={colorScale(
-                  metricScale(d3.median(exp.trials.map((t) => t.metric)))
-                )}
-                color={"black"}
-                display={"flex"}
-                alignItems={"center"}
-                fontWeight={"normal"}
-                p={0.5}
-              >
-                {formatting(d3.median(exp.trials.map((t) => t.metric)), "int")}
-              </Badge>
+              <MetricBadge
+                metricValue={d3.median(exp.trials.map((t) => t.metric))}
+                type={"int"}
+              />
             </Tooltip>
             )
           </Box>
+          <MetricLegend />
         </Box>
       </Box>
-      {/* <IconButton
-        mr={"2px"}
-        size={"sm"}
-        aria-label="Settings"
-        icon={<IoMdSettings />}
-        color={"gray.600"}
-      ></IconButton> */}
     </Box>
   );
 };

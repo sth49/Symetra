@@ -11,6 +11,7 @@ import { TbCircleDotted, TbCircleFilled } from "react-icons/tb";
 
 import { useMetricScale } from "../model/colorScale";
 import AreaChart from "./AreaChart";
+import MetricBadge from "./MetricBadge";
 const InterGroupView = () => {
   const { exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -36,17 +37,17 @@ const InterGroupView = () => {
     const group2Stats = group2.getStats();
 
     return {
-      max: {
+      Max: {
         group1: group1Stats.max,
         group2: group2Stats.max,
         type: "int",
       },
-      mean: {
+      Mean: {
         group1: group1Stats.avg,
         group2: group2Stats.avg,
         type: "float",
       },
-      min: {
+      Min: {
         group1: group1Stats.min,
         group2: group2Stats.min,
         type: "int",
@@ -98,7 +99,7 @@ const InterGroupView = () => {
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Inter Group Difference
+          Inter Group Difference ({currentSelectedGroup?.name})
         </Heading>
       </Box>
 
@@ -198,58 +199,71 @@ const InterGroupView = () => {
                   className="inter-group-view-item"
                 >
                   <Box width={"20%"} pl={2}>
-                    <Text fontSize={"sm"}>Count</Text>
+                    <Text fontSize={"sm"}>Size</Text>
                   </Box>
                   <Box width={"40%"}>
                     <Text align={"center"} fontSize={"sm"}>
-                      {/* {formatting(stats["mean"].group1, stats["mean"].type)} */}
-                      {formatting(currentSelectedGroup.trials.length, "int")}
+                      {formatting(currentSelectedGroup.trials.length, "int")}{" "}
+                      trials
                     </Text>
                   </Box>
 
                   <Box width={"40%"}>
                     <Text align={"center"} fontSize={"sm"}>
-                      {/* {formatting(stats["mean"].group2, stats["mean"].type)} */}
-                      {formatting(group2.trials.length, "int")}
+                      {formatting(group2.trials.length, "int")} trials
                     </Text>
                   </Box>
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "5px 0",
-                  }}
-                  className="inter-group-view-item"
-                >
-                  <Box width={"20%"} pl={2}>
-                    <Text fontSize={"sm"}>Mean CVRG</Text>
-                  </Box>
-                  <Box
-                    width={"40%"}
-                    background={colorScale(
-                      metricScale(stats["mean"].group1) || 0
-                    )}
-                    color={stats["mean"].group1 < 1000 ? "white" : "black"}
+                {Object.keys(stats).map((key) => (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "5px 0",
+                    }}
+                    className="inter-group-view-item"
                   >
-                    <Text align={"center"} fontSize={"sm"}>
-                      {formatting(stats["mean"].group1, stats["mean"].type)}
-                    </Text>
-                  </Box>
+                    <Box width={"20%"} pl={2}>
+                      <Text fontSize={"sm"}>{key} Coverage</Text>
+                    </Box>
+                    <Box
+                      width={"40%"}
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <MetricBadge
+                        metricValue={stats[key].group1}
+                        type={stats[key].type}
+                      />
+                    </Box>
 
-                  <Box
-                    width={"40%"}
-                    background={colorScale(
-                      metricScale(stats["mean"].group2) || 0
-                    )}
-                    color={stats["mean"].group2 < 1000 ? "white" : "black"}
-                  >
-                    <Text align={"center"} fontSize={"sm"}>
-                      {formatting(stats["mean"].group2, stats["mean"].type)}
-                    </Text>
-                  </Box>
-                </div>
+                    <Box
+                      width={"40%"}
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <MetricBadge
+                        metricValue={stats[key].group2}
+                        type={stats[key].type}
+                      />
+                    </Box>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "5px 0",
+                      }}
+                      className="inter-group-view-item"
+                    ></div>
+                  </div>
+                ))}
                 <div
                   style={{
                     display: "flex",
@@ -338,6 +352,7 @@ const InterGroupView = () => {
                             display={"flex"}
                             justifyContent={"space-around"}
                             alignItems={"center"}
+                            p={"0 4px"}
                           >
                             <BarChart
                               dist={d.dist}
@@ -351,6 +366,7 @@ const InterGroupView = () => {
                             display={"flex"}
                             justifyContent={"center"}
                             alignItems={"center"}
+                            p={"0 4px"}
                           >
                             <BarChart
                               dist={d.dist}

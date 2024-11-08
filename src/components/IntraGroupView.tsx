@@ -1,4 +1,4 @@
-import { Badge, Box, Heading, Icon, Text } from "@chakra-ui/react";
+import { Badge, Box, Heading, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { useEffect, useMemo, useState } from "react";
 import { calculateCorrelation } from "../model/correlation";
@@ -87,9 +87,9 @@ const IntraGroupView = () => {
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      <Box display={"flex"} justifyContent={"space-between"}>
+      <Box display={"flex"}>
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Intra Group Correlation
+          Intra Group Correlation ({currentSelectedGroup?.name})
         </Heading>
       </Box>
       <Box
@@ -134,42 +134,51 @@ const IntraGroupView = () => {
                     }}
                   >
                     <Box display={"flex"} alignItems={"center"} width={"85%"}>
-                      <Text
-                        fontSize={"sm"}
-                        display={"flex"}
-                        alignItems={"center"}
-                        width={"35%"}
+                      <Tooltip
+                        label={value.hp.hp1.name}
+                        aria-label={value.hp.hp1.displayName}
                       >
-                        <Icon
-                          as={
-                            value.hp.hp1.type === HyperparamTypes.Binary
-                              ? HparamIcons["Binary"]
-                              : HparamIcons["Continuous"]
-                          }
-                        />
-                        {value.hp.hp1.displayName}
-                      </Text>
+                        <Text
+                          fontSize={"sm"}
+                          display={"flex"}
+                          alignItems={"center"}
+                          width={"35%"}
+                        >
+                          <Icon
+                            as={
+                              value.hp.hp1.type === HyperparamTypes.Binary
+                                ? HparamIcons["Binary"]
+                                : HparamIcons["Continuous"]
+                            }
+                          />
+                          {value.hp.hp1.displayName}
+                        </Text>
+                      </Tooltip>
                       <Text fontSize={"sm"} p={"0 10px"} fontWeight={"normal"}>
-                        {/* {" X "} */}
                         <Icon as={IoClose} />
                       </Text>
-                      <Text
-                        fontSize={"sm"}
-                        display={"flex"}
-                        align={"right"}
-                        alignItems={"center"}
-                        width={"35%"}
-                        justifyContent={"right"}
+                      <Tooltip
+                        label={value.hp.hp2.name}
+                        aria-label={value.hp.hp2.displayName}
                       >
-                        <Icon
-                          as={
-                            value.hp.hp2.type === HyperparamTypes.Binary
-                              ? HparamIcons["Binary"]
-                              : HparamIcons["Continuous"]
-                          }
-                        />
-                        {value.hp.hp2.displayName}
-                      </Text>
+                        <Text
+                          fontSize={"sm"}
+                          display={"flex"}
+                          align={"right"}
+                          alignItems={"center"}
+                          width={"35%"}
+                          justifyContent={"right"}
+                        >
+                          <Icon
+                            as={
+                              value.hp.hp2.type === HyperparamTypes.Binary
+                                ? HparamIcons["Binary"]
+                                : HparamIcons["Continuous"]
+                            }
+                          />
+                          {value.hp.hp2.displayName}
+                        </Text>
+                      </Tooltip>
                     </Box>
                     <Text fontSize={"sm"} align={"right"}>
                       {formatting(value.correlation, "float")}

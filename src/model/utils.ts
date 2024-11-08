@@ -67,7 +67,7 @@ export const formatting = (
   digit: number = 1
 ) => {
   const formatter = new Intl.NumberFormat("ko-KR", {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: valueType === "int" ? 0 : digit,
     maximumFractionDigits: digit,
   });
 
@@ -98,3 +98,31 @@ export function hexToRgb(hex: string): number[] {
 
   return [r, g, b];
 }
+
+export const getLuminance = (color) => {
+  // Convert hex or rgb string to rgb values
+  let r, g, b;
+
+  if (color.startsWith("rgb")) {
+    [r, g, b] = color.match(/\d+/g).map(Number);
+  } else {
+    const rgb = d3.color(color).rgb();
+    r = rgb.r;
+    g = rgb.g;
+    b = rgb.b;
+  }
+
+  // Calculate relative luminance using WCAG formula
+  const [rs, gs, bs] = [r, g, b].map((c) => {
+    c = c / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+// Should use white text if background is dark
+export const getTextColor = (backgroundColor) => {
+  const luminance = getLuminance(backgroundColor);
+  return luminance > 0.5 ? "#000000" : "#ffffff";
+};

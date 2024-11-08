@@ -423,7 +423,7 @@ const CoverageView: React.FC = () => {
         display={"flex"}
         flexDirection={"column"}
         overflowY={"hidden"}
-        height="calc(100% - 40px - 60px)"
+        height="calc(100% - 40px - 40px)"
       >
         {isPreference && (
           <Box
@@ -803,7 +803,7 @@ const CoverageView: React.FC = () => {
         </Box>
       </Box>
       <Box
-        height={"20px"}
+        height={"40px"}
         p={1}
         zIndex={10}
         display={"flex"}
