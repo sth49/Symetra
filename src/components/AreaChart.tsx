@@ -1,9 +1,8 @@
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
 import { useMemo } from "react";
-import { AreaClosed, LinePath } from "@visx/shape";
+import { AreaClosed } from "@visx/shape";
 import { curveMonotoneX } from "@visx/curve";
-import { Group } from "@visx/group";
 import { Group as TrialGroup } from "../model/group";
 import { useCustomStore } from "../store";
 interface AreaChartProps {

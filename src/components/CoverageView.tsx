@@ -13,6 +13,7 @@ import {
   FormControl,
   FormLabel,
   Heading,
+  Icon,
   IconButton,
   Select,
   Switch,
@@ -33,8 +34,6 @@ import { TbLassoOff } from "react-icons/tb";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
 import { useMetricScale } from "../model/colorScale";
-
-// Throttle helper function with requestAnimationFrame for smoother performance
 const throttle = (func: Function) => {
   let rafId: number | null = null;
   return function (...args: any[]) {
@@ -54,6 +53,7 @@ const CoverageView: React.FC = () => {
   const selectedRowPositions = useCustomStore(
     (state) => state.selectedRowPositions
   );
+  const hparamSort = useConstDataStore((state) => state.hparamSort);
   const { exp, hyperparams } = useConstDataStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
@@ -130,10 +130,12 @@ const CoverageView: React.FC = () => {
   const thresholdRanges = useMemo(() => {
     const scale = metricScale.copy().range(metricScale.domain());
     const ticks = scale.ticks(numThresholds);
-    return ticks.map((tick, i) => [
-      tick,
-      i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
-    ]);
+    return ticks
+      .map((tick, i) => [
+        tick,
+        i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
+      ])
+      .reverse();
   }, [metricScale]);
 
   const densityData = useMemo(() => {
@@ -337,7 +339,13 @@ const CoverageView: React.FC = () => {
 
         return (
           <>
-            <path d={pathData} fill="#d0e0fc" opacity={0.8} strokeWidth={1} />
+            <path
+              key={`path-${i}`}
+              d={pathData}
+              fill="#d0e0fc"
+              opacity={0.8}
+              strokeWidth={1}
+            />
           </>
         );
       });
@@ -371,11 +379,30 @@ const CoverageView: React.FC = () => {
             >
               <option value="">None</option>
               <option value="metric">CVRG</option>
-              {exp.hyperparams.map((hp) => (
-                <option key={hp.name} value={hp.name}>
-                  {hp.displayName}
-                </option>
-              ))}
+              {exp.hyperparams
+                .sort((a, b) => {
+                  if (hparamSort !== null && hparamSort !== undefined) {
+                    if (hparamSort.id === "name") {
+                      if (hparamSort.desc) {
+                        return b.name.localeCompare(a.name);
+                      }
+                      return a.name.localeCompare(b.name);
+                    } else if (hparamSort.id === "effect") {
+                      if (hparamSort.desc) {
+                        return b.getAbsoluteEffect() - a.getAbsoluteEffect();
+                      }
+                      return a.getAbsoluteEffect() - b.getAbsoluteEffect();
+                    }
+                  }
+                  return a.name.localeCompare(b.name);
+                })
+                .filter((hp) => hp.visible)
+                .map((hp) => (
+                  <option key={hp.name} value={hp.name}>
+                    <Icon as={hp.icon} mr={1} />
+                    {hp.displayName}
+                  </option>
+                ))}
             </Select>
           </FormControl>
 
@@ -582,7 +609,9 @@ const CoverageView: React.FC = () => {
                         }
                         width={legendWidth / 5}
                         height={legendHeight / numThresholds}
-                        fill={colorScale(i)}
+                        fill={colorScale(
+                          metricScale((range[0] + range[1]) / 2)
+                        )}
                         opacity={0.7}
                       />
                       <text
@@ -775,6 +804,7 @@ const CoverageView: React.FC = () => {
             )}
           </svg>
           <svg
+            key={"connection-line"}
             width="100%"
             height="100%"
             viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}

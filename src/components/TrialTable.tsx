@@ -34,6 +34,7 @@ const adjustTableHeight = (tableRef, virtualHeight) => {
 
 const TrialTable = () => {
   const { exp, hyperparams } = useConstDataStore();
+  const hparamSort = useConstDataStore((state) => state.hparamSort);
 
   const data = useMemo(
     () =>
@@ -123,7 +124,23 @@ const TrialTable = () => {
         size: 70,
       },
       ...hyperparams
-        .sort((a, b) => b.getAbsoluteEffect() - a.getAbsoluteEffect())
+        // .sort((a, b) => b.getAbsoluteEffect() - a.getAbsoluteEffect())
+        .sort((a, b) => {
+          if (hparamSort !== null && hparamSort !== undefined) {
+            if (hparamSort.id === "name") {
+              if (hparamSort.desc) {
+                return b.name.localeCompare(a.name);
+              }
+              return a.name.localeCompare(b.name);
+            } else if (hparamSort.id === "effect") {
+              if (hparamSort.desc) {
+                return b.getAbsoluteEffect() - a.getAbsoluteEffect();
+              }
+              return a.getAbsoluteEffect() - b.getAbsoluteEffect();
+            }
+          }
+          return a.name.localeCompare(b.name);
+        })
         .map((param) => ({
           id: param.name,
           header: () => (
@@ -161,7 +178,7 @@ const TrialTable = () => {
           },
         })),
     ];
-  }, [hyperparams]);
+  }, [hyperparams, hparamSort]);
 
   const table = useReactTable({
     data,
@@ -207,13 +224,21 @@ const TrialTable = () => {
     overscan: 20,
   });
 
-  const {
-    setGroups,
-    groups,
-    selectedTrials,
-    setSelectedRowPositions,
-    setSelectedTrials,
-  } = useCustomStore();
+  // const {
+  //   setGroups,
+  //   groups,
+  //   selectedTrials,
+  //   setSelectedRowPositions,
+  //   setSelectedTrials,
+  // } = useCustomStore();
+
+  const setGroups = useCustomStore((state) => state.setGroups);
+  const groups = useCustomStore((state) => state.groups);
+  const selectedTrials = useCustomStore((state) => state.selectedTrials);
+  const setSelectedRowPositions = useCustomStore(
+    (state) => state.setSelectedRowPositions
+  );
+  const setSelectedTrials = useCustomStore((state) => state.setSelectedTrials);
 
   const virtualItems = virtualizer.getVirtualItems();
   const virtualSize = virtualizer.getTotalSize();
@@ -410,8 +435,8 @@ const TrialTable = () => {
         className="container"
         style={{
           overflow: "auto",
-          height: "calc(100% - 60px - 10px)",
-          marginBottom: "20px",
+          height: "calc(100% - 40px - 5px)",
+          // marginBottom: "20px",
         }}
       >
         <div
@@ -569,7 +594,7 @@ const TrialTable = () => {
       </div>
       <Box
         bg="white"
-        p={1}
+        // p={1}
         display="flex"
         justifyContent="space-between"
         alignItems="center"

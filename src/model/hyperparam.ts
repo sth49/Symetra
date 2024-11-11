@@ -80,6 +80,11 @@ export class Hyperparam {
       hparam.shapValues.push(trial.shap_values[hparam.name]);
     });
     // hparam.shapValues = shapValue;
+    console.log(hparam.getMeanAbsoluteEffect());
+    if (hparam.getMeanAbsoluteEffect() < 0.3) {
+      console.log(hparam.name);
+      hparam.visible = false;
+    }
     return hparam;
   }
   getColor(index: number): string | undefined {

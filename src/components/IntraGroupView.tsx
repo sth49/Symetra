@@ -28,10 +28,10 @@ const IntraGroupView = () => {
   useEffect(() => {
     if (currentSelectedGroup) {
       const binaryHparams = exp.hyperparams.filter(
-        (param) => param.type === HyperparamTypes.Binary
+        (param) => param.type === HyperparamTypes.Binary && param.visible
       );
       const continuousHparams = exp.hyperparams.filter(
-        (param) => param.type === HyperparamTypes.Continuous
+        (param) => param.type === HyperparamTypes.Continuous && param.visible
       );
 
       const results = {};

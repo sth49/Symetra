@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting } from "../model/utils";
 import { Tooltip } from "@chakra-ui/react";
@@ -23,7 +23,8 @@ import { FaSortDown } from "react-icons/fa6";
 import HparamExtended from "./HparamExtended";
 
 const HparamTable = () => {
-  const { exp, hyperparams, setHyperparams } = useConstDataStore();
+  const { exp, hyperparams, setHyperparams, setHparamSort } =
+    useConstDataStore();
 
   const data = useMemo(
     () =>
@@ -54,10 +55,10 @@ const HparamTable = () => {
       const selectedRowIds = table
         .getSortedRowModel()
         .rows.filter((r, i) => selectedRows.has(i))
-        .map((r) => r.original.displayName);
+        .map((r) => r.original.fullName);
 
       const newHyperparams = hyperparams.map((hp, i) => {
-        if (selectedRowIds.includes(hp.displayName)) {
+        if (selectedRowIds.includes(hp.name)) {
           hp.visible = visible;
         }
         return hp;
@@ -194,7 +195,8 @@ const HparamTable = () => {
                 toggleRowSelection(index, e.shiftKey);
               }}
             >
-              {formatting(row.original.effect, "float")}
+              {/* {formatting(row.original.effect, "float")} */}
+              {formatting(row.original.effect, "float", 2)}
             </div>
           );
         },
@@ -267,6 +269,11 @@ const HparamTable = () => {
       desc: true,
     },
   ]);
+
+  useEffect(() => {
+    console.log("change sorting", sorting);
+    setHparamSort(sorting[0]);
+  }, [sorting]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const table = useReactTable({
     data,
@@ -348,13 +355,22 @@ const HparamTable = () => {
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {{
-                            asc: <Icon color={"gray.600"} as={FaSortUp} />,
-                            desc: <Icon color={"gray.600"} as={FaSortDown} />,
-                          }[header.column.getIsSorted() as string] ??
-                            (header.column.getCanSort() && (
-                              <Icon color={"gray.600"} as={FaSort} />
-                            ))}
+                          {header.column.getCanSort() &&
+                            header.column.getIsSorted() !== false && (
+                              <Icon
+                                color="gray.600"
+                                onClick={header.column.getToggleSortingHandler()}
+                                as={
+                                  (header.column.getIsSorted() as string) ===
+                                  "asc"
+                                    ? FaSortUp
+                                    : (header.column.getIsSorted() as string) ===
+                                      "desc"
+                                    ? FaSortDown
+                                    : FaSort
+                                }
+                              />
+                            )}
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -369,7 +385,7 @@ const HparamTable = () => {
               </tr>
             ))}
           </thead>
-          <tbody>
+          <tbody key={"tbody"}>
             {table.getRowModel().rows.map((row) => {
               const index = table
                 .getSortedRowModel()

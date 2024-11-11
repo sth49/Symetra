@@ -1,6 +1,4 @@
 import { create } from "zustand";
-import { Experiment } from "./model/experiment";
-import { Hyperparam } from "./model/hyperparam";
 import { Group, Groups } from "./model/group";
 import { TrialPathModel } from "./model/trialPath";
 
@@ -12,12 +10,6 @@ interface HparamValue {
 interface CustomStore {
   clickedHparam: string | null;
   setClickedHparam: (column: string | null) => void;
-
-  // exp: Experiment | null;
-  // setExp: (experiment: Experiment) => void;
-
-  // hyperparams: Hyperparam[];
-  // setHyperparams: (hyperparams: Hyperparam[]) => void;
 
   groups: Groups;
   setGroups: (groups: Groups) => void;
@@ -49,12 +41,6 @@ interface CustomStore {
 export const useCustomStore = create<CustomStore>((set) => ({
   clickedHparam: null,
   setClickedHparam: (hparam) => set({ clickedHparam: hparam }),
-
-  // exp: null,
-  // setExp: (exp) => set({ exp }),
-
-  // hyperparams: [],
-  // setHyperparams: (hyperparams) => set({ hyperparams }),
 
   groups: new Groups(),
   setGroups: (groups) => set({ groups }),

@@ -18,8 +18,6 @@ import * as d3 from "d3";
 import MetricLegend from "./MetricLegend";
 import MetricBadge from "./MetricBadge";
 const Overview = () => {
-  const { metricScale, colorScale } = useMetricScale();
-
   const { exp } = useConstDataStore();
   return (
     <Box
@@ -68,7 +66,7 @@ const Overview = () => {
           .map((key, index) => {
             const icon = HparamIcons[key];
             return (
-              <Box display={"flex"} alignItems={"center"}>
+              <Box display={"flex"} alignItems={"center"} key={index}>
                 <Icon as={icon} mr={1} />
                 <Text fontSize="sm" fontWeight={"bold"} pr={3}>
                   {key}
@@ -95,10 +93,12 @@ const Overview = () => {
             </Text>
             (
             <Tooltip label={"Median"}>
-              <MetricBadge
-                metricValue={d3.median(exp.trials.map((t) => t.metric))}
-                type={"int"}
-              />
+              <div>
+                <MetricBadge
+                  metricValue={d3.median(exp.trials.map((t) => t.metric))}
+                  type={"int"}
+                />
+              </div>
             </Tooltip>
             )
           </Box>

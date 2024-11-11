@@ -114,7 +114,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   }, [exp.trials]);
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ width: "100%", marginBottom: "5px" }}>
       <div
         style={{
           display: "flex",

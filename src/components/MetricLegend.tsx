@@ -19,8 +19,9 @@ const MetricLegend = () => {
 
   return (
     <div style={{ display: "flex", width: "300px" }}>
-      {ranges.map((range) => (
+      {ranges.map((range, i) => (
         <div
+          key={i}
           style={{
             backgroundColor: range.color,
             color: range.textColor,

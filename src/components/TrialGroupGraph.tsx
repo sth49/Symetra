@@ -55,6 +55,7 @@ function createArcPath(
 const TrialGroupGraph = () => {
   const { hyperparams } = useConstDataStore();
   const groups = useCustomStore((state) => state.groups);
+  const hoveredGroup = useCustomStore((state) => state.hoveredGroup);
   const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
   const setCurrentSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
@@ -153,7 +154,7 @@ const TrialGroupGraph = () => {
       if (node) {
         const group = groups.getGroup(Number(node.id));
         const hovered = new Set(group.trials.map((trial) => trial.id));
-        setHoveredGroup(hovered);
+        if (hoveredGroup !== hovered) setHoveredGroup(hovered);
       } else {
         setHoveredGroup(new Set());
       }
