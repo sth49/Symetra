@@ -1,19 +1,9 @@
-import {
-  Badge,
-  Box,
-  Heading,
-  Icon,
-  IconButton,
-  Text,
-  Tooltip,
-} from "@chakra-ui/react";
+import { Box, Heading, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { HparamIcons, HyperparamTypes } from "../model/hyperparam";
 import { formatting } from "../model/utils";
 
 import { AiFillRocket } from "react-icons/ai";
-import { IoMdSettings } from "react-icons/io";
 import { useConstDataStore } from "./store/constDataStore";
-import { useMetricScale } from "../model/colorScale";
 import * as d3 from "d3";
 import MetricLegend from "./MetricLegend";
 import MetricBadge from "./MetricBadge";
@@ -59,49 +49,42 @@ const Overview = () => {
           <Text fontSize="sm" color={"gray.600"}>
             {exp?.hyperparams.length}
           </Text>
+          {Object.keys(HyperparamTypes)
+            .filter((key) => isNaN(Number(key)))
+            .map((key, index) => {
+              const icon = HparamIcons[key];
+              return (
+                <Box display={"flex"} alignItems={"center"} key={index} pl={6}>
+                  <Icon as={icon} mr={1} />
+                  <Text fontSize="sm" fontWeight={"bold"} pr={3}>
+                    {key}
+                  </Text>
+                  <Text fontSize="sm">
+                    {
+                      exp?.hyperparams.filter(
+                        (hp) => hp.type === HyperparamTypes[key]
+                      ).length
+                    }
+                  </Text>
+                </Box>
+              );
+            })}
         </Box>
 
-        {Object.keys(HyperparamTypes)
-          .filter((key) => isNaN(Number(key)))
-          .map((key, index) => {
-            const icon = HparamIcons[key];
-            return (
-              <Box display={"flex"} alignItems={"center"} key={index}>
-                <Icon as={icon} mr={1} />
-                <Text fontSize="sm" fontWeight={"bold"} pr={3}>
-                  {key}
-                </Text>
-                <Text fontSize="sm">
-                  {
-                    exp?.hyperparams.filter(
-                      (hp) => hp.type === HyperparamTypes[key]
-                    ).length
-                  }
-                </Text>
-              </Box>
-            );
-          })}
         <Box display={"flex"} alignItems={"center"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Branch Coverage
+            Branches
           </Text>
-          <Box display={"flex"} alignItems={"center"} pr={3}>
+          <Box display={"flex"} alignItems={"center"} pr={5}>
             <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
               <Tooltip label={"Total"}>
-                {formatting(exp.metric.totalBranch, "float")}
+                {formatting(exp.metric.totalBranch, "int")}
               </Tooltip>
             </Text>
-            (
-            <Tooltip label={"Median"}>
-              <div>
-                <MetricBadge
-                  metricValue={d3.median(exp.trials.map((t) => t.metric))}
-                  type={"int"}
-                />
-              </div>
-            </Tooltip>
-            )
           </Box>
+          <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
+            Color Legend for Coverage
+          </Text>
           <MetricLegend />
         </Box>
       </Box>

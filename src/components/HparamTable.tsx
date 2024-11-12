@@ -310,7 +310,7 @@ const HparamTable = () => {
   return (
     <div
       style={{
-        height: "calc(100% - 35px - 18px - 35px)",
+        height: "calc(100% - 35px - 15px - 35px)",
         width: "100%",
         position: "relative",
         overflow: "hidden",

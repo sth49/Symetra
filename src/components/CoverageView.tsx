@@ -96,11 +96,11 @@ const CoverageView: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
 
-  const margin = { top: 80, right: 40, bottom: 160, left: 40 };
+  const margin = { top: 30, right: 40, bottom: 160, left: 40 };
 
-  const legendWidth = 100;
+  const legendWidth = 130;
   const legendHeight = 100;
-  const legendMargin = { top: 20, right: 20 };
+  const legendMargin = { top: 15, right: 20, left: 20, bottom: 20 };
 
   const xValues = data.map((d) => d.x);
   const yValues = data.map((d) => d.y);
@@ -379,7 +379,7 @@ const CoverageView: React.FC = () => {
             >
               <option value="">None</option>
               <option value="metric">CVRG</option>
-              {exp.hyperparams
+              {hyperparams
                 .sort((a, b) => {
                   if (hparamSort !== null && hparamSort !== undefined) {
                     if (hparamSort.id === "name") {
@@ -450,7 +450,7 @@ const CoverageView: React.FC = () => {
         display={"flex"}
         flexDirection={"column"}
         overflowY={"hidden"}
-        height="calc(100% - 40px - 40px)"
+        height="calc(100% - 35px - 40px)"
       >
         {isPreference && (
           <Box
@@ -599,15 +599,19 @@ const CoverageView: React.FC = () => {
             )}
             {visible ||
               (selected === "metric" && (
-                <g>
+                <g
+                  transform={`translate(${containerSize.width - legendWidth}, ${
+                    legendMargin.top
+                  })`}
+                >
                   {thresholdRanges.map((range, i) => (
                     <React.Fragment key={`legend-${i}`}>
                       <rect
-                        x={10}
+                        x={0}
                         y={
                           i * (legendHeight / numThresholds) + legendMargin.top
                         }
-                        width={legendWidth / 5}
+                        width={20}
                         height={legendHeight / numThresholds}
                         fill={colorScale(
                           metricScale((range[0] + range[1]) / 2)
@@ -615,7 +619,7 @@ const CoverageView: React.FC = () => {
                         opacity={0.7}
                       />
                       <text
-                        x={10 + legendWidth / 5 + 5}
+                        x={25}
                         y={
                           (i + 0.6) * (legendHeight / numThresholds) +
                           legendMargin.top
@@ -636,8 +640,8 @@ const CoverageView: React.FC = () => {
                     </React.Fragment>
                   ))}
                   <text
-                    x={10}
-                    y={13}
+                    x={0}
+                    y={5}
                     fontSize="14"
                     textAnchor="start"
                     fontWeight="bold"
@@ -652,7 +656,11 @@ const CoverageView: React.FC = () => {
               ))}
 
             {selected !== "metric" && selected !== "" && (
-              <g>
+              <g
+                transform={`translate(${containerSize.width - legendWidth}, ${
+                  legendMargin.top
+                })`}
+              >
                 {hyperparams
                   .find((hp) => hp.name === selected)
                   ?.scale.domain()
@@ -668,40 +676,21 @@ const CoverageView: React.FC = () => {
                         ) instanceof BinaryHyperparam ? (
                           <>
                             <rect
-                              x={10}
-                              y={
-                                i *
-                                  (legendHeight /
-                                    hyperparams
-                                      .find((hp) => hp.name === selected)
-                                      ?.scale.domain().length) +
-                                legendMargin.top
-                              }
-                              width={legendWidth / 5}
-                              height={
-                                legendHeight /
-                                hyperparams
-                                  .find((hp) => hp.name === selected)
-                                  ?.scale.domain().length
-                              }
+                              x={0}
+                              y={i * 15 + legendMargin.top}
+                              width={20}
+                              height={15}
                               fill={hyperparams
                                 .find((hp) => hp.name === selected)
                                 ?.getColorByValue(val)}
                             />
                             <text
-                              x={legendWidth / 5 + 15}
-                              y={
-                                (i + 0.5) *
-                                  (legendHeight /
-                                    hyperparams
-                                      .find((hp) => hp.name === selected)
-                                      ?.scale.domain().length) +
-                                legendMargin.top
-                              }
+                              x={25}
+                              y={(i + 0.5) * 15 + legendMargin.top}
                               style={{
                                 userSelect: "none",
                               }}
-                              fontSize="12"
+                              fontSize="12px"
                               textAnchor="start"
                               dominantBaseline="middle"
                               fill="#4A5568"
@@ -747,9 +736,9 @@ const CoverageView: React.FC = () => {
                                     </linearGradient>
                                   </defs>
                                   <rect
-                                    x={10}
+                                    x={0}
                                     y={legendMargin.top}
-                                    width={legendWidth}
+                                    width={legendWidth - legendMargin.right}
                                     height={20}
                                     fill="url(#numerical-gradient)"
                                   />
@@ -758,14 +747,23 @@ const CoverageView: React.FC = () => {
                                     return (
                                       <g key={`legend-numerical-${i}`}>
                                         <line
-                                          x1={10 + t * legendWidth}
+                                          x1={
+                                            t *
+                                            (legendWidth - legendMargin.right)
+                                          }
                                           y1={legendMargin.top + 20}
-                                          x2={10 + t * legendWidth}
+                                          x2={
+                                            t *
+                                            (legendWidth - legendMargin.right)
+                                          }
                                           y2={legendMargin.top + 25}
                                           stroke="black"
                                         />
                                         <text
-                                          x={10 + t * legendWidth}
+                                          x={
+                                            t *
+                                            (legendWidth - legendMargin.right)
+                                          }
                                           y={legendMargin.top + 40}
                                           fontSize="12"
                                           textAnchor="middle"
@@ -774,7 +772,8 @@ const CoverageView: React.FC = () => {
                                             userSelect: "none",
                                           }}
                                         >
-                                          {oneDecimalFormat(value)}
+                                          {/* {oneDecimalFormat(value)} */}
+                                          {formatting(value, hp.valueType)}
                                         </text>
                                       </g>
                                     );
@@ -790,8 +789,8 @@ const CoverageView: React.FC = () => {
                     );
                   })}
                 <text
-                  x={10}
-                  y={10}
+                  x={0}
+                  y={0}
                   fontSize="14"
                   textAnchor="start"
                   fontWeight="bold"
@@ -841,7 +840,7 @@ const CoverageView: React.FC = () => {
         alignItems="center"
       >
         <Text fontSize={"xs"} color="gray.600" p={2} userSelect={"none"}>
-          Choose trials to create a trial group (
+          Use a lasso to select a group of trials (
           {formatting(selectedPoints.size, "int")} {" / "}
           {formatting(data.length, "int")}
           {" Selected"})

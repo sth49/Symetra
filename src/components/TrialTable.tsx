@@ -435,8 +435,7 @@ const TrialTable = () => {
         className="container"
         style={{
           overflow: "auto",
-          height: "calc(100% - 40px - 5px)",
-          // marginBottom: "20px",
+          height: "calc(100% - 40px)",
         }}
       >
         <div
@@ -594,7 +593,6 @@ const TrialTable = () => {
       </div>
       <Box
         bg="white"
-        // p={1}
         display="flex"
         justifyContent="space-between"
         alignItems="center"
@@ -602,7 +600,7 @@ const TrialTable = () => {
         height={"40px"}
       >
         <Text fontSize="xs" color="gray.600" p={2}>
-          Choose trials to create a trial group (
+          Use checkboxes to select a group of trials (
           {formatting(Object.keys(rowSelection).length, "int")} {" / "}
           {formatting(data.length, "int")} Selected)
         </Text>

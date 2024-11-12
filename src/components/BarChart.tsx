@@ -156,7 +156,7 @@ const BarChartBase = ({
               <Bar
                 x={xScale(bin.x0)}
                 y={yScale(Number(bin.count))}
-                width={xScale.bandwidth()}
+                width={xScale.bandwidth() - 1}
                 height={Math.max(
                   0,
                   height - margin.bottom - yScale(Number(bin.count))
@@ -195,7 +195,7 @@ const BarChartBase = ({
                 key={i}
                 x={xScale(bin.x0)}
                 y={yScale(Number(bin.count))}
-                width={xScale.bandwidth()}
+                width={xScale.bandwidth() - 1}
                 height={Math.max(
                   0,
                   height - margin.bottom - yScale(Number(bin.count))
@@ -314,7 +314,7 @@ const BarChartBase = ({
                 y={yScale(Number(bin.count))}
                 width={Math.max(
                   0,
-                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - margin.left
+                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
                 )}
                 height={Math.max(
                   0,
@@ -329,7 +329,7 @@ const BarChartBase = ({
                 x={xScale(Number(bin.x0))}
                 width={Math.max(
                   0,
-                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1
+                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
                 )}
                 height={height}
                 fill={"transparent"}
@@ -366,7 +366,7 @@ const BarChartBase = ({
                 y={yScale(Number(bin.count))}
                 width={Math.max(
                   0,
-                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1
+                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
                 )}
                 height={Math.max(
                   0,
