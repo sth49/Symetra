@@ -6,7 +6,7 @@ import { AiFillRocket } from "react-icons/ai";
 import { useConstDataStore } from "./store/constDataStore";
 import * as d3 from "d3";
 import MetricLegend from "./MetricLegend";
-import MetricBadge from "./MetricBadge";
+import { FaCodeBranch } from "react-icons/fa6";
 const Overview = () => {
   const { exp } = useConstDataStore();
   return (
@@ -19,9 +19,9 @@ const Overview = () => {
       userSelect={"none"}
     >
       <Box display={"flex"} alignItems={"center"}>
-        <Icon as={AiFillRocket} color="gray.600" />
+        <Icon as={FaCodeBranch} color="gray.600" mr={1} />
         <Heading as="h4" fontSize={"larger"} display={"flex"}>
-          ViSTrics
+          ViStrics
         </Heading>
       </Box>
 

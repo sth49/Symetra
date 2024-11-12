@@ -15,9 +15,7 @@ import { useConstDataStore } from "./store/constDataStore";
 import { Select } from "@chakra-ui/react";
 import BarChart from "./BarChart";
 import { Tooltip } from "@chakra-ui/react";
-import { TbCircleDotted, TbCircleFilled } from "react-icons/tb";
 
-import { useMetricScale } from "../model/colorScale";
 import AreaChart from "./AreaChart";
 import MetricBadge from "./MetricBadge";
 import SelectIcon from "./SelectIcon";
@@ -29,7 +27,6 @@ const InterGroupView = () => {
 
   const [sortDirection, setSortDirection] = useState("htl");
   const groups = useCustomStore((state) => state.groups);
-  const { colorScale, metricScale } = useMetricScale();
   const [group2, setGroup2] = useState(
     groups.groups.filter((group) => {
       if (currentSelectedGroup) {
@@ -39,7 +36,6 @@ const InterGroupView = () => {
     })[0]
   );
 
-  const [isPreference, setIsPreference] = useState(false);
   const stats = useMemo(() => {
     if (!currentSelectedGroup || !group2) {
       return null;
@@ -156,73 +152,67 @@ const InterGroupView = () => {
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
+      </Box>
+
+      <Box style={{ height: "80px" }} p={2}>
         <FormControl
           display="flex"
-          justifyContent="right"
+          justifyContent="space-between"
           alignItems="center"
-          width="120px"
-          pr={2}
+          mb={1}
         >
-          <FormLabel htmlFor="perference-switch" mb={0} mr={1}>
+          <FormLabel htmlFor="metric-switch" mr={1} width={"50%"}>
             <Text fontSize="xs" color="gray.600">
-              Show controls
+              Sorted by difference between groups
+            </Text>
+          </FormLabel>
+
+          <Select
+            placeholder=""
+            size={"xs"}
+            width={"40%"}
+            onChange={(e) => setSortDirection(e.target.value)}
+            value={sortDirection}
+          >
+            <option value="htl">large to small</option>
+            <option value="lth">small to large</option>
+          </Select>
+        </FormControl>
+        <Box display={"flex"}>
+          <Text color={"red.600"} mr={1}>
+            *
+          </Text>
+          <Text fontSize={"xs"} color={"gray.600"}>
+            two groups are statistically different
+          </Text>
+        </Box>
+        <Box display={"flex"}>
+          <Text color={"blue.600"} mr={1}>
+            *
+          </Text>
+          <Text fontSize={"xs"} color={"gray.600"}>
+            the Top 10% group is significantly different from the all trials
+          </Text>
+        </Box>
+        {/* <FormControl
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={1}
+        >
+          <FormLabel htmlFor="metric-switch" mr={1} width={"50%"}>
+            <Text fontSize="xs" color="gray.600">
+              Hide insignificant difference {`(${insignificantHparams.length})`}
             </Text>
           </FormLabel>
           <Switch
-            id="perference-switch"
-            onChange={() => setIsPreference(!isPreference)}
-            isChecked={isPreference}
+            id="metric-switch"
+            onChange={() => setVisible(!visible)}
+            isChecked={visible}
             size={"sm"}
           />
-        </FormControl>
+        </FormControl> */}
       </Box>
-
-      {isPreference && (
-        <Box style={{ height: "80px" }} p={2}>
-          <FormControl
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={1}
-          >
-            <FormLabel htmlFor="metric-switch" mr={1} width={"50%"}>
-              <Text fontSize="xs" color="gray.600">
-                Sorted by difference between groups
-              </Text>
-            </FormLabel>
-
-            <Select
-              placeholder=""
-              size={"xs"}
-              width={"40%"}
-              onChange={(e) => setSortDirection(e.target.value)}
-              value={sortDirection}
-            >
-              <option value="htl">high to low </option>
-              <option value="lth">low to high </option>
-            </Select>
-          </FormControl>
-          <FormControl
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={1}
-          >
-            <FormLabel htmlFor="metric-switch" mr={1} width={"50%"}>
-              <Text fontSize="xs" color="gray.600">
-                Hide insignificant difference{" "}
-                {`(${insignificantHparams.length})`}
-              </Text>
-            </FormLabel>
-            <Switch
-              id="metric-switch"
-              onChange={() => setVisible(!visible)}
-              isChecked={visible}
-              size={"sm"}
-            />
-          </FormControl>
-        </Box>
-      )}
       <div
         style={{
           width: "100%",
@@ -230,11 +220,12 @@ const InterGroupView = () => {
           alignItems: "center",
           borderBottom: "1px solid #ddd",
           paddingRight: "4px",
+          paddingBottom: "4px",
         }}
       >
-        <Box width={"20%"}></Box>
+        <Box width={"30%"}></Box>
 
-        <Box width={"40%"} display={"flex"} justifyContent={"center"}>
+        <Box width={"35%"} display={"flex"} justifyContent={"center"}>
           <Text
             align={"center"}
             fontWeight={"bold"}
@@ -247,7 +238,7 @@ const InterGroupView = () => {
             {currentSelectedGroup ? currentSelectedGroup.name : "None"}
           </Text>
         </Box>
-        <Box width={"40%"} display={"flex"} justifyContent={"center"}>
+        <Box width={"35%"} display={"flex"} justifyContent={"center"}>
           <Select
             w={"85%"}
             value={group2 ? group2.id.toString() : ""}
@@ -271,7 +262,7 @@ const InterGroupView = () => {
 
       <Box
         w={"100%"}
-        height={`calc(100% - 36px - 36px - ${isPreference ? "80px" : "0px"})`}
+        height={`calc(100% - 36px - 36px - 90px)`}
         p={1}
         pt={0}
         overflow={"auto"}
@@ -284,20 +275,21 @@ const InterGroupView = () => {
                   display: "flex",
                   alignItems: "center",
                   padding: "5px 0",
+                  height: "35px",
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"20%"} pl={2}>
+                <Box width={"30%"} pl={2}>
                   <Text fontSize={"sm"}>Size</Text>
                 </Box>
-                <Box width={"40%"}>
+                <Box width={"35%"}>
                   <Text align={"center"} fontSize={"sm"}>
                     {formatting(currentSelectedGroup.trials.length, "int")}{" "}
                     trials
                   </Text>
                 </Box>
 
-                <Box width={"40%"}>
+                <Box width={"35%"}>
                   <Text align={"center"} fontSize={"sm"}>
                     {formatting(group2.trials.length, "int")} trials
                   </Text>
@@ -310,14 +302,15 @@ const InterGroupView = () => {
                     display: "flex",
                     alignItems: "center",
                     padding: "5px 0",
+                    height: "35px",
                   }}
                   className="inter-group-view-item"
                 >
-                  <Box width={"20%"} pl={2}>
+                  <Box width={"30%"} pl={2}>
                     <Text fontSize={"sm"}>{key} Coverage</Text>
                   </Box>
                   <Box
-                    width={"40%"}
+                    width={"35%"}
                     style={{
                       display: "flex",
                       justifyContent: "center",
@@ -331,7 +324,7 @@ const InterGroupView = () => {
                   </Box>
 
                   <Box
-                    width={"40%"}
+                    width={"35%"}
                     style={{
                       display: "flex",
                       justifyContent: "center",
@@ -361,14 +354,14 @@ const InterGroupView = () => {
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"20%"} pl={2}>
+                <Box width={"30%"} pl={2}>
                   <Text fontSize={"sm"}>Covered Branch</Text>
                 </Box>
-                <Box width={"40%"} height={"35px"}>
+                <Box width={"35%"} height={"25px"} pr={1} pl={1}>
                   <AreaChart trialGroup={currentSelectedGroup} />
                 </Box>
 
-                <Box width={"40%"} height={"35px"}>
+                <Box width={"35%"} height={"25px"} pr={1} pl={1}>
                   <AreaChart trialGroup={group2} />
                 </Box>
               </div>
@@ -380,18 +373,26 @@ const InterGroupView = () => {
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"20%"} pl={2}>
-                  <Text fontSize={"sm"}>Covered Branch</Text>
+                <Box width={"30%"} pl={2}>
+                  <Text fontSize={"sm"}>Superimposed</Text>
                 </Box>
-                <Box width={"80%"} height={"35px"} position={"relative"}>
+                <Box
+                  width={"70%"}
+                  height={"25px"}
+                  position={"relative"}
+                  pr={1}
+                  pl={1}
+                >
                   <AreaChart trialGroup={currentSelectedGroup} />
                   <Box
                     width={"100%"}
-                    height={"35px"}
+                    height={"25px"}
                     position={"absolute"}
                     left="50%"
                     top="50%"
                     transform="translate(-50%, -50%)"
+                    pr={1}
+                    pl={1}
                   >
                     <AreaChart trialGroup={group2} />
                   </Box>
