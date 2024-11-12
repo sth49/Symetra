@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Icon,
   IconButton,
   Text,
   useDisclosure,
@@ -14,8 +13,6 @@ import { formatting } from "../model/utils";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
 
-import { TbCircleDotted, TbCircleFilled } from "react-icons/tb";
-import { useMetricScale } from "../model/colorScale";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -27,6 +24,7 @@ import {
 
 import { calculateCorrelation } from "../model/correlation";
 import MetricBadge from "./MetricBadge";
+import SelectIcon from "./SelectIcon";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -44,8 +42,6 @@ const GroupDetailView = () => {
   const [mode, setMode] = useState("view");
 
   const { exp } = useConstDataStore();
-
-  const { metricScale, colorScale } = useMetricScale();
 
   useEffect(() => {
     if (currentSelectedGroup) {
@@ -81,27 +77,7 @@ const GroupDetailView = () => {
                   display={"flex"}
                   alignItems={"center"}
                 >
-                  <Box position="relative" width="24px" height="24px">
-                    <Icon
-                      as={TbCircleFilled}
-                      color={colorScale(
-                        metricScale(currentSelectedGroup.getStats().avg)
-                      )}
-                      opacity={0.7}
-                      position="absolute"
-                      left="50%"
-                      top="50%"
-                      transform="translate(-50%, -50%)"
-                    />
-                    <Icon
-                      as={TbCircleDotted}
-                      color={"gray.600"}
-                      position="absolute"
-                      left="50%"
-                      top="50%"
-                      transform="translate(-50%, -50%)"
-                    />
-                  </Box>
+                  <SelectIcon />
                   {currentSelectedGroup.name}{" "}
                   {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
                 </Text>

@@ -8,6 +8,7 @@ import ScatterPlot from "./ScatterPlot";
 import { formatting } from "../model/utils";
 import Heatmap from "./Heatmap";
 import { IoClose } from "react-icons/io5";
+import SelectIcon from "./SelectIcon";
 const IntraGroupView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -88,8 +89,17 @@ const IntraGroupView = () => {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"}>
-        <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Intra Group Correlation ({currentSelectedGroup?.name})
+        <Heading
+          as="h5"
+          size="sm"
+          color="gray.600"
+          p={2}
+          display={"flex"}
+          alignItems={"center"}
+        >
+          Intra Group Correlation {"("}
+          <SelectIcon />
+          {currentSelectedGroup?.name} {" )"}
         </Heading>
       </Box>
       <Box
@@ -125,6 +135,9 @@ const IntraGroupView = () => {
                     alignItems={"center"}
                     mb={1}
                     p={1}
+                    pl={4}
+                    pr={4}
+                    cursor={"pointer"}
                     userSelect={"none"}
                     onClick={() => {
                       setResult({
@@ -154,9 +167,8 @@ const IntraGroupView = () => {
                           {value.hp.hp1.displayName}
                         </Text>
                       </Tooltip>
-                      <Text fontSize={"sm"} p={"0 10px"} fontWeight={"normal"}>
-                        <Icon as={IoClose} />
-                      </Text>
+                      <Icon m={"0 10px"} as={IoClose} />
+
                       <Tooltip
                         label={value.hp.hp2.name}
                         aria-label={value.hp.hp2.displayName}

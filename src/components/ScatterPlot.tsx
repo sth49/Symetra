@@ -134,13 +134,13 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
               fontSize: 10,
               textAnchor: "middle",
             }}
-            tickFormat={(value) => {
-              if (result.value.type === "pearson") {
-                return value.toString();
-              } else {
-                return value ? "True" : "False";
-              }
-            }}
+            // tickFormat={(value) => {
+            //   if (result.value.type === "pearson") {
+            //     return value.toString();
+            //   } else {
+            //     return value ? "True" : "False";
+            //   }
+            // }}
           />
           <AxisLeft
             scale={yScale}

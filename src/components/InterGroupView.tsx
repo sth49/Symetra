@@ -20,6 +20,7 @@ import { TbCircleDotted, TbCircleFilled } from "react-icons/tb";
 import { useMetricScale } from "../model/colorScale";
 import AreaChart from "./AreaChart";
 import MetricBadge from "./MetricBadge";
+import SelectIcon from "./SelectIcon";
 const InterGroupView = () => {
   const { exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -143,8 +144,17 @@ const InterGroupView = () => {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
-        <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Inter Group Difference ({currentSelectedGroup?.name})
+        <Heading
+          as="h5"
+          size="sm"
+          color="gray.600"
+          p={2}
+          display={"flex"}
+          alignItems={"center"}
+        >
+          Inter Group Difference {"("}
+          <SelectIcon />
+          {currentSelectedGroup?.name} {" )"}
         </Heading>
         <FormControl
           display="flex"
@@ -233,30 +243,7 @@ const InterGroupView = () => {
             justifyContent={"center"}
             color={"gray.600"}
           >
-            <Box position="relative" width="24px" height="24px">
-              <Icon
-                as={TbCircleFilled}
-                color={
-                  currentSelectedGroup &&
-                  colorScale(
-                    metricScale(currentSelectedGroup.getStats().avg) || 0
-                  )
-                }
-                opacity={0.7}
-                position="absolute"
-                left="50%"
-                top="50%"
-                transform="translate(-50%, -50%)"
-              />
-              <Icon
-                as={TbCircleDotted}
-                color={"gray.600"}
-                position="absolute"
-                left="50%"
-                top="50%"
-                transform="translate(-50%, -50%)"
-              />
-            </Box>
+            <SelectIcon />
             {currentSelectedGroup ? currentSelectedGroup.name : "None"}
           </Text>
         </Box>
