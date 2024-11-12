@@ -27,6 +27,7 @@ interface BarChartProps {
   viewType?: string;
   width: number;
   height: number;
+  opacity?: number;
 }
 
 const BarChartBase = ({
@@ -35,6 +36,7 @@ const BarChartBase = ({
   viewType = "inter",
   width,
   height,
+  opacity,
 }: BarChartProps) => {
   const {
     tooltipOpen,
@@ -160,7 +162,8 @@ const BarChartBase = ({
                   height - margin.bottom - yScale(Number(bin.count))
                 )}
                 fill={hparam.getColorByValue(bin.x0)}
-                opacity={1}
+                // opacity={1}
+                opacity={opacity}
               />
               <Bar
                 x={xScale(bin.x0)}
@@ -320,6 +323,7 @@ const BarChartBase = ({
                 fill={hparam.getColorByValue(
                   Number(bin.x1) - Number(bin.x0) / 2
                 )}
+                opacity={opacity}
               />
               <Bar
                 x={xScale(Number(bin.x0))}
@@ -403,6 +407,7 @@ const BarChart = ({
   viewType,
   width,
   height,
+  opacity,
 }: BarChartProps) => {
   return (
     <div style={{ width: "100%", height: "100%" }}>
@@ -414,6 +419,7 @@ const BarChart = ({
             viewType={viewType}
             width={width}
             height={height}
+            opacity={opacity}
           />
         )}
       </ParentSize>

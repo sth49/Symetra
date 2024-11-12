@@ -14,12 +14,16 @@ type TooltipData = {
 };
 
 interface BranchBarChartProps {
+  hparamKey: any;
+  hparamValue: any;
   trialIds: number[];
   width?: number;
   height?: number;
 }
 
 const BranchBarChart = ({
+  hparamKey,
+  hparamValue,
   trialIds = [],
   width = 100,
   height = 30,
@@ -32,7 +36,9 @@ const BranchBarChart = ({
     hideTooltip,
     showTooltip,
   } = useTooltip<TooltipData>();
-  const margin = { top: 2, right: 2, bottom: 5, left: 2 };
+
+  // console.log("hparamKey, hparamValue:", hparamKey, hparamValue);
+  const margin = { top: 2, right: 1, bottom: 5, left: 15 };
 
   const { TooltipInPortal } = useTooltipInPortal({
     scroll: true,
@@ -103,17 +109,12 @@ const BranchBarChart = ({
                 <Bar
                   x={xScale(Number(bin.x0))}
                   y={yScale(Number(bin.count))}
-                  width={
-                    xScale(Number(bin.x1)) -
-                    xScale(Number(bin.x0)) -
-                    margin.left
-                  }
+                  width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
                   height={Math.max(
                     0,
                     parentHeight - margin.bottom - yScale(Number(bin.count))
                   )}
                   fill={colorScale(metricScale(Number(bin.x0)))}
-                  opacity={0.7}
                 />
                 <Bar
                   x={xScale(Number(bin.x0))}
@@ -147,6 +148,9 @@ const BranchBarChart = ({
               <Box>
                 <Text fontWeight={"bold"} align={"left"} mb={2}>
                   {tooltipData.key} = {tooltipData.value}
+                </Text>
+                <Text fontWeight={"bold"} align={"left"} mb={2}>
+                  {hparamKey} = {hparamValue}
                 </Text>
                 <Text align={"left"} mb={"2px"}>
                   {formatting(tooltipData.count, "int")} trials

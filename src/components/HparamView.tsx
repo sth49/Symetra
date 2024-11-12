@@ -63,7 +63,13 @@ const HparamView = () => {
         </Heading>
       </Box>
       <Box display={"flex"} justifyContent={"center"}>
-        <Text fontSize={"xs"} align="center" color="gray.600" mr={2}>
+        <Text
+          fontSize={"xs"}
+          align="center"
+          color="gray.600"
+          mr={2}
+          fontWeight={"bold"}
+        >
           Base Branch Coverage
         </Text>
 

@@ -11,7 +11,7 @@ const MetricLegend = () => {
       minValue + ((i + 1) * (maxValue - minValue)) / numThresholds;
     return {
       color: colorScale(i),
-      label: `~ ${formatting(rangeEnd, "int")}`,
+      label: `< ${formatting(rangeEnd, "int")}`,
       value: i,
       textColor: getTextColor(colorScale(i)),
     };

@@ -107,7 +107,6 @@ const HparamTable = () => {
         accessorKey: "visible",
         cell: (info) => {
           const { row } = info;
-
           const item = row.original;
           const visible = hyperparams.find(
             (hp) => hp.name === item.fullName
@@ -154,6 +153,10 @@ const HparamTable = () => {
           const index = table
             .getSortedRowModel()
             .rows.findIndex((r) => r.id === row.id);
+
+          const visible = hyperparams.find(
+            (hp) => hp.name === row.original.fullName
+          )?.visible;
           return (
             <Box
               display={"flex"}
@@ -161,6 +164,7 @@ const HparamTable = () => {
               onClick={(e) => {
                 toggleRowSelection(index, e.shiftKey);
               }}
+              opacity={visible ? 1 : 0.5}
             >
               <Tooltip label={row.original.fullName}>
                 <Text
@@ -189,15 +193,19 @@ const HparamTable = () => {
           const index = table
             .getSortedRowModel()
             .rows.findIndex((r) => r.id === row.id);
+          const visible = hyperparams.find(
+            (hp) => hp.name === row.original.fullName
+          )?.visible;
           return (
-            <div
+            <Box
               onClick={(e) => {
                 toggleRowSelection(index, e.shiftKey);
               }}
+              opacity={visible ? 1 : 0.5}
             >
               {/* {formatting(row.original.effect, "float")} */}
               {formatting(row.original.effect, "float", 2)}
-            </div>
+            </Box>
           );
         },
 
@@ -211,6 +219,9 @@ const HparamTable = () => {
         header: "Distribution",
         accessorKey: "dist",
         cell: (info) => {
+          const visible = hyperparams.find(
+            (hp) => hp.name === info.row.original.fullName
+          )?.visible;
           return (
             <BarChart
               dist={info.getValue()}
@@ -218,6 +229,7 @@ const HparamTable = () => {
               height={30}
               trialIds={[]}
               viewType="hparam"
+              opacity={visible ? 1 : 0.5}
             />
           );
         },
@@ -390,13 +402,14 @@ const HparamTable = () => {
               const index = table
                 .getSortedRowModel()
                 .rows.findIndex((r) => r.id === row.id);
+
               return (
                 <>
                   <tr
                     key={row.id}
                     className={`hparam-table-row ${
                       selectedRows.has(index) ? "selected" : ""
-                    }`}
+                    } `}
                     style={{
                       padding: "0 10px",
                     }}
