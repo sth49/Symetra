@@ -121,7 +121,10 @@ const IntraGroupView = () => {
           <Box w={"50%"} overflowY={"auto"} height={"100%"} pr={2}>
             {correlations &&
               Object.entries(correlations)
-                .sort((a, b) => b[1].correlation - a[1].correlation)
+                .sort(
+                  (a, b) =>
+                    Math.abs(b[1].correlation) - Math.abs(a[1].correlation)
+                )
                 .slice(0, 20)
                 .map(([key, value]) => (
                   <Badge

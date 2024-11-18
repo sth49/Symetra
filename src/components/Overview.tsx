@@ -2,9 +2,7 @@ import { Box, Heading, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { HparamIcons, HyperparamTypes } from "../model/hyperparam";
 import { formatting } from "../model/utils";
 
-import { AiFillRocket } from "react-icons/ai";
 import { useConstDataStore } from "./store/constDataStore";
-import * as d3 from "d3";
 import MetricLegend from "./MetricLegend";
 import { FaCodeBranch } from "react-icons/fa6";
 const Overview = () => {
@@ -21,7 +19,7 @@ const Overview = () => {
       <Box display={"flex"} alignItems={"center"}>
         <Icon as={FaCodeBranch} color="gray.600" mr={1} />
         <Heading as="h4" fontSize={"larger"} display={"flex"}>
-          ViStrics
+          Symetra
         </Heading>
       </Box>
 

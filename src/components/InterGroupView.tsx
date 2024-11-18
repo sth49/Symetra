@@ -73,7 +73,7 @@ const InterGroupView = () => {
           pValue:
             performStatisticalTest(
               currentSelectedGroup.getHyperparam(hp.name),
-              hp.value,
+              hp.values,
               hp.type,
               hp
             ).pValue || 1,
@@ -95,26 +95,36 @@ const InterGroupView = () => {
     const trialIds2 = (group2 && group2.trials.map((trial) => trial.id)) || [];
 
     return exp?.hyperparams
-      .map((hp, index) => ({
-        id: index,
-        name: hp.displayName,
-        fullName: hp.name,
-        displayName: hp.displayName,
-        group1: hp.getEffect(trialIds1),
-        trialIds1: trialIds1,
-        group2: hp.getEffect(trialIds2),
-        trialIds2: trialIds2,
-        dist: hp.name,
-        type: hp.type,
-        icon: hp.icon,
-        pValue:
-          performStatisticalTest(
+      .map((hp, index) => {
+        console.log("HP:", hp);
+        return {
+          id: index,
+          name: hp.displayName,
+          fullName: hp.name,
+          displayName: hp.displayName,
+          group1: hp.getEffect(trialIds1),
+          trialIds1: trialIds1,
+          group2: hp.getEffect(trialIds2),
+          trialIds2: trialIds2,
+          dist: hp.name,
+          type: hp.type,
+          icon: hp.icon,
+          pValue:
+            performStatisticalTest(
+              currentSelectedGroup.getHyperparam(hp.name),
+              group2.getHyperparam(hp.name),
+              hp.type,
+              hp
+            ).pValue || 1,
+
+          allpValue: performStatisticalTest(
             currentSelectedGroup.getHyperparam(hp.name),
-            group2.getHyperparam(hp.name),
+            hp.values,
             hp.type,
             hp
-          ).pValue || 1,
-      }))
+          ).pValue,
+        };
+      })
       .filter((d) => {
         if (visible) {
           return insignificantHparams.includes(d.fullName) ? false : true;
@@ -183,7 +193,8 @@ const InterGroupView = () => {
             *
           </Text>
           <Text fontSize={"xs"} color={"gray.600"}>
-            two groups are statistically different
+            two groups are statistically different (
+            {data?.filter((d) => d.pValue < 0.05).length || 0} / {data?.length})
           </Text>
         </Box>
         <Box display={"flex"}>
@@ -191,7 +202,9 @@ const InterGroupView = () => {
             *
           </Text>
           <Text fontSize={"xs"} color={"gray.600"}>
-            the Top 10% group is significantly different from the all trials
+            the Top 10% group is significantly different from the all trials (
+            {data?.filter((d) => d.allpValue < 0.05).length || 0} /{" "}
+            {data?.length})
           </Text>
         </Box>
         {/* <FormControl
@@ -439,6 +452,9 @@ const InterGroupView = () => {
                               {d.name}
                               {d.pValue < 0.05 && (
                                 <Text color={"red.600"}>*</Text>
+                              )}
+                              {d.allpValue < 0.05 && (
+                                <Text color={"blue.600"}>*</Text>
                               )}
                             </Text>
                           </Tooltip>
