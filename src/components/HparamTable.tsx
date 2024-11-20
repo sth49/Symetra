@@ -69,6 +69,24 @@ const HparamTable = () => {
 
     [selectedRows, hyperparams, setHyperparams]
   );
+
+  const checkVisible = useCallback(
+    (visible) => {
+      const selecteRowIds = table
+        .getSortedRowModel()
+        .rows.filter((r, i) => selectedRows.has(i))
+        .map((r) => r.original.fullName);
+
+      const selectedHparam = hyperparams.filter((hp) => {
+        if (selecteRowIds.includes(hp.name)) {
+          return hp.visible === visible;
+        }
+      }).length;
+      return selectedHparam > 0;
+    },
+    [selectedRows, hyperparams]
+  );
+
   const toggleRowSelection = useCallback(
     (index, shiftKey) => {
       console.log("index", index);
@@ -468,7 +486,7 @@ const HparamTable = () => {
                               size={"xs"}
                               width={"48%"}
                               height={"40px"}
-                              isDisabled={selectedRows.size === 0}
+                              isDisabled={checkVisible(true)}
                               onClick={() => toggleVisibilityForSelected(true)}
                               colorScheme="blue"
                               whiteSpace="normal"
@@ -484,7 +502,7 @@ const HparamTable = () => {
                               size={"xs"}
                               width={"48%"}
                               height={"40px"}
-                              isDisabled={selectedRows.size === 0}
+                              isDisabled={checkVisible(false)}
                               onClick={() => toggleVisibilityForSelected(false)}
                               colorScheme="blue"
                               display={"flex"}

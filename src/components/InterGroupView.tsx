@@ -82,7 +82,6 @@ const InterGroupView = () => {
       .filter((d) => d.pValue > 0.05)
       .map((d) => d.name);
   }, [currentSelectedGroup, exp]);
-  const [visible, setVisible] = useState(false);
 
   const data = useMemo(() => {
     if (!currentSelectedGroup || !group2) {
@@ -94,50 +93,30 @@ const InterGroupView = () => {
       [];
     const trialIds2 = (group2 && group2.trials.map((trial) => trial.id)) || [];
 
-    return exp?.hyperparams
-      .map((hp, index) => {
-        console.log("HP:", hp);
-        return {
-          id: index,
-          name: hp.displayName,
-          fullName: hp.name,
-          displayName: hp.displayName,
-          group1: hp.getEffect(trialIds1),
-          trialIds1: trialIds1,
-          group2: hp.getEffect(trialIds2),
-          trialIds2: trialIds2,
-          dist: hp.name,
-          type: hp.type,
-          icon: hp.icon,
-          pValue:
-            performStatisticalTest(
-              currentSelectedGroup.getHyperparam(hp.name),
-              group2.getHyperparam(hp.name),
-              hp.type,
-              hp
-            ).pValue || 1,
-
-          allpValue: performStatisticalTest(
+    return exp?.hyperparams.map((hp, index) => {
+      console.log("HP:", hp);
+      return {
+        id: index,
+        name: hp.displayName,
+        fullName: hp.name,
+        displayName: hp.displayName,
+        group1: hp.getEffect(trialIds1),
+        trialIds1: trialIds1,
+        group2: hp.getEffect(trialIds2),
+        trialIds2: trialIds2,
+        dist: hp.name,
+        type: hp.type,
+        icon: hp.icon,
+        pValue:
+          performStatisticalTest(
             currentSelectedGroup.getHyperparam(hp.name),
-            hp.values,
+            group2.getHyperparam(hp.name),
             hp.type,
             hp
-          ).pValue,
-        };
-      })
-      .filter((d) => {
-        if (visible) {
-          return insignificantHparams.includes(d.fullName) ? false : true;
-        }
-        return true;
-      });
-  }, [
-    currentSelectedGroup,
-    exp?.hyperparams,
-    group2,
-    insignificantHparams,
-    visible,
-  ]);
+          ).pValue || 1,
+      };
+    });
+  }, [currentSelectedGroup, exp?.hyperparams, group2, insignificantHparams]);
 
   useEffect(() => {
     if (currentSelectedGroup) {
@@ -158,20 +137,26 @@ const InterGroupView = () => {
           display={"flex"}
           alignItems={"center"}
         >
-          Inter Group Difference {"("}
+          Between Group Difference {"("}
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
       </Box>
 
-      <Box style={{ height: "80px" }} p={2}>
+      <Box
+        height={"70px"}
+        p={2}
+        display={"flex"}
+        flexDirection={"column"}
+        justifyContent={"space-between"}
+      >
         <FormControl
           display="flex"
           justifyContent="space-between"
-          alignItems="center"
-          mb={1}
+          width={"100%"}
+          alignItems={"center"}
         >
-          <FormLabel htmlFor="metric-switch" mr={1} width={"50%"}>
+          <FormLabel htmlFor="sorted-by-difference" mr={1} mb={0}>
             <Text fontSize="xs" color="gray.600">
               Sorted by difference between groups
             </Text>
@@ -180,12 +165,12 @@ const InterGroupView = () => {
           <Select
             placeholder=""
             size={"xs"}
-            width={"40%"}
+            width={"50%"}
             onChange={(e) => setSortDirection(e.target.value)}
             value={sortDirection}
           >
-            <option value="htl">large to small</option>
-            <option value="lth">small to large</option>
+            <option value="htl">most different to least different</option>
+            <option value="lth">least different to most different</option>
           </Select>
         </FormControl>
         <Box display={"flex"}>
@@ -193,38 +178,10 @@ const InterGroupView = () => {
             *
           </Text>
           <Text fontSize={"xs"} color={"gray.600"}>
-            two groups are statistically different (
+            Two groups are significantly different (
             {data?.filter((d) => d.pValue < 0.05).length || 0} / {data?.length})
           </Text>
         </Box>
-        <Box display={"flex"}>
-          <Text color={"blue.600"} mr={1}>
-            *
-          </Text>
-          <Text fontSize={"xs"} color={"gray.600"}>
-            the Top 10% group is significantly different from the all trials (
-            {data?.filter((d) => d.allpValue < 0.05).length || 0} /{" "}
-            {data?.length})
-          </Text>
-        </Box>
-        {/* <FormControl
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={1}
-        >
-          <FormLabel htmlFor="metric-switch" mr={1} width={"50%"}>
-            <Text fontSize="xs" color="gray.600">
-              Hide insignificant difference {`(${insignificantHparams.length})`}
-            </Text>
-          </FormLabel>
-          <Switch
-            id="metric-switch"
-            onChange={() => setVisible(!visible)}
-            isChecked={visible}
-            size={"sm"}
-          />
-        </FormControl> */}
       </Box>
       <div
         style={{
@@ -275,7 +232,7 @@ const InterGroupView = () => {
 
       <Box
         w={"100%"}
-        height={`calc(100% - 36px - 36px - 90px)`}
+        height={`calc(100% - 36px - 36px - 80px)`}
         p={1}
         pt={0}
         overflow={"auto"}
@@ -435,7 +392,7 @@ const InterGroupView = () => {
                         className="inter-group-view-item"
                       >
                         <Box
-                          width={"20%"}
+                          width={"30%"}
                           display={"flex"}
                           alignItems={"center"}
                           pl={2}
@@ -453,14 +410,11 @@ const InterGroupView = () => {
                               {d.pValue < 0.05 && (
                                 <Text color={"red.600"}>*</Text>
                               )}
-                              {d.allpValue < 0.05 && (
-                                <Text color={"blue.600"}>*</Text>
-                              )}
                             </Text>
                           </Tooltip>
                         </Box>
                         <Box
-                          width={"40%"}
+                          width={"35%"}
                           display={"flex"}
                           justifyContent={"space-around"}
                           alignItems={"center"}
@@ -474,7 +428,7 @@ const InterGroupView = () => {
                           />
                         </Box>
                         <Box
-                          width={"40%"}
+                          width={"35%"}
                           display={"flex"}
                           justifyContent={"center"}
                           alignItems={"center"}

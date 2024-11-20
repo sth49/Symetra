@@ -292,11 +292,12 @@ const CoverageView: React.FC = () => {
         }
         const svgRect = svgRef.current.getBoundingClientRect();
         const viewBox = svgRef.current.viewBox.baseVal;
-        const svgMidX1 = xScale(selectedPoint.x);
-        const svgMidY1 = yScale(selectedPoint.y) - 2;
 
-        const svgMidX2 = xScale(selectedPoint.x);
-        const svgMidY2 = yScale(selectedPoint.y) + 2;
+        const svgMidX1 = xScale(selectedPoint.x) - 2;
+        const svgMidY1 = yScale(selectedPoint.y);
+
+        const svgMidX2 = xScale(selectedPoint.x) + 2;
+        const svgMidY2 = yScale(selectedPoint.y);
 
         const scaleY = viewBox.height / svgRect.height;
 
@@ -314,9 +315,17 @@ const CoverageView: React.FC = () => {
         const svgStartY =
           (top - svgRect.top + tableContainer.scrollTop) * scaleY +
           viewBox.y -
-          20;
+          14;
         const svgEndY =
-          (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
+          (top - svgRect.top + tableContainer.scrollTop) * scaleY +
+          viewBox.y -
+          6;
+        // const svgStartY =
+        //   (top - svgRect.top + tableContainer.scrollTop) * scaleY +
+        //   viewBox.y -
+        //   20;
+        // const svgEndY =
+        //   (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
 
         const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
@@ -339,6 +348,13 @@ const CoverageView: React.FC = () => {
 
         return (
           <>
+            <circle
+              key={`circle-${i}`}
+              cx={xScale(selectedPoint.x)}
+              cy={yScale(selectedPoint.y)}
+              r={3}
+              fill="red"
+            />
             <path
               key={`path-${i}`}
               d={pathData}

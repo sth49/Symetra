@@ -97,7 +97,7 @@ const IntraGroupView = () => {
           display={"flex"}
           alignItems={"center"}
         >
-          Intra Group Correlation {"("}
+          Within Group Correlation {"("}
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>

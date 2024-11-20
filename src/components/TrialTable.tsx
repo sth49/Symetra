@@ -98,7 +98,7 @@ const TrialTable = () => {
         header: "ID",
         accessorKey: "id",
         cell: (info) => info.getValue(),
-        size: 40,
+        size: 50,
         meta: { align: "right" },
         type: "string",
       },

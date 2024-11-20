@@ -9,7 +9,6 @@ import CoverageView from "./components/CoverageView";
 import TrialGroupView from "./components/TrialGroupView";
 import HparamView from "./components/HparamView";
 import theme from "./theme";
-import GroupDetailView from "./components/GroupDetailView";
 import { useConstDataStore } from "./components/store/constDataStore";
 import TrialView from "./components/TrialView";
 import InterGroupView from "./components/InterGroupView";
@@ -101,13 +100,13 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"25%"} m={0.5} bg="white" mr={1} mb={0.5}>
+                    <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0.5}>
                       <TrialGroupView />
                     </Box>
                     <Box height={"25%"} m={0.5} bg="white" mr={1}>
                       <IntraGroupView />
                     </Box>
-                    <Box height={"calc(49% - 8px)"} m={0.5} bg="white" mr={1}>
+                    <Box height={"calc(44% - 8px)"} m={0.5} bg="white" mr={1}>
                       <InterGroupView />
                     </Box>
                   </Box>

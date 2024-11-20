@@ -1,17 +1,9 @@
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Heading,
-  Switch,
-  Text,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { Box, Heading } from "@chakra-ui/react";
+import { useEffect } from "react";
 import TrialGroupGraph from "./TrialGroupGraph";
 import { useConstDataStore } from "./store/constDataStore";
 import { useCustomStore } from "../store";
 import GroupDetailView from "./GroupDetailView";
-import TrialGroupTable from "./TrialGroupTable";
 
 const TrialGroupView = () => {
   // const [visible, setVisible] = useState(true);
@@ -24,6 +16,9 @@ const TrialGroupView = () => {
   useEffect(() => {
     console.log("TrialGroupView initialized");
     const updatedGroups = groups.clone();
+
+    updatedGroups.addGroup(exp?.trials, "All");
+
     updatedGroups.addGroup(
       exp?.trials
         .sort((a, b) => b.metric - a.metric)

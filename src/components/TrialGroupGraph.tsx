@@ -109,7 +109,7 @@ const TrialGroupGraph = () => {
         // x: (((i % 3) + 0.25) * boxRef.current?.clientWidth) / 5,
         // y: (Math.floor(i / 3) * boxHeight) / 4 + boxHeight / 8,
         x: (((i % 4) + 0.25) * boxRef.current?.clientWidth) / 7,
-        y: (Math.floor(i / 4) * boxHeight) / 4.5 + boxHeight / 6,
+        y: (Math.floor(i / 4) * boxHeight) / 4 + boxHeight / 6.5,
         length: group.getLength(),
         stats: group.getStats(),
       }),
@@ -128,9 +128,13 @@ const TrialGroupGraph = () => {
         const hparamResult = hyperparams.map((param) => {
           const group1 = groups.groups[i].getHyperparam(param.name);
           const group2 = groups.groups[j].getHyperparam(param.name);
-          return performStatisticalTest(group1, group2, param.type, param);
+          return (
+            performStatisticalTest(group1, group2, param.type, param).pValue ||
+            1
+          );
         });
-        const weight = hparamResult.filter((r) => r.pValue <= 0.05).length;
+
+        const weight = hparamResult.filter((p) => p < 0.05).length;
 
         links.push({
           source: nodes[i].id,
@@ -145,9 +149,13 @@ const TrialGroupGraph = () => {
 
   const graphMemo = useMemo(() => ({ nodes, links }), [nodes, links]);
 
+  const weightMax = useMemo(() => {
+    return d3.max(links, (link) => link.weight) || 0;
+  }, [links]);
+
   const weightScale = useMemo(() => {
-    return d3.scaleLinear().domain([0, 61]).range([10, 1]);
-  }, []);
+    return d3.scaleLinear().domain([0, weightMax]).range([10, 1]);
+  }, [weightMax]);
 
   const handleNodeHover = useCallback(
     (node) => {

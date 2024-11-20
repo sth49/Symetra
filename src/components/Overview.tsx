@@ -4,7 +4,8 @@ import { formatting } from "../model/utils";
 
 import { useConstDataStore } from "./store/constDataStore";
 import MetricLegend from "./MetricLegend";
-import { FaCodeBranch } from "react-icons/fa6";
+import BranchIcon from "./BranchIcon";
+// import { FaCodeBranch } from "react-icons/fa6";
 const Overview = () => {
   const { exp } = useConstDataStore();
   return (
@@ -17,42 +18,58 @@ const Overview = () => {
       userSelect={"none"}
     >
       <Box display={"flex"} alignItems={"center"}>
-        <Icon as={FaCodeBranch} color="gray.600" mr={1} />
-        <Heading as="h4" fontSize={"larger"} display={"flex"}>
+        {/* <Icon as={<BranchIcon />} color="gray.600" mr={1} /> */}
+        <BranchIcon />
+        <Heading as="h4" fontSize={"larger"} display={"flex"} ml={1}>
           Symetra
         </Heading>
       </Box>
 
-      <Box display={"flex"} w={"90%"} justifyContent={"space-between"}>
-        <Box display={"flex"} alignItems={"center"}>
-          <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Dataset
-          </Text>
-          <Text fontSize="sm" color={"gray.600"}>
-            {exp?.name}
-          </Text>
-        </Box>
-        <Box display={"flex"} alignItems={"center"}>
-          <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Trials
-          </Text>
-          <Text fontSize="sm" color={"gray.600"}>
-            {formatting(exp.trials.length, "int")}
-          </Text>
-        </Box>
-        <Box display={"flex"} alignItems={"center"}>
-          <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Parameters
-          </Text>
-          <Text fontSize="sm" color={"gray.600"}>
-            {exp?.hyperparams.length}
-          </Text>
+      <Box display={"flex"} w={"93%"} justifyContent={"space-between"}>
+        <Box display={"flex"} justifyContent={"space-between"} w={"60%"}>
+          <Box display={"flex"} alignItems={"center"}>
+            <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
+              Dataset
+            </Text>
+            <Text fontSize="sm" color={"gray.600"}>
+              {exp?.name}
+            </Text>
+          </Box>
+          <Box display={"flex"} alignItems={"center"}>
+            <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
+              Trials
+            </Text>
+            <Text fontSize="sm" color={"gray.600"}>
+              {formatting(exp.trials.length, "int")}
+            </Text>
+          </Box>
+
+          <Box display={"flex"} alignItems={"center"}>
+            <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
+              Branches
+            </Text>
+            <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
+              <Tooltip label={"Total"}>
+                {formatting(exp.metric.totalBranch, "int")}
+              </Tooltip>
+            </Text>
+          </Box>
+
+          <Box display={"flex"} alignItems={"center"}>
+            <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
+              Parameters
+            </Text>
+            <Text fontSize="sm" color={"gray.600"}>
+              {exp?.hyperparams.length}
+            </Text>
+          </Box>
+
           {Object.keys(HyperparamTypes)
             .filter((key) => isNaN(Number(key)))
             .map((key, index) => {
               const icon = HparamIcons[key];
               return (
-                <Box display={"flex"} alignItems={"center"} key={index} pl={6}>
+                <Box display={"flex"} alignItems={"center"} key={index}>
                   <Icon as={icon} mr={1} />
                   <Text fontSize="sm" fontWeight={"bold"} pr={3}>
                     {key}
@@ -70,16 +87,6 @@ const Overview = () => {
         </Box>
 
         <Box display={"flex"} alignItems={"center"}>
-          <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Branches
-          </Text>
-          <Box display={"flex"} alignItems={"center"} pr={5}>
-            <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
-              <Tooltip label={"Total"}>
-                {formatting(exp.metric.totalBranch, "int")}
-              </Tooltip>
-            </Text>
-          </Box>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
             Color Legend for Coverage
           </Text>

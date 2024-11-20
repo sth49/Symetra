@@ -129,7 +129,7 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
             label={result.value.hp.hp1.displayName}
             top={height - margin.bottom - margin.top}
             labelOffset={3}
-            numTicks={2}
+            numTicks={3}
             labelProps={{
               fontSize: 10,
               textAnchor: "middle",
@@ -145,7 +145,7 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
           <AxisLeft
             scale={yScale}
             label={result.value.hp.hp2.displayName}
-            numTicks={2}
+            numTicks={3}
             labelOffset={23}
             labelProps={{
               fontSize: 10,
