@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Icon,
   IconButton,
   Text,
   useDisclosure,
@@ -12,7 +13,7 @@ import { MdDelete } from "react-icons/md";
 import { formatting } from "../model/utils";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
-
+import { IoMdCheckboxOutline } from "react-icons/io";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -21,7 +22,7 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
 } from "@chakra-ui/react";
-
+import { MdEdit } from "react-icons/md";
 import { calculateCorrelation } from "../model/correlation";
 import MetricBadge from "./MetricBadge";
 import SelectIcon from "./SelectIcon";
@@ -33,6 +34,8 @@ const GroupDetailView = () => {
   const setCurrentSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
+
+  const setSelectFlag = useCustomStore((state) => state.setSelectFlag);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
@@ -55,7 +58,7 @@ const GroupDetailView = () => {
   }, [currentSelectedGroup]);
 
   return (
-    <Box style={{ height: "100%", width: "100%" }} p={1}>
+    <Box p={2} pt={1} height={"65px"}>
       {currentSelectedGroup ? (
         <Box
           width={"100%"}
@@ -71,7 +74,6 @@ const GroupDetailView = () => {
                   fontSize="sm"
                   align={"right"}
                   pr={2}
-                  onClick={() => setMode("edit")}
                   fontWeight={"bold"}
                   color={"gray.600"}
                   display={"flex"}
@@ -82,10 +84,12 @@ const GroupDetailView = () => {
                   {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
                 </Text>
                 <IconButton
+                  variant={"outline"}
                   aria-label="Delete"
-                  icon={<MdDelete />}
+                  icon={<MdEdit />}
+                  colorScheme={"blue"}
                   size="xs"
-                  onClick={onOpen}
+                  onClick={() => setMode("edit")}
                 />
               </Box>
             ) : (
@@ -106,6 +110,7 @@ const GroupDetailView = () => {
                 <ButtonGroup>
                   <IconButton
                     aria-label="Save"
+                    variant={"outline"}
                     icon={<CheckIcon />}
                     size={"xs"}
                     colorScheme={"blue"}
@@ -123,6 +128,7 @@ const GroupDetailView = () => {
                   <IconButton
                     size={"xs"}
                     aria-label="Cancel"
+                    variant={"outline"}
                     icon={<CloseIcon />}
                     onClick={() => setMode("view")}
                     colorScheme={"red"}
@@ -145,6 +151,28 @@ const GroupDetailView = () => {
                 type={"float"}
               />
             </Box>
+          </Box>
+          <Box display={"flex"} justifyContent={"space-between"}>
+            <Button
+              size={"xs"}
+              alignSelf={"center"}
+              colorScheme={"blue"}
+              onClick={() => {
+                setSelectFlag(true);
+              }}
+            >
+              <Icon mr={2} as={IoMdCheckboxOutline} />
+              Select trials of this group in Trial View
+            </Button>
+            <Button
+              size={"xs"}
+              alignSelf={"center"}
+              colorScheme={"blue"}
+              onClick={onOpen}
+            >
+              <Icon mr={2} as={MdDelete} />
+              Delete this group
+            </Button>
           </Box>
         </Box>
       ) : (

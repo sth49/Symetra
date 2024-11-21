@@ -210,9 +210,10 @@ const TrialGroupGraph = () => {
         onClick={() => handleNodeClick(node.id)}
       >
         <circle
-          r={30}
+          r={32}
           cx={node.x}
           cy={node.y}
+          className="node"
           fill={colorScale(metricScale(Number(node.stats.avg)))}
           stroke={
             currnetSelectedGroup && currnetSelectedGroup.id === node.id
@@ -229,7 +230,7 @@ const TrialGroupGraph = () => {
           style={{ userSelect: "none" }}
           className="node-text"
           x={node.x}
-          y={node.y - 3}
+          y={node.y}
           textAnchor="middle"
           fontSize={10}
           fontWeight={"bold"}
@@ -392,8 +393,9 @@ const TrialGroupGraph = () => {
                   overflowWrap="break-word"
                   whiteSpace="normal"
                 >
-                  # of statistically different parameters:{" "}
-                  {formatting(tooltipData.count, "int")} / {hyperparams.length}
+                  # of statistically indifferent parameters:{" "}
+                  {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
+                  {hyperparams.length}
                 </Text>
               </>
             )}

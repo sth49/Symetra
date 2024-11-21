@@ -43,7 +43,7 @@ const TrialGroupView = () => {
           Trial Group View
         </Heading>
       </Box>
-      <Box height={`calc(100% - 35px - 35px)`}>
+      <Box height={`calc(100% - 35px - 65px)`}>
         <TrialGroupGraph />
       </Box>
       <GroupDetailView />

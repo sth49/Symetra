@@ -20,7 +20,7 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
     scroll: true,
   });
 
-  const binData = useMemo(() => {
+  const binData: Bins[] = useMemo(() => {
     return result && result.value.value.bins;
   }, [result]);
 

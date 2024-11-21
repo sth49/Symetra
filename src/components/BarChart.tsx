@@ -265,7 +265,7 @@ const BarChartBase = ({
     }));
 
     data.forEach((d) => {
-      const binIndex = Math.floor((d - xMin) / binSize);
+      const binIndex = Math.floor((Number(d) - xMin) / binSize);
       if (binIndex >= 0 && binIndex < binCount) {
         bins[binIndex].count++;
       } else if (d === xMax) bins[binCount - 1].count++;

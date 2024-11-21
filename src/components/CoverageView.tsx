@@ -19,7 +19,7 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
-
+import { MdAdd } from "react-icons/md";
 import * as d3 from "d3";
 import { useCustomStore } from "../store";
 import {
@@ -53,12 +53,13 @@ const CoverageView: React.FC = () => {
   const selectedRowPositions = useCustomStore(
     (state) => state.selectedRowPositions
   );
+  const setSelectOneTrial = useCustomStore((state) => state.setSelectOneTrial);
   const hparamSort = useConstDataStore((state) => state.hparamSort);
   const { exp, hyperparams } = useConstDataStore();
   const [minDist, setMinDist] = useState(0.9);
   const [nNeighbors, setNNeighbors] = useState(15);
   const [isPreference, setIsPreference] = useState(false);
-  const oneDecimalFormat = format(".1f");
+  const [hoveredTrial, setHoveredTrial] = useState(null);
   const data = useMemo(
     () =>
       exp?.trials.map((trial) => ({
@@ -293,12 +294,6 @@ const CoverageView: React.FC = () => {
         const svgRect = svgRef.current.getBoundingClientRect();
         const viewBox = svgRef.current.viewBox.baseVal;
 
-        const svgMidX1 = xScale(selectedPoint.x) - 2;
-        const svgMidY1 = yScale(selectedPoint.y);
-
-        const svgMidX2 = xScale(selectedPoint.x) + 2;
-        const svgMidY2 = yScale(selectedPoint.y);
-
         const scaleY = viewBox.height / svgRect.height;
 
         const svgStartX = svgRect.width;
@@ -320,14 +315,22 @@ const CoverageView: React.FC = () => {
           (top - svgRect.top + tableContainer.scrollTop) * scaleY +
           viewBox.y -
           6;
+        const svgMidX = xScale(selectedPoint.x);
+        const svgMidY = yScale(selectedPoint.y);
+        const slope = (svgMidY - svgStartY) / (svgMidX - svgStartX);
+        const slopeDir = slope > 0 ? 1 : -1;
+        const svgMidX1 = xScale(selectedPoint.x) + slopeDir * 2;
+        const svgMidY1 = yScale(selectedPoint.y);
+
+        const svgMidX2 = xScale(selectedPoint.x) - slopeDir * 2;
+        const svgMidY2 = yScale(selectedPoint.y);
+
         // const svgStartY =
         //   (top - svgRect.top + tableContainer.scrollTop) * scaleY +
         //   viewBox.y -
         //   20;
         // const svgEndY =
         //   (top - svgRect.top + tableContainer.scrollTop) * scaleY + viewBox.y;
-
-        const slope = (svgMidY1 - svgStartY) / (svgMidX1 - svgStartX);
 
         const baseCurveStrength = 100;
         const slopeFactor = Math.min(Math.abs(slope), 1); // Limit the slope factor to 1
@@ -348,13 +351,6 @@ const CoverageView: React.FC = () => {
 
         return (
           <>
-            <circle
-              key={`circle-${i}`}
-              cx={xScale(selectedPoint.x)}
-              cy={yScale(selectedPoint.y)}
-              r={3}
-              fill="red"
-            />
             <path
               key={`path-${i}`}
               d={pathData}
@@ -576,7 +572,9 @@ const CoverageView: React.FC = () => {
                 cy={yScale(d.y)}
                 r={3}
                 fill={
-                  selectedPoints.has(d.id)
+                  hoveredTrial === d.id
+                    ? "#FC8181"
+                    : selectedPoints.has(d.id)
                     ? "#FC8181"
                     : !isLassoActive && hoveredGroup.has(d.id)
                     ? "#F6E05E"
@@ -590,6 +588,9 @@ const CoverageView: React.FC = () => {
                         ?.getColor(i)
                     : "#CBD5E0"
                 }
+                onClick={() => {
+                  setSelectOneTrial(d.id);
+                }}
                 stroke={
                   selectedPoints.has(d.id)
                     ? "#E53E3E"
@@ -599,6 +600,8 @@ const CoverageView: React.FC = () => {
                     ? "#718096"
                     : "#718096"
                 }
+                onMouseOver={() => setHoveredTrial(d.id)}
+                onMouseLeave={() => setHoveredTrial(null)}
                 opacity={0.7}
               />
             ))}
@@ -864,6 +867,7 @@ const CoverageView: React.FC = () => {
         <Box display={"flex"}>
           <IconButton
             aria-label="Lasso"
+            variant={"outline"}
             icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
             onClick={() => {
               if (isLassoActive) {
@@ -882,9 +886,9 @@ const CoverageView: React.FC = () => {
             size="xs"
             colorScheme="blue"
             isDisabled={selectedPoints.size < 3}
-            mr={1}
           >
-            Create Trial Group
+            <Icon as={MdAdd} mr={1} />
+            Create trial group
           </Button>
         </Box>
       </Box>

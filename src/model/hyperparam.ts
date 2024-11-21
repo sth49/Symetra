@@ -29,6 +29,9 @@ export interface HyperparamJson {
   value: unknown;
   valueType: string;
   type: string;
+  description: string;
+  default: string;
+  defaultValue: string | number | boolean;
 }
 
 export class Metric {
@@ -56,7 +59,10 @@ export class Hyperparam {
     public name: string,
     public displayName: string,
     public value: string[] | number[] | boolean[] | string[][],
-    public valueType: string
+    public valueType: string,
+    public description: string,
+    public defaultString: string,
+    public defaultValue: string | number | boolean
   ) {}
 
   static fromJson(json: HyperparamJson, trialJson) {
@@ -80,9 +86,9 @@ export class Hyperparam {
       hparam.shapValues.push(trial.shap_values[hparam.name]);
     });
     // hparam.shapValues = shapValue;
-    console.log(hparam.getMeanAbsoluteEffect());
+    // console.log(hparam.getMeanAbsoluteEffect());
     if (hparam.getMeanAbsoluteEffect() < 0.3) {
-      console.log(hparam.name);
+      // console.log(hparam.name);
       hparam.visible = false;
     }
     return hparam;
@@ -210,6 +216,10 @@ export class Hyperparam {
   getEffectsByValue() {
     throw new Error("Method not implemented.");
   }
+
+  getNotification() {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export class ContinuousHyperparam extends Hyperparam {
@@ -218,7 +228,15 @@ export class ContinuousHyperparam extends Hyperparam {
   binCount = 5;
   constructor(json: HyperparamJson) {
     const value = json.value as number[];
-    super(json.name, json.displayName, value, json.valueType);
+    super(
+      json.name,
+      json.displayName,
+      value,
+      json.valueType,
+      json.description,
+      json.default,
+      json.defaultValue
+    );
     this.scale = d3
       .scaleSequential(d3.interpolateGreys)
       .domain([Math.min(...value), Math.max(...value)]);
@@ -378,6 +396,51 @@ export class ContinuousHyperparam extends Hyperparam {
     return effectsByValue;
   }
 
+  getNotification() {
+    // default value가 속한 구간이, 제일 좋은 영향력을 가졌는지 아닌지 확인
+
+    if (this.defaultValue === null) {
+      return false;
+    }
+    const effectsByValue = this.getEffectsByValue();
+    const effectByValue = {};
+    for (const key in effectsByValue) {
+      let sum = 0;
+      effectsByValue[key].forEach((val) => {
+        sum += val;
+      });
+      effectByValue[key] = sum / effectsByValue[key].length;
+    }
+
+    const keys = Object.keys(effectByValue);
+    // console.log(keys);
+    let max = -100000;
+    let maxKey = "";
+    keys.forEach((key) => {
+      if (effectByValue[key] > max) {
+        max = effectByValue[key];
+        maxKey = key;
+      }
+    });
+
+    const defaultVal = this.defaultValue;
+    const defaultBin = keys.find((key) => {
+      const [start, end] = key.split(" ~ ");
+      if (
+        typeof defaultVal === "number" &&
+        defaultVal >= Number(start) &&
+        defaultVal < Number(end)
+      ) {
+        return key;
+      }
+    });
+    if (defaultBin !== maxKey) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   // getEffectByValue() {
   //   let bins = 5; // 구간 수
   //   let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
@@ -422,10 +485,28 @@ export class CategoricalHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     if (json.valueType === "int") {
       const value = (json.value as number[]).sort();
-      super(json.name, json.displayName, value, json.valueType);
+      // super(json.name, json.displayName, value, json.valueType);
+      super(
+        json.name,
+        json.displayName,
+        value,
+        json.valueType,
+        json.description,
+        json.default,
+        json.defaultValue
+      );
     } else {
       const value = (json.value as string[]).sort();
-      super(json.name, json.displayName, value, json.valueType);
+      // super(json.name, json.displayName, value, json.valueType);
+      super(
+        json.name,
+        json.displayName,
+        value,
+        json.valueType,
+        json.description,
+        json.default,
+        json.defaultValue
+      );
     }
   }
   getColor(index: number) {
@@ -457,6 +538,39 @@ export class CategoricalHyperparam extends Hyperparam {
       });
     });
     return effectsByValue;
+  }
+
+  getNotification() {
+    if (this.defaultValue === null || this.defaultValue === "-") {
+      return false;
+    }
+    const effectsByValue = this.getEffectsByValue();
+    const effectByValue = {};
+    for (const key in effectsByValue) {
+      let sum = 0;
+      effectsByValue[key].forEach((val) => {
+        sum += val;
+      });
+      effectByValue[key] = sum / effectsByValue[key].length;
+    }
+
+    const keys = Object.keys(effectByValue);
+    let max = -100000;
+    let maxKey = "";
+    keys.forEach((key) => {
+      if (effectByValue[key] > max) {
+        max = effectByValue[key];
+        maxKey = key;
+      }
+    });
+
+    const defaultVal = this.defaultValue;
+
+    if (maxKey !== defaultVal) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 export class BinaryHyperparam extends CategoricalHyperparam {

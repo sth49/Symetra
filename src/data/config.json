@@ -1,450 +1,825 @@
 {
-  "name": "ParaSuit",
-  "hyperparameters": [
-    {
-      "name": "disable-inlining",
-      "displayName": "DI",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "max-memory-inhibit",
-      "displayName": "MMI",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "klee-call-optimisation",
-      "displayName": "KCO",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-construct-hash-stp",
-      "displayName": "UCHS",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-visitor-hash",
-      "displayName": "UVH",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "equality-substitution",
-      "displayName": "ES",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "check-overshift",
-      "displayName": "CO",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "check-div-zero",
-      "displayName": "CDZ",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-branch-cache",
-      "displayName": "UBC",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-independent-solver",
-      "displayName": "UIS",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-call-paths",
-      "displayName": "UCP",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-cex-cache",
-      "displayName": "UCC",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-forked-solver",
-      "displayName": "UFS",
-      "value": [true, false],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "watchdog",
-      "displayName": "W",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "const-array-opt",
-      "displayName": "CAO",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "zero-seed-extension",
-      "displayName": "ZSE",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "warnings-only-to-file",
-      "displayName": "WOTF",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "smtlib-human-readable",
-      "displayName": "SHR",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "warn-all-external-symbols",
-      "displayName": "WAES",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "use-iterative-deepening-time-search",
-      "displayName": "UIDTS",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "cex-cache-exp",
-      "displayName": "CCE",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "all-external-warnings",
-      "displayName": "AEW",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "readable-posix-inputs",
-      "displayName": "RPI",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "return-null-on-zero-malloc",
-      "displayName": "RNOZM",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "emit-all-errors",
-      "displayName": "EAE",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "solver-optimize-divides",
-      "displayName": "SOD",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "cex-cache-try-all",
-      "displayName": "CCTA",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "simplify-sym-indices",
-      "displayName": "SSI",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "named-seed-matching",
-      "displayName": "NSM",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "disable-verify",
-      "displayName": "DV",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "track-instruction-time",
-      "displayName": "TIT",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "silent-klee-assume",
-      "displayName": "SKA",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "suppress-external-warnings",
-      "displayName": "SEW",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "cex-cache-superset",
-      "displayName": "CCS",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "verify-each",
-      "displayName": "VE",
-      "value": [false, true],
-      "type": "boolean",
-      "valueType": "boolean"
-    },
-    {
-      "name": "max-memory",
-      "displayName": "MM",
-      "value": [3, 4041],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-stack-frames",
-      "displayName": "MSF",
-      "value": [10, 31098],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-forks",
-      "displayName": "MF",
-      "value": [6, 30806],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-sym-array-size",
-      "displayName": "MSAS",
-      "value": [1, 18362],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-depth",
-      "displayName": "MD",
-      "value": [6, 16899],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "batch-instructions",
-      "displayName": "BI",
-      "value": [3, 24253],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "redzone-size",
-      "displayName": "RS",
-      "value": [1, 184],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "seed-time",
-      "displayName": "ST",
-      "value": [1, 661],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-solver-time",
-      "displayName": "MST",
-      "value": [1, 1298],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "batch-time",
-      "displayName": "BT",
-      "value": [1, 464],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "uncovered-update-interval",
-      "displayName": "UUI",
-      "value": [1, 315],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "max-static-fork-pct",
-      "displayName": "MSFP",
-      "value": [0.004099668421, 1.0],
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "max-static-solve-pct",
-      "displayName": "MSSP",
-      "value": [0.0003851008533, 1.0],
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "max-static-cpfork-pct",
-      "displayName": "MSCP",
-      "value": [0.002553549676, 1.0],
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "max-static-cpsolve-pct",
-      "displayName": "MSCP",
-      "value": [0.0006470565786, 1.0],
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "array-value-symb-ratio",
-      "displayName": "AVSR",
-      "value": [0.003474433712, 1.0],
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "array-value-ratio",
-      "displayName": "AVR",
-      "value": [0.004525735757, 1.0],
-      "type": "numerical",
-      "valueType": "float"
-    },
-    {
-      "name": "search",
-      "displayName": "S",
-      "value": [
-        "random-path",
-        "nurs:cpicnt",
-        "random-state",
-        "nurs:qc",
-        "nurs:depth",
-        "bfs",
-        "nurs:covnew",
-        "nurs:icnt",
-        "nurs:rp",
-        "dfs",
-        "nurs:md2u"
-      ],
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "switch-type",
-      "displayName": "ST",
-      "value": ["internal", "simple", "llvm"],
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "smtlib-display-constants",
-      "displayName": "SDC",
-      "value": ["dec", "bin", "hex"],
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "smtlib-abbreviation-mode",
-      "displayName": "SAM",
-      "value": ["let", "none", "named"],
-      "type": "categorical",
-      "valueType": "string"
-    },
-    {
-      "name": "seed-file",
-      "displayName": "SF",
-      "value": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      "type": "ordinal",
-      "valueType": "int"
-    },
-    {
-      "name": "sym-arg",
-      "displayName": "SA",
-      "value": [3, 192],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "sym-stdin",
-      "displayName": "SS",
-      "value": [1, 255],
-      "type": "numerical",
-      "valueType": "int"
-    },
-    {
-      "name": "sym-files-1",
-      "displayName": "SF1",
-      "value": [1, 2],
-      "type": "ordinal",
-      "valueType": "int"
-    },
-    {
-      "name": "sym-files-2",
-      "displayName": "SF2",
-      "value": [1, 30],
-      "type": "numerical",
-      "valueType": "int"
+    "name": "ParaSuit",
+    "hyperparameters": [
+        {
+            "name": "disable-inlining",
+            "displayName": "DI",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Do not run the inliner pass",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "max-memory-inhibit",
+            "displayName": "MMI",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Inhibit forking at memory cap (vs. random terminate)",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "klee-call-optimisation",
+            "displayName": "KCO",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Allow optimization of functions that contain KLEE calls",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-construct-hash-stp",
+            "displayName": "UCHS",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use hash-consing during STP query construction",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-visitor-hash",
+            "displayName": "UVH",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use hash-consing during expression visitation",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "equality-substitution",
+            "displayName": "ES",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Simplify equality expressions before querying the solver",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "check-overshift",
+            "displayName": "CO",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Inject checks for overshift",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "check-div-zero",
+            "displayName": "CDZ",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Inject checks for division-by-zero",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-branch-cache",
+            "displayName": "UBC",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use the branch cache",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-independent-solver",
+            "displayName": "UIS",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use constraint independence",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-call-paths",
+            "displayName": "UCP",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Enable calltree tracking for instruction level statistics",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-cex-cache",
+            "displayName": "UCC",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use the counterexample cache",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-forked-solver",
+            "displayName": "UFS",
+            "value": [
+                true,
+                false
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Run the core SMT solver in a forked process",
+            "default": "TRUE",
+            "defaultValue": null
+        },
+        {
+            "name": "watchdog",
+            "displayName": "W",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use a watchdog process to enforce --max-time.",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "const-array-opt",
+            "displayName": "CAO",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Enable an optimization involving all-constant arrays",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "zero-seed-extension",
+            "displayName": "ZSE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use zero-filled objects if matching seed not found",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "warnings-only-to-file",
+            "displayName": "WOTF",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "All warnings will be written to warnings.txt only. If disabled, they are also written on screen.",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "smtlib-human-readable",
+            "displayName": "SHR",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Enables generated SMT-LIBv2 files to be human readable",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "warn-all-external-symbols",
+            "displayName": "WAES",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Issue a warning on startup for all external symbols",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "use-iterative-deepening-time-search",
+            "displayName": "UIDTS",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use iterative deepening time search (experimental)",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "cex-cache-exp",
+            "displayName": "CCE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Optimization for validity queries",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "all-external-warnings",
+            "displayName": "AEW",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Issue a warning everytime an external call is made, as opposed to once per function",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "readable-posix-inputs",
+            "displayName": "RPI",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Prefer creation of POSIX inputs (command-line arguments, files, etc.) with human readable bytes. Note: option is expensive when creating lots of tests",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "return-null-on-zero-malloc",
+            "displayName": "RNOZM",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Returns NULL if malloc(0) is called",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "emit-all-errors",
+            "displayName": "EAE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Generate tests cases for all errors",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "solver-optimize-divides",
+            "displayName": "SOD",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Optimize constant divides into add/shift/multiplies before passing them to the core SMT solver",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "cex-cache-try-all",
+            "displayName": "CCTA",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Try substituting all counterexamples before asking the SMT solver",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "simplify-sym-indices",
+            "displayName": "SSI",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Simplify symbolic accesses using equalities from other constraints",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "named-seed-matching",
+            "displayName": "NSM",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Use names to match symbolic objects to inputs",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "disable-verify",
+            "displayName": "DV",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Do not verify the module integrity",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "track-instruction-time",
+            "displayName": "TIT",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Enable tracking of time for individual instructions",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "silent-klee-assume",
+            "displayName": "SKA",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Silently terminate paths with an infeasible condition given to klee_assume() rather than emitting an error",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "suppress-external-warnings",
+            "displayName": "SEW",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Supress warnings about calling external functions.",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "cex-cache-superset",
+            "displayName": "CCS",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Try substituting SAT superset counterexample before asking the SMT solver",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "verify-each",
+            "displayName": "VE",
+            "value": [
+                false,
+                true
+            ],
+            "type": "boolean",
+            "valueType": "boolean",
+            "description": "Verify intermediate results of all optimization passes",
+            "default": "FALSE",
+            "defaultValue": null
+        },
+        {
+            "name": "max-memory",
+            "displayName": "MM",
+            "value": [
+                3,
+                4041
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Refuse to fork when above this amount of memory (in MB)",
+            "default": "2000",
+            "defaultValue": 2000
+        },
+        {
+            "name": "max-stack-frames",
+            "displayName": "MSF",
+            "value": [
+                10,
+                31098
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Terminate a state after this many stack frames. Set to 0 to disable",
+            "default": "8192",
+            "defaultValue": 8192
+        },
+        {
+            "name": "max-forks",
+            "displayName": "MF",
+            "value": [
+                6,
+                30806
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Only fork this many times. Set to -1 to disable",
+            "default": "4096",
+            "defaultValue": 4096
+        },
+        {
+            "name": "max-sym-array-size",
+            "displayName": "MSAS",
+            "value": [
+                1,
+                18362
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "If a symbolic array exceeds this size (in bytes), symbolic addresses into this array are concretized. Set to 0 to disable",
+            "default": "4096",
+            "defaultValue": 4096
+        },
+        {
+            "name": "max-depth",
+            "displayName": "MD",
+            "value": [
+                6,
+                16899
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Only allow this many symbolic branches. Set to 0 to disable",
+            "default": "2000",
+            "defaultValue": 2000
+        },
+        {
+            "name": "batch-instructions",
+            "displayName": "BI",
+            "value": [
+                3,
+                24253
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Number of instructions to batch when using --use-batching-search.  Set to 0 to disable",
+            "default": "10000",
+            "defaultValue": 10000
+        },
+        {
+            "name": "redzone-size",
+            "displayName": "RS",
+            "value": [
+                1,
+                184
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Set the size of the redzones to be added after each allocation (in bytes). This is important to detect out-of-bounds accesses",
+            "default": "10",
+            "defaultValue": 10
+        },
+        {
+            "name": "seed-time",
+            "displayName": "ST",
+            "value": [
+                1,
+                661
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Amount of time to dedicate to seeds, before normal search",
+            "default": "5s",
+            "defaultValue": 5
+        },
+        {
+            "name": "max-solver-time",
+            "displayName": "MST",
+            "value": [
+                1,
+                1298
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Maximum amount of time for a single SMT query (default=0s (off)). Enables --use-forked-solver",
+            "default": "5s",
+            "defaultValue": 5
+        },
+        {
+            "name": "batch-time",
+            "displayName": "BT",
+            "value": [
+                1,
+                464
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Amount of time to batch when using --use-batching-search.",
+            "default": "5s",
+            "defaultValue": 5
+        },
+        {
+            "name": "uncovered-update-interval",
+            "displayName": "UUI",
+            "value": [
+                1,
+                315
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Update interval for uncovered instructions",
+            "default": "30s",
+            "defaultValue": 30
+        },
+        {
+            "name": "max-static-fork-pct",
+            "displayName": "MSFP",
+            "value": [
+                0.004099668421,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float",
+            "description": "Maximum percentage spent by an instruction forking out of the forking of all instructions",
+            "default": "1",
+            "defaultValue": 1.0
+        },
+        {
+            "name": "max-static-solve-pct",
+            "displayName": "MSSP",
+            "value": [
+                0.0003851008533,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float",
+            "description": "Maximum percentage of solving time that can be spent by a single instruction over total solving time for all instructions",
+            "default": "1",
+            "defaultValue": 1.0
+        },
+        {
+            "name": "max-static-cpfork-pct",
+            "displayName": "MSCP",
+            "value": [
+                0.002553549676,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float",
+            "description": "Maximum percentage spent by an instruction of a call path forking out of the forking of all instructions in the call path",
+            "default": "1",
+            "defaultValue": 1.0
+        },
+        {
+            "name": "max-static-cpsolve-pct",
+            "displayName": "MSCP",
+            "value": [
+                0.0006470565786,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float",
+            "description": "Maximum percentage of solving time that can be spent by a single instruction of a call path over total solving time for all instructions",
+            "default": "1",
+            "defaultValue": 1.0
+        },
+        {
+            "name": "array-value-symb-ratio",
+            "displayName": "AVSR",
+            "value": [
+                0.003474433712,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float",
+            "description": "Maximum ratio of symbolic values to array size for which the mixed value-based transformations are applied.",
+            "default": "1",
+            "defaultValue": 1.0
+        },
+        {
+            "name": "array-value-ratio",
+            "displayName": "AVR",
+            "value": [
+                0.004525735757,
+                1.0
+            ],
+            "type": "numerical",
+            "valueType": "float",
+            "description": "Maximum ratio of unique values to array size for which the value-based transformations are applied.",
+            "default": "1",
+            "defaultValue": 1.0
+        },
+        {
+            "name": "search",
+            "displayName": "S",
+            "value": [
+                "random-path",
+                "nurs:cpicnt",
+                "random-state",
+                "nurs:qc",
+                "nurs:depth",
+                "bfs",
+                "nurs:covnew",
+                "nurs:icnt",
+                "nurs:rp",
+                "dfs",
+                "nurs:md2u"
+            ],
+            "type": "categorical",
+            "valueType": "string",
+            "description": "Specify the search heuristic",
+            "default": "random-path",
+            "defaultValue": "random-path"
+        },
+        {
+            "name": "switch-type",
+            "displayName": "ST",
+            "value": [
+                "internal",
+                "simple",
+                "llvm"
+            ],
+            "type": "categorical",
+            "valueType": "string",
+            "description": "Select the implementation of switch",
+            "default": "internal",
+            "defaultValue": "internal"
+        },
+        {
+            "name": "smtlib-display-constants",
+            "displayName": "SDC",
+            "value": [
+                "dec",
+                "bin",
+                "hex"
+            ],
+            "type": "categorical",
+            "valueType": "string",
+            "description": "Sets how bitvector constants are written in generated SMT-LIBv2 files",
+            "default": "dec",
+            "defaultValue": "dec"
+        },
+        {
+            "name": "smtlib-abbreviation-mode",
+            "displayName": "SAM",
+            "value": [
+                "let",
+                "none",
+                "named"
+            ],
+            "type": "categorical",
+            "valueType": "string",
+            "description": "Choose abbreviation mode to use in SMT-LIBv2 files",
+            "default": "let",
+            "defaultValue": "let"
+        },
+        {
+            "name": "seed-file",
+            "displayName": "SF",
+            "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "type": "ordinal",
+            "valueType": "int",
+            "description": ".ktest file to be used as seed",
+            "default": "-",
+            "defaultValue": null
+        },
+        {
+            "name": "sym-arg",
+            "displayName": "SA",
+            "value": [
+                3,
+                192
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Replace by a symbolic argument with length N.",
+            "default": "-",
+            "defaultValue": null
+        },
+        {
+            "name": "sym-stdin",
+            "displayName": "SS",
+            "value": [
+                1,
+                255
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "Make stdin symbolic with size N.",
+            "default": "-",
+            "defaultValue": null
+        },
+        {
+            "name": "sym-files-1",
+            "displayName": "SF1",
+            "value": [
+                1,
+                2
+            ],
+            "type": "ordinal",
+            "valueType": "int",
+            "description": "Make NUM symbolic files (\u2018A\u2019",
+            "default": "-",
+            "defaultValue": null
+        },
+        {
+            "name": "sym-files-2",
+            "displayName": "SF2",
+            "value": [
+                1,
+                30
+            ],
+            "type": "numerical",
+            "valueType": "int",
+            "description": "\u2018B\u2019",
+            "default": "-",
+            "defaultValue": null
+        }
+    ],
+    "metric": {
+        "name": "Coverage",
+        "displayName": "CVRG",
+        "length": 3365,
+        "baseValue": 1473.371232867241,
+        "totalBranch": 3365
     }
-  ],
-  "metric": {
-    "name": "Coverage",
-    "displayName": "CVRG",
-    "length": 3365,
-    "baseValue": 1473.371232867241
-  }
 }

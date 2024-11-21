@@ -14,6 +14,8 @@ import { useCustomStore } from "../store";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa6";
 import { HyperparamTypes } from "../model/hyperparam";
 import { MdDeselect } from "react-icons/md";
+import { MdAdd } from "react-icons/md";
+
 import { useMetricScale } from "../model/colorScale";
 const adjustTableHeight = (tableRef, virtualHeight) => {
   if (!tableRef.current) return;
@@ -224,14 +226,6 @@ const TrialTable = () => {
     overscan: 20,
   });
 
-  // const {
-  //   setGroups,
-  //   groups,
-  //   selectedTrials,
-  //   setSelectedRowPositions,
-  //   setSelectedTrials,
-  // } = useCustomStore();
-
   const setGroups = useCustomStore((state) => state.setGroups);
   const groups = useCustomStore((state) => state.groups);
   const selectedTrials = useCustomStore((state) => state.selectedTrials);
@@ -240,6 +234,14 @@ const TrialTable = () => {
   );
   const setSelectedTrials = useCustomStore((state) => state.setSelectedTrials);
 
+  const currentSelectedGroup = useCustomStore(
+    (state) => state.currentSelectedGroup
+  );
+
+  const selectFlag = useCustomStore((state) => state.selectFlag);
+  const setSelectFlag = useCustomStore((state) => state.setSelectFlag);
+  const selectOneTrial = useCustomStore((state) => state.selectOneTrial);
+  const setSelectOneTrial = useCustomStore((state) => state.setSelectOneTrial);
   const virtualItems = virtualizer.getVirtualItems();
   const virtualSize = virtualizer.getTotalSize();
   const [isScrolling, setIsScrolling] = useState(false);
@@ -406,7 +408,6 @@ const TrialTable = () => {
             newSelection[trialId] = true;
           }
         }
-
         setLastSelectedIndex(index);
         updateSelectedTrials(new Set(Object.keys(newSelection).map(Number)));
         return newSelection;
@@ -414,6 +415,59 @@ const TrialTable = () => {
     },
     [rows, lastSelectedIndex, isMultiSelect]
   );
+
+  useEffect(() => {
+    if (selectFlag) {
+      const currentGroupTrials = currentSelectedGroup.trials.map(
+        (trial) => trial.id
+      );
+      setRowSelection((prev) => {
+        const newSelection = { ...prev };
+        rows.forEach((row) => {
+          if (currentGroupTrials.includes(Number(row.original.id))) {
+            newSelection[row.id] = true;
+          }
+        });
+        return newSelection;
+      });
+
+      setSelectFlag(false);
+    }
+  }, [selectFlag]);
+
+  useEffect(() => {
+    if (selectOneTrial !== null) {
+      const newSelection = { ...rowSelection };
+      let isLastSelected = false;
+      rows.forEach((row) => {
+        if (Number(row.original.id) === selectOneTrial) {
+          if (newSelection[row.id]) {
+            if (Object.keys(newSelection).length === 1) {
+              isLastSelected = true;
+              return;
+            }
+            delete newSelection[row.id];
+          } else {
+            newSelection[row.id] = true;
+          }
+        }
+      });
+      if (isLastSelected) {
+        setRowSelection({});
+        setSelectedTrials([]);
+        setSelectedRowPositions([]);
+      } else {
+        setRowSelection(newSelection);
+      }
+      setSelectOneTrial(null);
+    }
+  }, [
+    selectOneTrial,
+    rowSelection,
+    rows,
+    setSelectedTrials,
+    setSelectedRowPositions,
+  ]);
 
   useEffect(() => {
     if (!isScrolling && Object.keys(rowSelection).length > 0) {
@@ -560,6 +614,7 @@ const TrialTable = () => {
                           key={cell.id}
                           style={{
                             width: column.getSize(),
+                            // @ts-ignore
                             textAlign: cell.column.columnDef.meta.align,
                             padding: "0 8px",
                             overflow: "hidden",
@@ -598,6 +653,7 @@ const TrialTable = () => {
         alignItems="center"
         className="virtual-table-bottom"
         height={"40px"}
+        p={1}
       >
         <Text fontSize="xs" color="gray.600" p={2}>
           Use checkboxes to select a group of trials (
@@ -608,6 +664,7 @@ const TrialTable = () => {
           <IconButton
             aria-label="Lasso"
             // icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
+            variant={"outline"}
             icon={<MdDeselect />}
             onClick={() => {
               setRowSelection({});
@@ -625,7 +682,6 @@ const TrialTable = () => {
             colorScheme="blue"
             variant="solid"
             isDisabled={selectedTrials.length === 0}
-            mr={1}
             onClick={() => {
               const updatedGroups = groups.clone();
               updatedGroups.addGroup(
@@ -639,7 +695,8 @@ const TrialTable = () => {
               setSelectedTrials([]);
             }}
           >
-            Create Trial Group
+            <Icon as={MdAdd} mr={1} />
+            Create trial group
           </Button>
         </Box>
       </Box>

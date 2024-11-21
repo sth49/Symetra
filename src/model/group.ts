@@ -1,7 +1,7 @@
 import { Trial } from "./trial";
 
 export class Groups {
-  public lastGroupId = -2;
+  public lastGroupId = -3;
   public groups: Group[] = [];
   constructor() {
     console.log("Groups created");
@@ -100,7 +100,9 @@ export class Group {
     Object.keys(branchCount).forEach((key) => {
       branchCount[key] = branchCount[key] / this.trials.length;
     });
-    return Object.entries(branchCount).sort(([, a], [, b]) => b - a);
+    return Object.entries(branchCount).sort(
+      ([, a], [, b]) => Number(b) - Number(a)
+    );
   }
   // getBranches() {
   //   const branches = this.trials.map((trial) =>

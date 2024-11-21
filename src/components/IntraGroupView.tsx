@@ -21,7 +21,10 @@ const IntraGroupView = () => {
   const [correlations, setCorrelations] = useState<Record<
     string,
     {
-      hp: Hyperparam;
+      hp: {
+        hp1: Hyperparam;
+        hp2: Hyperparam;
+      };
       correlation: number;
     }
   > | null>(null);
@@ -71,18 +74,27 @@ const IntraGroupView = () => {
       }
 
       setResult({
-        key: Object.keys(results).sort(
-          (a, b) => results[b].correlation - results[a].correlation
-        )[0],
+        key: Object.keys(results)
+          .filter((a) => !Number.isNaN(results[a].correlation))
+          .sort((a, b) => results[b].correlation - results[a].correlation)[0],
         value:
           results[
-            Object.keys(results).sort(
-              (a, b) => results[b].correlation - results[a].correlation
-            )[0]
+            Object.keys(results)
+              .filter((a) => !Number.isNaN(results[a].correlation))
+              .sort(
+                (a, b) => results[b].correlation - results[a].correlation
+              )[0]
           ],
       });
       console.log(results);
-      setCorrelations(results);
+      setCorrelations(
+        Object.keys(results)
+          .filter((a) => !Number.isNaN(results[a].correlation))
+          .reduce((acc, key) => {
+            acc[key] = results[key];
+            return acc;
+          }, {})
+      );
     }
   }, [currentSelectedGroup]);
 

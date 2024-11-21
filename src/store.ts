@@ -36,6 +36,12 @@ interface CustomStore {
 
   selectedRowPositions: any[];
   setSelectedRowPositions: (selectedRowPositions: any[]) => void;
+
+  selectFlag: boolean;
+  setSelectFlag: (selectFlag: boolean) => void;
+
+  selectOneTrial: number | null;
+  setSelectOneTrial: (selectOneTrial: number | null) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -84,4 +90,10 @@ export const useCustomStore = create<CustomStore>((set) => ({
   selectedRowPositions: [],
   setSelectedRowPositions: (selectedRowPositions) =>
     set({ selectedRowPositions }),
+
+  selectFlag: false,
+  setSelectFlag: (selectFlag) => set({ selectFlag }),
+
+  selectOneTrial: null,
+  setSelectOneTrial: (selectOneTrial) => set({ selectOneTrial }),
 }));

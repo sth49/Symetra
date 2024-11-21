@@ -10,7 +10,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-
+import { FaCircle } from "react-icons/fa";
 import { Box, Button, Icon, IconButton, Text } from "@chakra-ui/react";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
@@ -34,6 +34,9 @@ const HparamTable = () => {
           id: index,
           name: hp.displayName,
           fullName: hp.name,
+          desc: hp.description,
+          default: hp.defaultString,
+          notification: hp.getNotification(),
           displayName: hp.displayName,
           effect: hp.getMeanAbsoluteEffect(),
           effctsByValue: hp.getEffectsByValue(),
@@ -184,7 +187,16 @@ const HparamTable = () => {
               }}
               opacity={visible ? 1 : 0.5}
             >
-              <Tooltip label={row.original.fullName}>
+              <Tooltip
+                label={
+                  <div>
+                    <Text fontSize="xs" borderBottom={"1px solid white"}>
+                      {row.original.fullName} (default: {row.original.default})
+                    </Text>
+                    <Text fontSize="xs">{row.original.desc}</Text>
+                  </div>
+                }
+              >
                 <Text
                   userSelect={"none"}
                   display={"flex"}
@@ -192,6 +204,16 @@ const HparamTable = () => {
                 >
                   <Icon as={hparamIcon} mr={1} color={"gray.600"} />
                   {info.getValue()}
+                  {row.original.notification && (
+                    <Icon
+                      as={FaCircle}
+                      size={"xs"}
+                      width={"8px"}
+                      pl={0.5}
+                      color={"red.500"}
+                      alignSelf={"flex-start"}
+                    ></Icon>
+                  )}
                 </Text>
               </Tooltip>
             </Box>

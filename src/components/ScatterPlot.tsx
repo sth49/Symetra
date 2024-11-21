@@ -82,6 +82,7 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
     if (result.value.type === "pearson") {
       return scaleLinear<number>({
         range: [0, width - margin.left - margin.right],
+        // @ts-ignore
         domain: extent(data, x) as [number, number],
         nice: true,
       });
@@ -158,8 +159,10 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
               key={i}
               cx={
                 result.value.type === "pearson"
-                  ? xScale(point.val1 as number)
-                  : (xScale as any).getCenterValue(point.val1 as boolean)
+                  ? // @ts-ignore
+                    xScale(point.val1 as number)
+                  : // @ts-ignore
+                    (xScale as any).getCenterValue(point.val1 as boolean)
               }
               cy={yScale(point.val2)}
               r={3}
