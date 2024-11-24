@@ -281,10 +281,10 @@ const BarChartBase = ({
 
     const bins = Array.from({ length: binCount }, (_, i) => ({
       x0: isInteger
-        ? Math.floor(xMin + i * binSize)
+        ? Math.floor(xMin + i * binSize).toString()
         : (xMin + i * binSize).toFixed(2),
       x1: isInteger
-        ? Math.floor(xMin + (i + 1) * binSize)
+        ? Math.floor(xMin + (i + 1) * binSize).toString()
         : (xMin + (i + 1) * binSize).toFixed(2),
       count: 0,
     }));
@@ -332,57 +332,61 @@ const BarChartBase = ({
     return (
       <Box display="flex" justifyContent="center" alignItems="center">
         <svg width={width} height={height}>
-          {bins.map((bin, i) => (
-            <g key={i}>
-              <Bar
-                x={xScale(Number(bin.x0))}
-                y={yScale(Number(bin.count))}
-                width={Math.max(
-                  0,
-                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
-                )}
-                height={Math.max(
-                  0,
-                  height - margin.bottom - yScale(Number(bin.count))
-                )}
-                fill={hparam.getColorByValue(
-                  Number(bin.x1) - Number(bin.x0) / 2
-                )}
-                opacity={opacity}
-              />
-              <Bar
-                x={xScale(Number(bin.x0))}
-                width={Math.max(
-                  0,
-                  xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
-                )}
-                height={height}
-                fill={"transparent"}
-                onMouseMove={(event) => {
-                  showTooltip({
-                    tooltipData: {
-                      key: `${hparam.displayName} = ${formatting(
-                        Number(bin.x0),
-                        isInteger ? "int" : "float"
-                      )} ~ ${formatting(
-                        Number(bin.x1),
-                        isInteger ? "int" : "float"
-                      )}`,
-                      value: "",
-                      count: bin.count,
-                    },
-                    tooltipLeft: event.clientX,
-                    tooltipTop: event.clientY,
-                  });
-                }}
-                onMouseLeave={hideTooltip}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleBarClick([Number(bin.x0), Number(bin.x1)]);
-                }}
-              />
-            </g>
-          ))}
+          {bins.map((bin, i) => {
+            // console.log("bin", bin);
+            return (
+              <g key={i}>
+                <Bar
+                  x={xScale(Number(bin.x0))}
+                  y={yScale(Number(bin.count))}
+                  width={Math.max(
+                    0,
+                    xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
+                  )}
+                  height={Math.max(
+                    0,
+                    height - margin.bottom - yScale(Number(bin.count))
+                  )}
+                  fill={hparam.getColorByValue(
+                    (Number(bin.x1) + Number(bin.x0)) / 2
+                  )}
+                  opacity={opacity}
+                />
+                <Bar
+                  x={xScale(Number(bin.x0))}
+                  width={Math.max(
+                    0,
+                    xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
+                  )}
+                  height={height}
+                  fill={"transparent"}
+                  onMouseMove={(event) => {
+                    showTooltip({
+                      tooltipData: {
+                        key: `${hparam.displayName} = ${formatting(
+                          Number(bin.x0),
+                          isInteger ? "int" : "float"
+                        )} ~ ${formatting(
+                          Number(bin.x1),
+                          isInteger ? "int" : "float"
+                        )}`,
+                        value: "",
+                        count: bin.count,
+                      },
+                      tooltipLeft: event.clientX,
+                      tooltipTop: event.clientY,
+                    });
+                  }}
+                  onMouseLeave={hideTooltip}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBarClick([Number(bin.x0), Number(bin.x1)]);
+                  }}
+                />
+              </g>
+            );
+          })}
+
           {viewType === "hparam" &&
             bins2.map((bin, i) => (
               <Bar

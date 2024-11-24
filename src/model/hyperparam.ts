@@ -75,7 +75,7 @@ export class Hyperparam {
   static fromJson(json: HyperparamJson, trialJson) {
     let hparam: Hyperparam;
     if (json.type === "numerical") {
-      hparam = new ContinuousHyperparam(json);
+      hparam = new ContinuousHyperparam(json, trialJson);
     } else if (json.type === "categorical") {
       hparam = new NominalHyperparam(json);
     } else if (json.type === "boolean") {
@@ -237,8 +237,11 @@ export class ContinuousHyperparam extends Hyperparam {
   type = HyperparamTypes.Continuous;
   icon = HiHashtag;
   binCount = 5;
-  constructor(json: HyperparamJson) {
-    const value = json.value as number[];
+  constructor(json: HyperparamJson, trialJson: any) {
+    // const value = json.value as number[];
+    const values = trialJson.map((trial) => trial.config[json.name] as number);
+    const sortedValues = values.sort((a, b) => a - b);
+    const value = [sortedValues[0], sortedValues[sortedValues.length - 1]];
     super(
       json.name,
       json.displayName,
@@ -248,9 +251,10 @@ export class ContinuousHyperparam extends Hyperparam {
       json.default,
       json.defaultValue
     );
+
     this.scale = d3
       .scaleSequential(d3.interpolateGreys)
-      .domain([Math.min(...value), Math.max(...value)]);
+      .domain(this.value as [number, number]);
   }
 
   formatting(value: number) {

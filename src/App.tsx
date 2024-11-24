@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import trialData from "./data/ParaSuit.json";
+import trialData from "./data/tuned_parameters_diff_800_final.json";
+// import trialData from "./data/ParaSuit.json";
 import configData from "./data/config.json";
 import { Experiment } from "./model/experiment";
 import "./App.css";
