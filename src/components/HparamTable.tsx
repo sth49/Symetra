@@ -23,8 +23,10 @@ import { FaSortDown } from "react-icons/fa6";
 import HparamExtended from "./HparamExtended";
 
 const HparamTable = () => {
-  const { exp, hyperparams, setHyperparams, setHparamSort } =
-    useConstDataStore();
+  const exp = useConstDataStore((state) => state.exp);
+  const hyperparams = useConstDataStore((state) => state.hyperparams);
+  const setHyperparams = useConstDataStore((state) => state.setHyperparams);
+  const setHparamSort = useConstDataStore((state) => state.setHparamSort);
 
   const data = useMemo(
     () =>
@@ -41,6 +43,7 @@ const HparamTable = () => {
           effect: hp.getMeanAbsoluteEffect(),
           effctsByValue: hp.getEffectsByValue(),
           idsByValue: hp.getIdsByValue(),
+          hp: hp,
           dist: hp.name,
           type: hp.type,
           icon: hp.icon,
@@ -308,13 +311,7 @@ const HparamTable = () => {
         enableSorting: false,
       },
     ];
-  }, [
-    toggleRowSelection,
-    hyperparams,
-    setHyperparams,
-    selectedRows,
-    isMultiSelect,
-  ]);
+  }, [toggleRowSelection, setHyperparams, selectedRows, isMultiSelect]);
   const [sorting, setSorting] = useState<SortingState>([
     {
       id: "effect",

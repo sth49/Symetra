@@ -1,4 +1,4 @@
-import { Icon, Text } from "@chakra-ui/react";
+import { Box, Icon, Text } from "@chakra-ui/react";
 import { formatting, generateBinnedData } from "../model/utils";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
@@ -6,6 +6,7 @@ import { FaSortDown } from "react-icons/fa6";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { HyperparamTypes } from "../model/hyperparam";
 import BranchBarChart from "./BranchBarChart";
+import React from "react";
 interface HparamExtendedProps {
   item;
 }
@@ -29,6 +30,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
           .binData,
         trialIds: item.idsByValue[key],
         allEffectValues: item.allEffectValues,
+        isDefault: item.hp.getIsDefault(key),
       };
     });
   }, [item.effctsByValue]);
@@ -157,9 +159,66 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
               }}
             >
               {column.key === "value" ? (
-                <Text whiteSpace={"normal"} textAlign={"center"}>
-                  {row[column.key]}
-                </Text>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  width="100%"
+                  justifyContent="center"
+                >
+                  {item.hp.valueType === "string" ? (
+                    <div
+                      style={{
+                        width: "3px",
+                        height: "10px",
+                        backgroundColor: item.hp.getColorByValue(row["value"]),
+                        marginRight: "5px",
+                      }}
+                    ></div>
+                  ) : item.hp.valueType === "boolean" ? (
+                    <div
+                      style={{
+                        width: "3px",
+                        height: "10px",
+                        backgroundColor: item.hp.getColorByValue(row["value"]),
+                        marginRight: "5px",
+                      }}
+                    ></div>
+                  ) : (
+                    <></>
+                  )}
+                  <Text
+                    whiteSpace="pre-wrap"
+                    textAlign="center"
+                    textDecorationLine={row.isDefault ? "underline" : "none"}
+                  >
+                    {item.hp.valueType === "string" &&
+                    row[column.key].includes(":")
+                      ? row[column.key].split(":").map((part, index, array) => (
+                          <React.Fragment key={index}>
+                            {part}
+                            {index < array.length - 1 && (
+                              <>
+                                :
+                                <br />
+                              </>
+                            )}
+                          </React.Fragment>
+                        ))
+                      : item.hp.valueType === "string" &&
+                        row[column.key].includes("-")
+                      ? row[column.key].split("-").map((part, index, array) => (
+                          <React.Fragment key={index}>
+                            {part}
+                            {index < array.length - 1 && (
+                              <>
+                                <br />-
+                              </>
+                            )}
+                          </React.Fragment>
+                        ))
+                      : row[column.key]}
+                  </Text>
+                </Box>
               ) : column.key === "count" ? (
                 formatting(row[column.key], "int")
               ) : column.key === "effect" ? (

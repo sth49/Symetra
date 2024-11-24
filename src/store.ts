@@ -4,6 +4,7 @@ import { TrialPathModel } from "./model/trialPath";
 
 interface HparamValue {
   name: string;
+  displayName: string;
   value: any;
 }
 

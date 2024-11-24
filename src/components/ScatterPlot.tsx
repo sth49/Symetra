@@ -4,10 +4,11 @@ import { AxisBottom, AxisLeft } from "@visx/axis";
 import { scaleLinear, scaleBand } from "@visx/scale";
 import { formatting } from "../model/utils";
 import { useMemo } from "react";
-import { extent } from "d3";
+import { extent, format } from "d3";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
+import { Hyperparam } from "../model/hyperparam";
 
 interface ScatterPlotBaseProps {
   result: {
@@ -18,11 +19,12 @@ interface ScatterPlotBaseProps {
         val2: number[];
       };
       hp: {
-        hp1: { displayName: string };
-        hp2: { displayName: string };
+        hp1: Hyperparam;
+        hp2: Hyperparam;
       };
     };
   };
+  ids: number[];
   width?: number;
   height?: number;
 }
@@ -30,11 +32,17 @@ interface ScatterPlotBaseProps {
 interface TooltipData {
   val1: number | boolean;
   val2: number;
-  hp1: { displayName: string };
-  hp2: { displayName: string };
+  hp1: Hyperparam;
+  hp2: Hyperparam;
+  id?: number;
 }
 
-const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
+const ScatterPlotBase = ({
+  result,
+  ids,
+  width,
+  height,
+}: ScatterPlotBaseProps) => {
   const {
     tooltipData,
     tooltipLeft,
@@ -43,6 +51,8 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
     showTooltip,
     hideTooltip,
   } = useTooltip<TooltipData>();
+
+  console.log("result", result);
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
@@ -75,6 +85,7 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
       val2: result.value.value.val2[i],
       hp1: result.value.hp.hp1,
       hp2: result.value.hp.hp2,
+      id: ids[i],
     }));
   }, [result]);
 
@@ -102,6 +113,18 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
       return booleanScale;
     }
   }, [result, width]);
+
+  // 지터링 값을 데이터에 추가
+  const dataWithJitter = useMemo(() => {
+    return result.value.value.val1.map((val1, i) => ({
+      val1,
+      val2: result.value.value.val2[i],
+      hp1: result.value.hp.hp1,
+      hp2: result.value.hp.hp2,
+      // 각 데이터 포인트마다 고유한 지터링 값 저장
+      jitter: Math.random(),
+    }));
+  }, [result]);
 
   const yScale = useMemo(() => {
     return scaleLinear<number>({
@@ -135,13 +158,6 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
               fontSize: 10,
               textAnchor: "middle",
             }}
-            // tickFormat={(value) => {
-            //   if (result.value.type === "pearson") {
-            //     return value.toString();
-            //   } else {
-            //     return value ? "True" : "False";
-            //   }
-            // }}
           />
           <AxisLeft
             scale={yScale}
@@ -154,26 +170,38 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
               transform: "rotate(-90)",
             }}
           />
-          {data.map((point, i) => (
-            <Circle
-              key={i}
-              cx={
-                result.value.type === "pearson"
-                  ? // @ts-ignore
-                    xScale(point.val1 as number)
-                  : // @ts-ignore
-                    (xScale as any).getCenterValue(point.val1 as boolean)
-              }
-              cy={yScale(point.val2)}
-              r={3}
-              fill={tooltipData === point ? "#FF0066" : "#0070f3"}
-              fillOpacity={0.8}
-              opacity={tooltipData === point ? 1 : 0.5}
-              onMouseEnter={(event) => handleMouseOver(event, point)}
-              onMouseLeave={hideTooltip}
-              className="cursor-pointer transition-opacity duration-200"
-            />
-          ))}
+          {result.value.type === "pearson"
+            ? data.map((point, i) => (
+                <Circle
+                  key={i}
+                  // @ts-ignore
+                  cx={xScale(point.val1 as number)}
+                  cy={yScale(point.val2)}
+                  r={3}
+                  fill={tooltipData === point ? "#FF0066" : "#0070f3"}
+                  fillOpacity={0.8}
+                  opacity={tooltipData === point ? 1 : 0.5}
+                  onMouseEnter={(event) => handleMouseOver(event, point)}
+                  onMouseLeave={hideTooltip}
+                />
+              ))
+            : dataWithJitter.map((point, i) => (
+                <Circle
+                  key={i}
+                  cx={
+                    (xScale as any).getCenterValue(point.val1 as boolean) +
+                    // 지터링 적용
+                    (point.jitter - 0.5) * (xScale as any).bandwidth() * 0.5
+                  }
+                  cy={yScale(point.val2)}
+                  r={3}
+                  fill={tooltipData === point ? "#FF0066" : "#0070f3"}
+                  fillOpacity={0.8}
+                  opacity={tooltipData === point ? 1 : 0.5}
+                  onMouseEnter={(event) => handleMouseOver(event, point)}
+                  onMouseLeave={hideTooltip}
+                />
+              ))}
         </Group>
       </svg>
 
@@ -182,20 +210,29 @@ const ScatterPlotBase = ({ result, width, height }: ScatterPlotBaseProps) => {
           key={Math.random()}
           top={tooltipTop}
           left={tooltipLeft}
-          className="bg-white p-2 rounded shadow-lg text-sm"
         >
-          <div className="font-semibold text-gray-800">Data Point</div>
-          <div className="text-gray-600">
+          <div
+            style={{
+              fontWeight: "bold",
+              marginBottom: "5px",
+            }}
+          >
+            Trial {formatting(tooltipData.id, "int")}
+          </div>
+          <div>
             {tooltipData.hp1.displayName}:{" "}
             {typeof tooltipData.val1 === "boolean"
               ? tooltipData.val1
                 ? "True"
                 : "False"
-              : formatting(tooltipData.val1 as number, "float")}
+              : formatting(
+                  tooltipData.val1 as number,
+                  tooltipData.hp1.valueType
+                )}
           </div>
-          <div className="text-gray-600">
+          <div>
             {tooltipData.hp2.displayName}:{" "}
-            {formatting(tooltipData.val2, "float")}
+            {formatting(tooltipData.val2, tooltipData.hp2.valueType)}
           </div>
         </TooltipInPortal>
       )}

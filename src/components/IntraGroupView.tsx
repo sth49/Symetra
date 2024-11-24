@@ -173,6 +173,7 @@ const IntraGroupView = () => {
                           width={"35%"}
                         >
                           <Icon
+                            mr={1}
                             as={
                               value.hp.hp1.type === HyperparamTypes.Binary
                                 ? HparamIcons["Binary"]
@@ -197,6 +198,7 @@ const IntraGroupView = () => {
                           justifyContent={"right"}
                         >
                           <Icon
+                            mr={1}
                             as={
                               value.hp.hp2.type === HyperparamTypes.Binary
                                 ? HparamIcons["Binary"]
@@ -218,7 +220,10 @@ const IntraGroupView = () => {
             (result.value.type === "pearson" ||
               result.value.type === "point-biserial") ? (
               <>
-                <ScatterPlot result={result} />
+                <ScatterPlot
+                  result={result}
+                  ids={currentSelectedGroup.trials.map((trial) => trial.id)}
+                />
               </>
             ) : result && result.value.type === "phi" ? (
               <>

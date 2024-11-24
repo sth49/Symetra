@@ -94,7 +94,6 @@ const InterGroupView = () => {
     const trialIds2 = (group2 && group2.trials.map((trial) => trial.id)) || [];
 
     return exp?.hyperparams.map((hp, index) => {
-      console.log("HP:", hp);
       return {
         id: index,
         name: hp.displayName,
@@ -215,7 +214,6 @@ const InterGroupView = () => {
             size={"sm"}
             onChange={(e) => {
               const newGroup = groups.getGroup(parseInt(e.target.value));
-              console.log("Selected group:", newGroup);
               setGroup2(newGroup);
             }}
           >

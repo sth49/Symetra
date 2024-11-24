@@ -29,7 +29,7 @@ const Overview = () => {
         <Box display={"flex"} justifyContent={"space-between"} w={"60%"}>
           <Box display={"flex"} alignItems={"center"}>
             <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-              Dataset
+              System
             </Text>
             <Text fontSize="sm" color={"gray.600"}>
               {exp?.name}
@@ -49,9 +49,7 @@ const Overview = () => {
               Branches
             </Text>
             <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
-              <Tooltip label={"Total"}>
-                {formatting(exp.metric.totalBranch, "int")}
-              </Tooltip>
+              {formatting(exp.metric.totalBranch, "int")}
             </Text>
           </Box>
 

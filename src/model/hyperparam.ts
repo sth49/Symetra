@@ -39,11 +39,18 @@ export class Metric {
     public name: string,
     public displayName: string,
     public totalBranch: number = 0,
+    public unionSize: number = 0,
     public baseValue: number = 0
   ) {}
 
   static fromJson(json: Metric, totalBranch: number) {
-    return new Metric(json.name, json.displayName, totalBranch, json.baseValue);
+    return new Metric(
+      json.name,
+      json.displayName,
+      json.totalBranch,
+      totalBranch,
+      json.baseValue
+    );
   }
 }
 
@@ -218,6 +225,10 @@ export class Hyperparam {
   }
 
   getNotification() {
+    throw new Error("Method not implemented.");
+  }
+
+  getIsDefault(value) {
     throw new Error("Method not implemented.");
   }
 }
@@ -428,8 +439,8 @@ export class ContinuousHyperparam extends Hyperparam {
       const [start, end] = key.split(" ~ ");
       if (
         typeof defaultVal === "number" &&
-        defaultVal >= Number(start) &&
-        defaultVal < Number(end)
+        defaultVal > Number(start.trim().replace(/,/g, "")) &&
+        defaultVal <= Number(end.trim().replace(/,/g, ""))
       ) {
         return key;
       }
@@ -441,6 +452,26 @@ export class ContinuousHyperparam extends Hyperparam {
     }
   }
 
+  getIsDefault(value) {
+    const [start, end] = value.split(" ~ ");
+    const defaultVal = this.defaultValue;
+    // console.log(defaultVal);
+    // console.log(value);
+    // console.log(
+    //   Number(start.trim().replace(/,/g, "")),
+    //   Number(end.trim().replace(/,/g, ""))
+    // );
+
+    if (
+      typeof defaultVal === "number" &&
+      Number(defaultVal) > Number(start.trim().replace(/,/g, "")) &&
+      Number(defaultVal) <= Number(end.trim().replace(/,/g, ""))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   // getEffectByValue() {
   //   let bins = 5; // 구간 수
   //   let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
@@ -564,13 +595,26 @@ export class CategoricalHyperparam extends Hyperparam {
       }
     });
 
-    const defaultVal = this.defaultValue;
+    const defaultVal =
+      this.defaultValue === true
+        ? "true"
+        : this.defaultValue === false
+        ? "false"
+        : this.defaultValue;
 
     if (maxKey !== defaultVal) {
       return true;
     } else {
       return false;
     }
+  }
+
+  getIsDefault(value) {
+    return this.defaultValue === true
+      ? value === "true"
+      : this.defaultValue === false
+      ? value === "false"
+      : this.defaultValue === value;
   }
 }
 export class BinaryHyperparam extends CategoricalHyperparam {

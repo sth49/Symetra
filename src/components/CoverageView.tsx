@@ -28,7 +28,6 @@ import {
   NominalHyperparam,
   OrdinalHyperparam,
 } from "../model/hyperparam";
-import { format } from "@visx/vendor/d3-format";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
 import { useConstDataStore } from "./store/constDataStore";

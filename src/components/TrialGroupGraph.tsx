@@ -364,13 +364,24 @@ const TrialGroupGraph = () => {
       )}
       {tooltipOpen && tooltipData && (
         <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
-          <Box>
-            <Text fontWeight={"bold"} align={"left"} mb={2}>
+          <div>
+            <div
+              style={{
+                fontWeight: "bold",
+                whiteSpace: "normal",
+                marginBottom: "5px",
+                wordBreak: "break-word",
+              }}
+            >
               {tooltipData.key} {tooltipData.value}
-            </Text>
+            </div>
             {tooltipData.type === "node" ? (
               <>
-                <Text align={"left"} mb={1} fontSize={"12px"}>
+                <div>{formatting(tooltipData.count, "int")} trials</div>
+                <div>Max: {formatting(tooltipData.stats.max, "int")}</div>
+                <div>Avg: {formatting(tooltipData.stats.avg, "float")}</div>
+                <div>Min: {formatting(tooltipData.stats.min, "int")}</div>
+                {/* <Text align={"left"} mb={1} fontSize={"12px"}>
                   {formatting(tooltipData.count, "int")} trials
                 </Text>
                 <Text align={"left"} mb={1} fontSize={"12px"}>
@@ -381,11 +392,16 @@ const TrialGroupGraph = () => {
                 </Text>
                 <Text align={"left"} mb={1} fontSize={"12px"}>
                   Min: {formatting(tooltipData.stats.min, "float")}
-                </Text>
+                </Text> */}
               </>
             ) : (
               <>
-                <Text
+                <div>
+                  # of statistically indifferent parameters:{" "}
+                  {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
+                  {hyperparams.length}
+                </div>
+                {/* <Text
                   align={"left"}
                   mb={1}
                   fontSize={"12px"}
@@ -396,10 +412,10 @@ const TrialGroupGraph = () => {
                   # of statistically indifferent parameters:{" "}
                   {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
                   {hyperparams.length}
-                </Text>
+                </Text> */}
               </>
             )}
-          </Box>
+          </div>
         </TooltipInPortal>
       )}
     </div>

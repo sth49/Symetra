@@ -70,21 +70,28 @@ const BarChartBase = ({
   const allData = exp?.trials.map((trial) => trial.params[dist]);
   const hparam = hyperparams.find((hparam) => hparam.name === dist);
 
-  const handleBarClick = (binX0: string | number) => {
+  const handleBarClick = (binX0: string | number[]) => {
     if (viewType !== "hparam") return;
     if (clickedHparamValue?.name === dist) {
-      if (clickedHparamValue?.value[0] === binX0) {
+      if (
+        (typeof binX0 === "string" && clickedHparamValue?.value[0] === binX0) ||
+        (typeof binX0 !== "string" &&
+          clickedHparamValue?.value[0] === binX0[0] &&
+          clickedHparamValue?.value[1] === binX0[1])
+      ) {
         setClickedHparamValue(null);
       } else {
         setClickedHparamValue({
           name: dist,
-          value: [binX0],
+          displayName: hparam?.displayName,
+          value: typeof binX0 === "string" ? [binX0] : binX0,
         });
       }
     } else {
       setClickedHparamValue({
         name: dist,
-        value: [binX0],
+        displayName: hparam?.displayName,
+        value: typeof binX0 === "string" ? [binX0] : binX0,
       });
     }
   };
@@ -132,7 +139,7 @@ const BarChartBase = ({
         const overlayCount =
           relevantTrials?.filter((trial) =>
             clickedHparamValue.value.length === 1
-              ? trial.params[clickedHparamValue.name] ===
+              ? trial.params[clickedHparamValue.name].toString() ===
                 clickedHparamValue.value[0]
               : clickedHparamValue.value[0] <=
                   trial.params[clickedHparamValue.name] &&
@@ -173,8 +180,8 @@ const BarChartBase = ({
                 onMouseMove={(event) => {
                   showTooltip({
                     tooltipData: {
-                      key: hparam.displayName,
-                      value: bin.x0.toString(),
+                      key: `${hparam.displayName} = ${bin.x0.toString()}`,
+                      value: "",
                       count: bin.count,
                     },
                     tooltipLeft: event.clientX,
@@ -184,7 +191,7 @@ const BarChartBase = ({
                 onMouseLeave={hideTooltip}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleBarClick(bin.x0);
+                  handleBarClick(bin.x0.toString());
                 }}
               />
             </g>
@@ -207,6 +214,24 @@ const BarChartBase = ({
                   e.stopPropagation();
                   handleBarClick(bin.x0);
                 }}
+                onMouseMove={(event) => {
+                  showTooltip({
+                    tooltipData: {
+                      key: `${hparam.displayName} = ${bin.x0.toString()} & ${
+                        clickedHparamValue.displayName
+                      } = ${
+                        typeof clickedHparamValue.value[0] === "string"
+                          ? clickedHparamValue.value[0]
+                          : `${clickedHparamValue.value[0]} ~ ${clickedHparamValue.value[1]}`
+                      }`,
+                      value: "",
+                      count: bin.count,
+                    },
+                    tooltipLeft: event.clientX,
+                    tooltipTop: event.clientY,
+                  });
+                }}
+                onMouseLeave={hideTooltip}
               />
             ))}
           <PatternLines
@@ -222,7 +247,7 @@ const BarChartBase = ({
           <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
             <Box>
               <Text fontWeight={"bold"} align={"left"} mb={2}>
-                {tooltipData.key} = {tooltipData.value}
+                {tooltipData.key} {tooltipData.value}
               </Text>
               <Text align={"left"} mb={"2px"}>
                 {formatting(tooltipData.count, "int")} trials
@@ -288,7 +313,7 @@ const BarChartBase = ({
         const overlayCount =
           relevantTrials?.filter((trial) =>
             clickedHparamValue.value.length === 1
-              ? trial.params[clickedHparamValue.name] ===
+              ? trial.params[clickedHparamValue.name].toString() ===
                 clickedHparamValue.value[0]
               : clickedHparamValue.value[0] <=
                   trial.params[clickedHparamValue.name] &&
@@ -336,14 +361,14 @@ const BarChartBase = ({
                 onMouseMove={(event) => {
                   showTooltip({
                     tooltipData: {
-                      key: hparam.displayName,
-                      value: `${formatting(
+                      key: `${hparam.displayName} = ${formatting(
                         Number(bin.x0),
                         isInteger ? "int" : "float"
                       )} ~ ${formatting(
                         Number(bin.x1),
                         isInteger ? "int" : "float"
                       )}`,
+                      value: "",
                       count: bin.count,
                     },
                     tooltipLeft: event.clientX,
@@ -353,7 +378,7 @@ const BarChartBase = ({
                 onMouseLeave={hideTooltip}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleBarClick(bin.x0);
+                  handleBarClick([Number(bin.x0), Number(bin.x1)]);
                 }}
               />
             </g>
@@ -372,12 +397,40 @@ const BarChartBase = ({
                   0,
                   height - margin.bottom - yScale(Number(bin.count))
                 )}
+                onMouseMove={(event) => {
+                  showTooltip({
+                    tooltipData: {
+                      key: `${hparam.displayName} = ${formatting(
+                        Number(bin.x0),
+                        isInteger ? "int" : "float"
+                      )} ~ ${formatting(
+                        Number(bin.x1),
+                        isInteger ? "int" : "float"
+                      )} & ${clickedHparamValue.displayName} = ${
+                        typeof clickedHparamValue.value[0] === "string"
+                          ? clickedHparamValue.value[0]
+                          : `${formatting(
+                              clickedHparamValue.value[0],
+                              isInteger ? "int" : "float"
+                            )} ~ ${formatting(
+                              clickedHparamValue.value[1],
+                              isInteger ? "int" : "float"
+                            )}`
+                      }`,
+                      value: "",
+                      count: bin.count,
+                    },
+                    tooltipLeft: event.clientX,
+                    tooltipTop: event.clientY,
+                  });
+                }}
+                onMouseLeave={hideTooltip}
                 fill={"url(#pattern)"}
                 opacity={1}
                 stroke="#030f1b"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleBarClick(bin.x0);
+                  handleBarClick([Number(bin.x0), Number(bin.x1)]);
                 }}
               />
             ))}
@@ -386,7 +439,7 @@ const BarChartBase = ({
           <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
             <Box>
               <Text fontWeight={"bold"} align={"left"} mb={2}>
-                {tooltipData.key} = {tooltipData.value}
+                {tooltipData.key} {tooltipData.value}
               </Text>
               <Text align={"left"} mb={"2px"}>
                 {formatting(tooltipData.count, "int")} trials
