@@ -21,12 +21,11 @@ import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import HparamExtended from "./HparamExtended";
+import React from "react";
 
 const HparamTable = () => {
-  const exp = useConstDataStore((state) => state.exp);
-  const hyperparams = useConstDataStore((state) => state.hyperparams);
-  const setHyperparams = useConstDataStore((state) => state.setHyperparams);
-  const setHparamSort = useConstDataStore((state) => state.setHparamSort);
+  const { exp, hyperparams, setHyperparams, setHparamSort } =
+    useConstDataStore();
 
   const data = useMemo(
     () =>
@@ -56,6 +55,8 @@ const HparamTable = () => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
     null
   );
+
+  const MemoizedBarChart = React.memo(BarChart);
   const toggleVisibilityForSelected = useCallback(
     (visible) => {
       const selectedRowIds = table
@@ -266,7 +267,7 @@ const HparamTable = () => {
             (hp) => hp.name === info.row.original.fullName
           )?.visible;
           return (
-            <BarChart
+            <MemoizedBarChart
               dist={info.getValue()}
               width={80}
               height={30}
@@ -299,7 +300,13 @@ const HparamTable = () => {
                   <Icon as={FaAngleUp} color={"gray.500"} />
                 )
               }
-              onClick={() => row.toggleExpanded()}
+              onClick={() => {
+                row.toggleExpanded();
+                if (isMultiSelect) {
+                  setSelectedRows(new Set());
+                  setIsMultiSelect(false);
+                }
+              }}
               aria-label={""}
             />
           );
@@ -311,7 +318,13 @@ const HparamTable = () => {
         enableSorting: false,
       },
     ];
-  }, [toggleRowSelection, setHyperparams, selectedRows, isMultiSelect]);
+  }, [
+    toggleRowSelection,
+    hyperparams,
+    setHyperparams,
+    selectedRows,
+    isMultiSelect,
+  ]);
   const [sorting, setSorting] = useState<SortingState>([
     {
       id: "effect",
@@ -320,7 +333,6 @@ const HparamTable = () => {
   ]);
 
   useEffect(() => {
-    console.log("change sorting", sorting);
     setHparamSort(sorting[0]);
   }, [sorting]);
   const [expanded, setExpanded] = useState<ExpandedState>({});

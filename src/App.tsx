@@ -1,10 +1,19 @@
-import { useEffect } from "react";
-import trialData from "./data/tuned_parameters_diff_800_final.json";
-// import trialData from "./data/ParaSuit.json";
+import { useEffect, useState } from "react";
 import configData from "./data/config.json";
-import { Experiment } from "./model/experiment";
+import targetConfigData from "./data/targetConfig.json";
+import { Experiment, Target } from "./model/experiment";
 import "./App.css";
-import { Box, ChakraProvider } from "@chakra-ui/react";
+import {
+  Box,
+  ChakraProvider,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  MenuOptionGroup,
+  Select,
+} from "@chakra-ui/react";
 import Overview from "./components/Overview";
 import CoverageView from "./components/CoverageView";
 import TrialGroupView from "./components/TrialGroupView";
@@ -14,29 +23,127 @@ import { useConstDataStore } from "./components/store/constDataStore";
 import TrialView from "./components/TrialView";
 import InterGroupView from "./components/InterGroupView";
 import IntraGroupView from "./components/IntraGroupView";
+import { SettingsIcon } from "@chakra-ui/icons";
+import { formatting } from "./model/utils";
 function App() {
-  const { exp, setExp, setHyperparams } = useConstDataStore();
+  const { exp, setExp, setHyperparams, target, setTarget } =
+    useConstDataStore();
 
+  const [currentTarget, setCurrentTarget] = useState<string>();
+  // useEffect(() => {
+  //   async function loadExperiment() {
+  //     if (exp !== null) {
+  //       return;
+  //     }
+  //     try {
+  //       const target = [];
+  //       targetConfigData["targets"].map((targetJson) => {
+  //         console.log(targetJson);
+  //         target.push(Target.fromJson(targetJson));
+  //       });
+  //       setTarget(target);
+  //       setCurrentTarget(target[0].name);
+  //       console.log(target);
+  //       const experiment = await Experiment.fromJson(configData, trialData);
+  //       setExp(experiment);
+  //       console.log("trials", experiment.trials);
+  //       const hyperparams = experiment.hyperparams;
+  //       setHyperparams(hyperparams);
+  //       console.log("Loaded experiment:", experiment);
+  //     } catch (error) {
+  //       console.error("Failed to load the experiment data:", error);
+  //     }
+  //   }
+  //   loadExperiment();
+  // }, []);
+
+  // useEffect(() => {
+  //   async function loadExperiment() {
+  //     try {
+  //       configData.name = currentTarget;
+  //       const trialJson = await import(
+  //         `./data/tuned_parameters_${currentTarget}_final.json`
+  //       );
+  //       const experiment = await Experiment.fromJson(configData, trialJson);
+  //       setExp(experiment);
+  //       console.log("trials", experiment.trials);
+  //       const hyperparams = experiment.hyperparams;
+  //       setHyperparams(hyperparams);
+  //       console.log("Loaded experiment:", experiment);
+  //     } catch (error) {
+  //       console.error("Failed to load the experiment data:", error);
+  //     }
+  //   }
+  //   loadExperiment();
+  // }, [currentTarget]);
+
+  // 초기 로딩을 위한 useEffect
   useEffect(() => {
-    async function loadExperiment() {
-      if (exp !== null) {
-        return;
-      }
+    async function initializeApp() {
       try {
-        const experiment = await Experiment.fromJson(configData, trialData);
+        // 타겟 데이터 로드
+        const targets = targetConfigData["targets"].map((targetJson) =>
+          Target.fromJson(targetJson)
+        );
+        setTarget(targets);
+
+        // 초기 타겟 설정
+        const initialTarget = targets[0].name;
+        setCurrentTarget(initialTarget);
+
+        // 초기 데이터 로드
+        const module = await import(
+          `./data/tuned_parameters_${initialTarget}_final.json`
+        );
+        const trialJson = module.default;
+
+        const updatedConfig = { ...configData, name: initialTarget };
+        const experiment = await Experiment.fromJson(updatedConfig, trialJson);
         setExp(experiment);
-        console.log("trials", experiment.trials);
+
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
-        console.log("Loaded experiment:", experiment);
+
+        console.log("Initial load complete for target:", initialTarget);
       } catch (error) {
-        console.error("Failed to load the experiment data:", error);
+        console.error("Failed to initialize app:", error);
       }
     }
 
-    loadExperiment();
-  }, []);
+    initializeApp();
+  }, []); // 빈 의존성 배열로 변경
 
+  // currentTarget 변경 시 실험 데이터를 로드하는 useEffect
+  useEffect(() => {
+    async function loadExperiment() {
+      if (!currentTarget) return;
+
+      try {
+        const module = await import(
+          `./data/tuned_parameters_${currentTarget}_final.json`
+        );
+        const trialJson = module.default;
+
+        const updatedConfig = { ...configData, name: currentTarget };
+        const experiment = await Experiment.fromJson(updatedConfig, trialJson);
+        setExp(experiment);
+
+        const hyperparams = experiment.hyperparams;
+        setHyperparams(hyperparams);
+
+        console.log("Loaded experiment for target:", currentTarget);
+      } catch (error) {
+        console.error(
+          `Failed to load experiment data for ${currentTarget}:`,
+          error
+        );
+      }
+    }
+
+    if (exp && currentTarget !== exp.name) {
+      loadExperiment();
+    }
+  }, [currentTarget, setExp, setHyperparams, exp]);
   return (
     <ChakraProvider theme={theme}>
       <Box bg="gray.100" h={"100vh"} w={"100vw"}>
@@ -51,11 +158,39 @@ function App() {
             mb={0.5} // px 대신 rem 사용
             alignItems={"center"}
             display={"flex"}
+            justifyContent={"space-between"}
           >
             {exp && (
-              <Box m={1} width={"100%"}>
+              <Box m={1} width={"98%"}>
                 <Overview />
               </Box>
+            )}
+            {/* asdf */}
+            {target && (
+              <Menu>
+                <MenuButton
+                  mr={1}
+                  size={"xs"}
+                  as={IconButton}
+                  aria-label="Options"
+                  value={currentTarget}
+                  icon={<SettingsIcon />}
+                  colorScheme={"blue"}
+                  variant="outline"
+                />
+                <MenuList>
+                  {target.map((t) => (
+                    <MenuItem
+                      key={t.name}
+                      value={t.name}
+                      onClick={() => setCurrentTarget(t.name)}
+                    >
+                      {t.name} (mse: {formatting(t.mse, "float", 2)}, r2:{" "}
+                      {formatting(t.r2, "float", 2)})
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
             )}
           </Box>
         </Box>

@@ -3,10 +3,40 @@ import { Trial, TrialJson } from "./trial";
 
 export interface ConfigJson {
   name: string;
+  targets: TargetJson[];
   hyperparameters: HyperparamJson[];
   metric: Metric;
 }
 
+interface TargetJson {
+  name: string;
+  r2: number;
+  mse: number;
+  base: number;
+  total: number;
+  max: number;
+}
+
+export class Target {
+  constructor(
+    public name: string,
+    public r2: number,
+    public mse: number,
+    public base: number,
+    public total: number,
+    public max: number
+  ) {}
+  static fromJson(targetJson: TargetJson) {
+    return new Target(
+      targetJson.name,
+      targetJson.r2,
+      targetJson.mse,
+      targetJson.base,
+      targetJson.total,
+      targetJson.max
+    );
+  }
+}
 export class Experiment {
   constructor(
     public name: string,

@@ -15,7 +15,7 @@ type TooltipData = {
   type: string;
   value: any;
   count: number;
-  stats: { avg: number; max: number; min: number };
+  stats: { avg: number; max: number; min: number; acc: number };
 };
 
 export type NetworkProps = {
@@ -102,25 +102,38 @@ const TrialGroupGraph = () => {
     if (boxHeight === 0) return { nodes: [], links: [] };
     console.log("GroupView rendering");
 
-    const nodes = groups.groups.map(
-      (group, i) => ({
+    const nodes = groups.groups.map((group, i) => {
+      const nodesPerRow = 4; // 한 줄에 4개씩
+      const rowIndex = Math.floor(i / nodesPerRow);
+      const colIndex = i % nodesPerRow;
+
+      return {
         id: group.id,
         name: group.name,
-        // x: (((i % 3) + 0.25) * boxRef.current?.clientWidth) / 5,
-        // y: (Math.floor(i / 3) * boxHeight) / 4 + boxHeight / 8,
-        x: (((i % 4) + 0.25) * boxRef.current?.clientWidth) / 7,
-        y: (Math.floor(i / 4) * boxHeight) / 4 + boxHeight / 6.5,
+        x: ((colIndex + 0.25) * boxRef.current?.clientWidth) / 7,
+        y: (rowIndex * boxHeight) / 4 + boxHeight / 6.5,
         length: group.getLength(),
         stats: group.getStats(),
-      }),
-      [
-        groups,
-        groups.getLength(),
-        hyperparams,
-        boxRef.current?.clientHeight,
-        boxRef.current?.clientWidth,
-      ]
-    );
+      };
+    });
+
+    // const nodes = groups.groups.map(
+    //   (group, i) => ({
+    //     id: group.id,
+    //     name: group.name,
+    //     x: (((i % 4) + 0.25) * boxRef.current?.clientWidth) / 7,
+    //     y: (Math.floor(i / 4) * boxHeight) / 4 + boxHeight / 6.5,
+    //     length: group.getLength(),
+    //     stats: group.getStats(),
+    //   }),
+    //   [
+    //     groups,
+    //     groups.getLength(),
+    //     hyperparams,
+    //     boxRef.current?.clientHeight,
+    //     boxRef.current?.clientWidth,
+    //   ]
+    // );
 
     const links = [];
     for (let i = 0; i < nodes.length; i++) {
@@ -330,13 +343,22 @@ const TrialGroupGraph = () => {
               {({ width, height }) => (
                 <svg
                   width={width}
-                  height={
-                    groups.getLength() > 6
-                      ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
-                        boxHeight / 8 +
-                        150
-                      : height
-                  }
+                  height={(() => {
+                    const nodesPerRow = 4;
+                    const totalRows = Math.ceil(
+                      groups.getLength() / nodesPerRow
+                    );
+                    return totalRows > 2
+                      ? (totalRows * boxHeight) / 4 + boxHeight / 8 + 150
+                      : height;
+                  })()}
+                  // height={
+                  //   groups.getLength() > 6
+                  //     ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
+                  //       boxHeight / 8 +
+                  //       150
+                  //     : height
+                  // }
                   onMouseEnter={() => {
                     handleNodeHover(null);
                     hideTooltip();
@@ -378,6 +400,7 @@ const TrialGroupGraph = () => {
             {tooltipData.type === "node" ? (
               <>
                 <div>{formatting(tooltipData.count, "int")} trials</div>
+                <div>Acc: {formatting(tooltipData.stats.acc, "int")}</div>
                 <div>Max: {formatting(tooltipData.stats.max, "int")}</div>
                 <div>Avg: {formatting(tooltipData.stats.avg, "float")}</div>
                 <div>Min: {formatting(tooltipData.stats.min, "int")}</div>

@@ -1,4 +1,4 @@
-import { Box, Button, Heading, Icon, Text } from "@chakra-ui/react";
+import { Box, Button, Heading, Icon, Text, Tooltip } from "@chakra-ui/react";
 
 import { useConstDataStore } from "./store/constDataStore";
 import HparamTable from "./HparamTable";
@@ -6,8 +6,9 @@ import HparamTable from "./HparamTable";
 import { FaEyeSlash, FaEye } from "react-icons/fa6";
 import MetricBadge from "./MetricBadge";
 import { useEffect, useState } from "react";
+import { formatting } from "../model/utils";
 const HparamView = () => {
-  const { exp, hyperparams, setHyperparams } = useConstDataStore();
+  const { exp, hyperparams, setHyperparams, target } = useConstDataStore();
   const [buttonType, setButtonType] = useState("Show");
   const calculateRatio = () => {
     const invisible = hyperparams.filter(
@@ -63,17 +64,43 @@ const HparamView = () => {
         </Heading>
       </Box>
       <Box display={"flex"} justifyContent={"center"}>
-        <Text
-          fontSize={"xs"}
-          align="center"
-          color="gray.600"
-          mr={2}
-          fontWeight={"bold"}
+        <Tooltip
+          label={
+            <>
+              <Box>
+                MSE:{" "}
+                {formatting(
+                  target.filter((t) => t.name === exp.name)[0].mse,
+                  "float",
+                  2
+                )}
+              </Box>
+              <Box>
+                R2:{" "}
+                {formatting(
+                  target.filter((t) => t.name === exp.name)[0].r2,
+                  "float",
+                  2
+                )}
+              </Box>
+            </>
+          }
         >
-          Base Branch Coverage
-        </Text>
+          <Text
+            fontSize={"xs"}
+            align="center"
+            color="gray.600"
+            mr={2}
+            fontWeight={"bold"}
+          >
+            Base Branch Coverage
+          </Text>
+        </Tooltip>
 
-        <MetricBadge metricValue={exp.metric.baseValue} type="float" />
+        <MetricBadge
+          metricValue={target.filter((t) => t.name === exp.name)[0].base}
+          type="float"
+        />
       </Box>
       <HparamTable />
       <Box

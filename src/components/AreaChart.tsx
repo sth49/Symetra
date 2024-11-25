@@ -5,16 +5,20 @@ import { AreaClosed } from "@visx/shape";
 import { curveMonotoneX } from "@visx/curve";
 import { Group as TrialGroup } from "../model/group";
 import { useCustomStore } from "../store";
+import { useConstDataStore } from "./store/constDataStore";
 interface AreaChartProps {
   trialGroup: TrialGroup;
 }
 
 const AreaChartBase = ({ trialGroup, width, height }) => {
   const { currentSelectedGroup } = useCustomStore();
+  const { target, exp } = useConstDataStore();
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
   const selectedData = useMemo(() => {
-    const branches = currentSelectedGroup.getBranches();
+    const branches = currentSelectedGroup.getBranches(
+      target.filter((t) => t.name === exp.name)[0].max
+    );
     return branches.map((b, i) => {
       return {
         x: i,
@@ -24,7 +28,9 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
     });
   }, [currentSelectedGroup]);
   const data = useMemo(() => {
-    const branches = trialGroup.getBranches();
+    const branches = trialGroup.getBranches(
+      target.filter((t) => t.name === exp.name)[0].max
+    );
 
     return selectedData.map((d) => {
       return {

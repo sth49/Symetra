@@ -4,18 +4,18 @@ import TrialGroupGraph from "./TrialGroupGraph";
 import { useConstDataStore } from "./store/constDataStore";
 import { useCustomStore } from "../store";
 import GroupDetailView from "./GroupDetailView";
+import { Groups } from "../model/group";
 
 const TrialGroupView = () => {
   // const [visible, setVisible] = useState(true);
   const { exp } = useConstDataStore();
-  const groups = useCustomStore((state) => state.groups);
   const setGroups = useCustomStore((state) => state.setGroups);
   const setCurrnetSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
   useEffect(() => {
     console.log("TrialGroupView initialized");
-    const updatedGroups = groups.clone();
+    const updatedGroups = new Groups();
 
     updatedGroups.addGroup(exp?.trials, "All");
 
@@ -34,7 +34,7 @@ const TrialGroupView = () => {
     setGroups(updatedGroups);
 
     setCurrnetSelectedGroup(updatedGroups.groups[0]);
-  }, []);
+  }, [exp]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>

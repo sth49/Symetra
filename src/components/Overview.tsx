@@ -7,7 +7,7 @@ import MetricLegend from "./MetricLegend";
 import BranchIcon from "./BranchIcon";
 // import { FaCodeBranch } from "react-icons/fa6";
 const Overview = () => {
-  const { exp } = useConstDataStore();
+  const { exp, target } = useConstDataStore();
   return (
     <Box
       w={"100%"}
@@ -18,7 +18,6 @@ const Overview = () => {
       userSelect={"none"}
     >
       <Box display={"flex"} alignItems={"center"}>
-        {/* <Icon as={<BranchIcon />} color="gray.600" mr={1} /> */}
         <BranchIcon />
         <Heading as="h4" fontSize={"larger"} display={"flex"} ml={1}>
           Symetra
@@ -49,7 +48,11 @@ const Overview = () => {
               Branches
             </Text>
             <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
-              {formatting(exp.metric.totalBranch, "int")}
+              {/* {formatting(exp.metric.totalBranch, "int")} */}
+              {formatting(
+                target.filter((t) => t.name === exp.name)[0].total,
+                "int"
+              )}
             </Text>
           </Box>
 

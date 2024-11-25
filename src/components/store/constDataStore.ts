@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Experiment } from "../../model/experiment";
+import { Experiment, Target } from "../../model/experiment";
 import { Hyperparam } from "../../model/hyperparam";
 interface ConstDataStore {
   exp: Experiment | null;
@@ -13,6 +13,9 @@ interface ConstDataStore {
     desc: boolean;
   } | null;
   setHparamSort: (sort: { id: string; desc: boolean }) => void;
+
+  target: Target[];
+  setTarget: (target: Target[]) => void;
 }
 
 export const useConstDataStore = create<ConstDataStore>((set) => ({
@@ -24,4 +27,7 @@ export const useConstDataStore = create<ConstDataStore>((set) => ({
 
   hparamSort: null,
   setHparamSort: (sort) => set({ hparamSort: sort }),
+
+  target: [],
+  setTarget: (target) => set({ target }),
 }));

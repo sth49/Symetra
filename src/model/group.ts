@@ -71,6 +71,7 @@ export class Group {
       avg: avg,
       max: max,
       min: min,
+      acc: this.getUnion().size,
     };
   }
 
@@ -82,10 +83,10 @@ export class Group {
     return unionSet;
   }
 
-  getBranches() {
+  getBranches(maxBranch: number = 3365) {
     //format {3: 45, } means branch 3 has 45 trials
     const branchCount = {};
-    for (let i = 1; i < 3365 + 1; i++) {
+    for (let i = 1; i < maxBranch + 1; i++) {
       branchCount[i] = 0;
     }
     this.trials.forEach((trial) => {

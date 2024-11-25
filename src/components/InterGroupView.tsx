@@ -44,7 +44,7 @@ const InterGroupView = () => {
     const group2Stats = group2.getStats();
 
     return {
-      Max: {
+      Maximum: {
         group1: group1Stats.max,
         group2: group2Stats.max,
         type: "int",
@@ -54,9 +54,14 @@ const InterGroupView = () => {
         group2: group2Stats.avg,
         type: "float",
       },
-      Min: {
+      Minimum: {
         group1: group1Stats.min,
         group2: group2Stats.min,
+        type: "int",
+      },
+      Accumulated: {
+        group1: group1Stats.acc,
+        group2: group2Stats.acc,
         type: "int",
       },
     };
@@ -275,7 +280,7 @@ const InterGroupView = () => {
                   className="inter-group-view-item"
                 >
                   <Box width={"30%"} pl={2}>
-                    <Text fontSize={"sm"}>{key} Coverage</Text>
+                    <Text fontSize={"sm"}>{key} CVRG</Text>
                   </Box>
                   <Box
                     width={"35%"}

@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { schemeCategory10 } from "d3";
+import { schemeSet3 } from "d3";
 
 import { MdCategory } from "react-icons/md";
 import { RxComponentBoolean } from "react-icons/rx";
@@ -95,9 +95,9 @@ export class Hyperparam {
     // hparam.shapValues = shapValue;
     // console.log(hparam.getMeanAbsoluteEffect());
     if (hparam.getMeanAbsoluteEffect() < 0.3) {
-      // console.log(hparam.name);
       hparam.visible = false;
     }
+    // console.log("visibility", hparam.name, hparam.visible);
     return hparam;
   }
   getColor(index: number): string | undefined {
@@ -253,7 +253,7 @@ export class ContinuousHyperparam extends Hyperparam {
     );
 
     this.scale = d3
-      .scaleSequential(d3.interpolateGreys)
+      .scaleSequential(d3.interpolateBlues)
       .domain(this.value as [number, number]);
   }
 
@@ -647,7 +647,7 @@ export class NominalHyperparam extends CategoricalHyperparam {
   constructor(json: HyperparamJson) {
     super(json);
     this.scale = d3
-      .scaleOrdinal<string, string>(schemeCategory10) // Add the missing type arguments
+      .scaleOrdinal<string, string>(schemeSet3) // Add the missing type arguments
       .domain(this.values);
   }
   getColorByValue(value: any): string {
@@ -670,7 +670,7 @@ export class OrdinalHyperparam extends CategoricalHyperparam {
     //   .range(d3.interpolateGreys);
     const value = json.value as number[];
     this.scale = d3
-      .scaleSequential(d3.interpolateGreys)
+      .scaleSequential(d3.interpolateReds)
       .domain([Math.min(...value) - 1, Math.max(...value) + 1]);
   }
   getColorByValue(value: any): string {

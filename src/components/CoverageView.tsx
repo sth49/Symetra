@@ -96,7 +96,7 @@ const CoverageView: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
 
-  const margin = { top: 30, right: 40, bottom: 160, left: 40 };
+  const margin = { top: 120, right: 40, bottom: 160, left: 40 };
 
   const legendWidth = 130;
   const legendHeight = 100;
@@ -128,14 +128,25 @@ const CoverageView: React.FC = () => {
   const { metricScale, colorScale } = useMetricScale();
 
   const thresholdRanges = useMemo(() => {
-    const scale = metricScale.copy().range(metricScale.domain());
-    const ticks = scale.ticks(numThresholds);
-    return ticks
-      .map((tick, i) => [
-        tick,
-        i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
-      ])
-      .reverse();
+    // // const scale = metricScale.copy().range(metricScale.domain());
+    // // const ticks = scale.ticks(numThresholds);
+    // // return ticks
+    // //   .map((tick, i) => [
+    // //     tick,
+    // //     i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
+    // //   ])
+    // //   .reverse();
+    // // const rangeStart = metricScale.domain()[0];
+
+    return Array.from({ length: numThresholds }, (_, i) => {
+      const minValue = metricScale.domain()[0];
+      const maxValue = metricScale.domain()[1];
+
+      return [
+        minValue + (i * (maxValue - minValue)) / numThresholds,
+        minValue + ((i + 1) * (maxValue - minValue)) / numThresholds,
+      ];
+    });
   }, [metricScale]);
 
   const densityData = useMemo(() => {
@@ -601,7 +612,7 @@ const CoverageView: React.FC = () => {
                 }
                 onMouseOver={() => setHoveredTrial(d.id)}
                 onMouseLeave={() => setHoveredTrial(null)}
-                opacity={0.7}
+                // opacity={0.7}
               />
             ))}
             {isLassoActive && tempLassoPoints.length > 0 && (
@@ -615,33 +626,37 @@ const CoverageView: React.FC = () => {
                 pointerEvents="none"
               />
             )}
-            {visible ||
-              (selected === "metric" && (
-                <g
-                  transform={`translate(${containerSize.width - legendWidth}, ${
-                    legendMargin.top
-                  })`}
-                >
-                  {thresholdRanges.map((range, i) => (
+            {selected === "metric" && (
+              <g transform={`translate(${10}, ${legendMargin.top})`}>
+                {thresholdRanges.map((range, i) => {
+                  const row = Math.floor(i / 5); // 몇 번째 줄인지
+                  const col = i % 5; // 줄 안에서 몇 번째인지
+                  const itemWidth = 110; // 각 아이템의 너비 (조정 가능)
+                  const itemHeight = 30; // 각 아이템의 높이 (조정 가능)
+
+                  return (
                     <React.Fragment key={`legend-${i}`}>
                       <rect
-                        x={0}
-                        y={
-                          i * (legendHeight / numThresholds) + legendMargin.top
-                        }
+                        // x={0}
+                        // y={
+                        //   i * (legendHeight / numThresholds) + legendMargin.top
+                        // }
+                        x={col * itemWidth} // x 좌표 계산
+                        y={row * itemHeight + legendMargin.top} // y 좌표 계산
                         width={20}
-                        height={legendHeight / numThresholds}
+                        height={15}
                         fill={colorScale(
                           metricScale((range[0] + range[1]) / 2)
                         )}
-                        opacity={0.7}
                       />
                       <text
-                        x={25}
-                        y={
-                          (i + 0.6) * (legendHeight / numThresholds) +
-                          legendMargin.top
-                        }
+                        // x={25}
+                        // y={
+                        //   (i + 0.6) * (legendHeight / numThresholds) +
+                        //   legendMargin.top
+                        // }
+                        x={col * itemWidth + 25} // x 좌표 계산 + 텍스트 오프셋
+                        y={row * itemHeight + legendMargin.top + 9} // y 좌표 계산
                         style={{
                           userSelect: "none",
                         }}
@@ -656,34 +671,36 @@ const CoverageView: React.FC = () => {
                         )}`}
                       </text>
                     </React.Fragment>
-                  ))}
-                  <text
-                    x={0}
-                    y={5}
-                    fontSize="14"
-                    textAnchor="start"
-                    fontWeight="bold"
-                    fill="#4A5568"
-                    style={{
-                      userSelect: "none",
-                    }}
-                  >
-                    Coverage
-                  </text>
-                </g>
-              ))}
+                  );
+                })}
+                <text
+                  x={0}
+                  y={5}
+                  fontSize="14"
+                  textAnchor="start"
+                  fontWeight="bold"
+                  fill="#4A5568"
+                  style={{
+                    userSelect: "none",
+                  }}
+                >
+                  Coverage
+                </text>
+              </g>
+            )}
 
             {selected !== "metric" && selected !== "" && (
-              <g
-                transform={`translate(${containerSize.width - legendWidth}, ${
-                  legendMargin.top
-                })`}
-              >
+              <g transform={`translate(${10}, ${legendMargin.top})`}>
                 {hyperparams
                   .find((hp) => hp.name === selected)
                   ?.scale.domain()
                   .map((val, i) => {
                     if (val === true || val === false) return null;
+
+                    const row = Math.floor(i / 5); // 몇 번째 줄인지
+                    const col = i % 5; // 줄 안에서 몇 번째인지
+                    const itemWidth = 100; // 각 아이템의 너비 (조정 가능)
+                    const itemHeight = 30; // 각 아이템의 높이 (조정 가능)
                     return (
                       <React.Fragment key={`legend-${i}`}>
                         {hyperparams.find(
@@ -694,8 +711,10 @@ const CoverageView: React.FC = () => {
                         ) instanceof BinaryHyperparam ? (
                           <>
                             <rect
-                              x={0}
-                              y={i * 15 + legendMargin.top}
+                              // x={0}
+                              // y={i * 15 + legendMargin.top}
+                              x={col * itemWidth} // x 좌표 계산
+                              y={row * itemHeight + legendMargin.top} // y 좌표 계산
                               width={20}
                               height={15}
                               fill={hyperparams
@@ -703,8 +722,10 @@ const CoverageView: React.FC = () => {
                                 ?.getColorByValue(val)}
                             />
                             <text
-                              x={25}
-                              y={(i + 0.5) * 15 + legendMargin.top}
+                              // x={25}
+                              // y={(i + 0.5) * 15 + legendMargin.top}
+                              x={col * itemWidth + 25} // x 좌표 계산 + 텍스트 오프셋
+                              y={row * itemHeight + legendMargin.top + 7.5} // y 좌표 계산
                               style={{
                                 userSelect: "none",
                               }}
@@ -746,6 +767,12 @@ const CoverageView: React.FC = () => {
                                       <stop
                                         offset="0%"
                                         stopColor={hp.scale(domain[0])}
+                                      />
+                                      <stop
+                                        offset={"50%"}
+                                        stopColor={hp.scale(
+                                          (domain[0] + domain[1]) / 2
+                                        )}
                                       />
                                       <stop
                                         offset="100%"
@@ -808,7 +835,7 @@ const CoverageView: React.FC = () => {
                   })}
                 <text
                   x={0}
-                  y={0}
+                  y={5}
                   fontSize="14"
                   textAnchor="start"
                   fontWeight="bold"

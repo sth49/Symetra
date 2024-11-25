@@ -16,6 +16,7 @@ const MetricBadge = ({ metricValue, type = "int" }: MetricBadgeProps) => {
       display={"flex"}
       alignItems={"center"}
       fontWeight={"normal"}
+      userSelect={"none"}
       //   p={0.5}
     >
       {formatting(metricValue, type)}
