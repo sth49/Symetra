@@ -1,4 +1,4 @@
-import { Box, Icon, Text } from "@chakra-ui/react";
+import { Box, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { formatting, generateBinnedData } from "../model/utils";
 import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
@@ -7,6 +7,8 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { HyperparamTypes } from "../model/hyperparam";
 import BranchBarChart from "./BranchBarChart";
 import React from "react";
+
+import { FaCircle } from "react-icons/fa";
 interface HparamExtendedProps {
   item;
 }
@@ -34,6 +36,12 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
       };
     });
   }, [item.effctsByValue]);
+
+  const [defaultEffect, setDefaultEffect] = useState(0);
+
+  useEffect(() => {
+    setDefaultEffect(data.find((row) => row.isDefault).effect ?? 0);
+  }, [data]);
 
   const requestSort = useCallback((key) => {
     setSortConfig((prevConfig) => ({
@@ -218,6 +226,24 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                         ))
                       : row[column.key]}
                   </Text>
+                  <Tooltip
+                    label={"This is better than the default value on average"}
+                  >
+                    {defaultEffect < row.effect ? (
+                      <Text userSelect={"none"}>
+                        <Icon
+                          as={FaCircle}
+                          size={"xs"}
+                          width={"8px"}
+                          pl={0.5}
+                          color={"red.500"}
+                          alignSelf={"flex-start"}
+                        ></Icon>
+                      </Text>
+                    ) : (
+                      <></>
+                    )}
+                  </Tooltip>
                 </Box>
               ) : column.key === "count" ? (
                 formatting(row[column.key], "int")

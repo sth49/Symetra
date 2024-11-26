@@ -157,6 +157,7 @@ const GroupDetailView = () => {
               size={"xs"}
               alignSelf={"center"}
               colorScheme={"blue"}
+              variant={"outline"}
               onClick={() => {
                 setSelectFlag(true);
               }}
@@ -169,6 +170,7 @@ const GroupDetailView = () => {
               alignSelf={"center"}
               colorScheme={"blue"}
               onClick={onOpen}
+              variant={"outline"}
             >
               <Icon mr={2} as={MdDelete} />
               Delete this group

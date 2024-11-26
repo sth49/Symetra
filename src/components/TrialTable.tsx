@@ -435,12 +435,49 @@ const TrialTable = () => {
     }
   }, [selectFlag]);
 
+  // useEffect(() => {
+  //   if (selectOneTrial !== null) {
+  //     const newSelection = { ...rowSelection };
+  //     let isLastSelected = false;
+  //     rows.forEach((row) => {
+  //       if (Number(row.original.id) === selectOneTrial) {
+  //         if (newSelection[row.id]) {
+  //           if (Object.keys(newSelection).length === 1) {
+  //             isLastSelected = true;
+  //             return;
+  //           }
+  //           delete newSelection[row.id];
+  //         } else {
+  //           newSelection[row.id] = true;
+  //         }
+  //       }
+  //     });
+  //     if (isLastSelected) {
+  //       setRowSelection({});
+  //       setSelectedTrials([]);
+  //       setSelectedRowPositions([]);
+  //     } else {
+  //       setRowSelection(newSelection);
+  //     }
+  //     setSelectOneTrial(null);
+  //   }
+  // }, [
+  //   selectOneTrial,
+  //   rowSelection,
+  //   rows,
+  //   setSelectedTrials,
+  //   setSelectedRowPositions,
+  // ]);
+
   useEffect(() => {
     if (selectOneTrial !== null) {
       const newSelection = { ...rowSelection };
       let isLastSelected = false;
-      rows.forEach((row) => {
+      let targetRowIndex = -1;
+
+      rows.forEach((row, index) => {
         if (Number(row.original.id) === selectOneTrial) {
+          targetRowIndex = index;
           if (newSelection[row.id]) {
             if (Object.keys(newSelection).length === 1) {
               isLastSelected = true;
@@ -452,12 +489,32 @@ const TrialTable = () => {
           }
         }
       });
+
       if (isLastSelected) {
         setRowSelection({});
         setSelectedTrials([]);
         setSelectedRowPositions([]);
       } else {
         setRowSelection(newSelection);
+
+        // Scroll to the target row if found
+        if (targetRowIndex !== -1 && parentRef.current) {
+          const rowHeight = 20; // Height of each row
+          const headerHeight = 35; // Approximate header height
+          const containerHeight = parentRef.current.clientHeight;
+          const targetPosition = targetRowIndex * rowHeight;
+
+          // Calculate scroll position to center the row in the viewport
+          const scrollPosition = Math.max(
+            0,
+            targetPosition - containerHeight / 2 + rowHeight + headerHeight
+          );
+
+          parentRef.current.scrollTo({
+            top: scrollPosition,
+            behavior: "smooth",
+          });
+        }
       }
       setSelectOneTrial(null);
     }
@@ -681,7 +738,7 @@ const TrialTable = () => {
             size="xs"
             colorScheme="blue"
             variant="solid"
-            isDisabled={selectedTrials.length === 0}
+            isDisabled={selectedTrials.length < 3}
             onClick={() => {
               const updatedGroups = groups.clone();
               updatedGroups.addGroup(

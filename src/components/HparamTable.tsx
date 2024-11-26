@@ -208,7 +208,13 @@ const HparamTable = () => {
                 >
                   <Icon as={hparamIcon} mr={1} color={"gray.600"} />
                   {info.getValue()}
-                  {row.original.notification && (
+                </Text>
+              </Tooltip>
+              <Tooltip
+                label={"The average effect is better than the default value"}
+              >
+                {row.original.notification ? (
+                  <Text userSelect={"none"}>
                     <Icon
                       as={FaCircle}
                       size={"xs"}
@@ -217,8 +223,10 @@ const HparamTable = () => {
                       color={"red.500"}
                       alignSelf={"flex-start"}
                     ></Icon>
-                  )}
-                </Text>
+                  </Text>
+                ) : (
+                  <></>
+                )}
               </Tooltip>
             </Box>
           );

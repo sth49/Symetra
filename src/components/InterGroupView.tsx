@@ -103,6 +103,8 @@ const InterGroupView = () => {
         id: index,
         name: hp.displayName,
         fullName: hp.name,
+        desc: hp.description,
+        default: hp.defaultString,
         displayName: hp.displayName,
         group1: hp.getEffect(trialIds1),
         trialIds1: trialIds1,
@@ -324,6 +326,47 @@ const InterGroupView = () => {
                   display: "flex",
                   alignItems: "center",
                   padding: "5px 0",
+                  height: "35px",
+                }}
+                className="inter-group-view-item"
+              >
+                <Box width={"30%"} pl={2}>
+                  <Text fontSize={"sm"}>Union CVRG</Text>
+                </Box>
+                <Box
+                  width={"70%"}
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <MetricBadge
+                    metricValue={
+                      new Set([
+                        ...currentSelectedGroup.getUnion(),
+                        ...group2.getUnion(),
+                      ]).size
+                    }
+                    type={"int"}
+                  />
+                </Box>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "5px 0",
+                  }}
+                  className="inter-group-view-item"
+                ></div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "5px 0",
                 }}
                 className="inter-group-view-item"
               >
@@ -400,7 +443,19 @@ const InterGroupView = () => {
                           alignItems={"center"}
                           pl={2}
                         >
-                          <Tooltip label={d.fullName}>
+                          <Tooltip
+                            label={
+                              <div>
+                                <Text
+                                  fontSize="xs"
+                                  borderBottom={"1px solid white"}
+                                >
+                                  {d.fullName} (default: {d.default})
+                                </Text>
+                                <Text fontSize="xs">{d.desc}</Text>
+                              </div>
+                            }
+                          >
                             <Text
                               display={"flex"}
                               justifyContent={"left"}
