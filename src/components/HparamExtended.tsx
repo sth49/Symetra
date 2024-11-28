@@ -40,7 +40,11 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   const [defaultEffect, setDefaultEffect] = useState(0);
 
   useEffect(() => {
-    setDefaultEffect(data.find((row) => row.isDefault).effect ?? 0);
+    setDefaultEffect(
+      data.find((row) => row.isDefault)
+        ? data.find((row) => row.isDefault).effect
+        : 0
+    );
   }, [data]);
 
   const requestSort = useCallback((key) => {
@@ -229,7 +233,8 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                   <Tooltip
                     label={"This is better than the default value on average"}
                   >
-                    {defaultEffect < row.effect ? (
+                    {data.find((row) => row.isDefault) &&
+                    defaultEffect < row.effect ? (
                       <Text userSelect={"none"}>
                         <Icon
                           as={FaCircle}
