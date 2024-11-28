@@ -53,7 +53,7 @@ const BranchBarChart = ({
       ? trialIds.map(
           (id) => exp?.trials.find((trial) => trial.id === id)?.metric
         )
-      : exp?.trials.map((trial) => trial.metric);
+      : [];
 
   const binCount = 10;
   const isInteger = data.every(Number.isInteger);

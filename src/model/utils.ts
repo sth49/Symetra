@@ -11,6 +11,9 @@ export const generateBinnedData = (
   height: number,
   axis: string
 ) => {
+  if (points.length === 0) {
+    return { binData: [], xScale: null };
+  }
   points.sort((a, b) => a - b);
   const sampleSize = points.length;
   const firstQuartile = points[Math.floor(sampleSize / 4)];

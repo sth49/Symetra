@@ -19,9 +19,11 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
     direction: "descending", // ascending or descending
   });
   const [sortedData, setSortedData] = useState([]);
+  console.log(item);
 
   const data = useMemo(() => {
     return Object.keys(item.effctsByValue).map((key) => {
+      console.log(item.effctsByValue[key]);
       return {
         value: item.type === HyperparamTypes.Ordinal ? Number(key) : key,
         count: item.effctsByValue[key].length,
