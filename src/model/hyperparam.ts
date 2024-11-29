@@ -329,7 +329,7 @@ export class ContinuousHyperparam extends Hyperparam {
           (value >= bin.x0 && value < bin.x1) ||
           (i === this.binCount - 1 && value === xMax)
         ) {
-          binIds.push(j + 1);
+          binIds.push(j);
         }
       });
       idsByValue[
@@ -557,7 +557,7 @@ export class CategoricalHyperparam extends Hyperparam {
       if (idsByValue[value] === undefined) {
         idsByValue[value] = [];
       }
-      idsByValue[value].push(i + 1);
+      idsByValue[value].push(i);
     });
     return idsByValue;
   }
