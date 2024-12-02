@@ -1,10 +1,58 @@
 import { Hyperparam, HyperparamTypes } from "./hyperparam";
 import { Trial } from "./trial";
 
+function removeOutlierPairs(
+  values1: number[],
+  values2: number[]
+): [number[], number[]] {
+  // Sort values while keeping track of original indices
+  const indexedValues1 = values1.map((value, index) => ({ value, index }));
+  const indexedValues2 = values2.map((value, index) => ({ value, index }));
+
+  // Calculate Q1, Q3, IQR for values1
+  const sorted1 = [...indexedValues1].sort((a, b) => a.value - b.value);
+  const q1_1 = sorted1[Math.floor(sorted1.length * 0.25)].value;
+  const q3_1 = sorted1[Math.floor(sorted1.length * 0.75)].value;
+  const iqr1 = q3_1 - q1_1;
+  const lowerBound1 = q1_1 - 1.5 * iqr1;
+  const upperBound1 = q3_1 + 1.5 * iqr1;
+
+  // Calculate Q1, Q3, IQR for values2
+  const sorted2 = [...indexedValues2].sort((a, b) => a.value - b.value);
+  const q1_2 = sorted2[Math.floor(sorted2.length * 0.25)].value;
+  const q3_2 = sorted2[Math.floor(sorted2.length * 0.75)].value;
+  const iqr2 = q3_2 - q1_2;
+  const lowerBound2 = q1_2 - 1.5 * iqr2;
+  const upperBound2 = q3_2 + 1.5 * iqr2;
+
+  // Create arrays for valid pairs
+  const validValues1: number[] = [];
+  const validValues2: number[] = [];
+
+  // Only keep pairs where both values are within bounds
+  for (let i = 0; i < values1.length; i++) {
+    const val1 = values1[i];
+    const val2 = values2[i];
+
+    if (
+      val1 >= lowerBound1 &&
+      val1 <= upperBound1 &&
+      val2 >= lowerBound2 &&
+      val2 <= upperBound2
+    ) {
+      validValues1.push(val1);
+      validValues2.push(val2);
+    }
+  }
+
+  return [validValues1, validValues2];
+}
+
 export function calculateCorrelation(
   groupTrials: Trial[],
   param1: Hyperparam,
-  param2: Hyperparam
+  param2: Hyperparam,
+  removeOutliers: boolean = false
 ) {
   const values1 = groupTrials.map((trial) => trial.params[param1.name]);
   const values2 = groupTrials.map((trial) => trial.params[param2.name]);
@@ -13,11 +61,21 @@ export function calculateCorrelation(
     param1.type === HyperparamTypes.Continuous &&
     param2.type === HyperparamTypes.Continuous
   ) {
+    let cleanValues1 = values1 as number[];
+    let cleanValues2 = values2 as number[];
+
+    if (removeOutliers) {
+      [cleanValues1, cleanValues2] = removeOutlierPairs(
+        cleanValues1,
+        cleanValues2
+      );
+    }
+
     return calculatePearsonCorrelation(
       param1,
       param2,
-      values1 as number[],
-      values2 as number[]
+      cleanValues1,
+      cleanValues2
     );
   } else if (
     param1.type === HyperparamTypes.Binary &&
@@ -30,7 +88,6 @@ export function calculateCorrelation(
     (param1.type === HyperparamTypes.Binary &&
       param2.type === HyperparamTypes.Continuous)
   ) {
-    // Point-biserial correlation을 위해 continuous와 binary 변수의 순서 확인
     const [contParam, binParam] =
       param1.type === HyperparamTypes.Continuous
         ? [param1, param2]
@@ -40,14 +97,74 @@ export function calculateCorrelation(
         ? [values1 as number[], values2]
         : [values2 as number[], values1];
 
+    let cleanContValues = contValues;
+    let cleanBinValues = binValues;
+
+    if (removeOutliers) {
+      // Handle outlier removal for continuous values while maintaining corresponding binary values
+      let validPairs = removeOutlierPairs(
+        contValues,
+        binValues.map(Number) // Convert binary values to numbers temporarily
+      );
+      cleanContValues = validPairs[0];
+      cleanBinValues = validPairs[1].map((num) => Boolean(num)); // Convert back to boolean
+    }
+
     return calculatePointBiserialCorrelation(
       contParam,
       binParam,
-      contValues,
-      binValues
+      cleanContValues,
+      cleanBinValues
     );
   }
 }
+// export function calculateCorrelation(
+//   groupTrials: Trial[],
+//   param1: Hyperparam,
+//   param2: Hyperparam
+// ) {
+//   const values1 = groupTrials.map((trial) => trial.params[param1.name]);
+//   const values2 = groupTrials.map((trial) => trial.params[param2.name]);
+
+//   if (
+//     param1.type === HyperparamTypes.Continuous &&
+//     param2.type === HyperparamTypes.Continuous
+//   ) {
+//     return calculatePearsonCorrelation(
+//       param1,
+//       param2,
+//       values1 as number[],
+//       values2 as number[]
+//     );
+//   } else if (
+//     param1.type === HyperparamTypes.Binary &&
+//     param2.type === HyperparamTypes.Binary
+//   ) {
+//     return calculatePhiCoefficient(param1, param2, values1, values2);
+//   } else if (
+//     (param1.type === HyperparamTypes.Continuous &&
+//       param2.type === HyperparamTypes.Binary) ||
+//     (param1.type === HyperparamTypes.Binary &&
+//       param2.type === HyperparamTypes.Continuous)
+//   ) {
+//     // Point-biserial correlation을 위해 continuous와 binary 변수의 순서 확인
+//     const [contParam, binParam] =
+//       param1.type === HyperparamTypes.Continuous
+//         ? [param1, param2]
+//         : [param2, param1];
+//     const [contValues, binValues] =
+//       param1.type === HyperparamTypes.Continuous
+//         ? [values1 as number[], values2]
+//         : [values2 as number[], values1];
+
+//     return calculatePointBiserialCorrelation(
+//       contParam,
+//       binParam,
+//       contValues,
+//       binValues
+//     );
+//   }
+// }
 
 function calculatePointBiserialCorrelation(
   contParam: Hyperparam,

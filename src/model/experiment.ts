@@ -42,14 +42,19 @@ export class Experiment {
     public name: string,
     public hyperparams: Hyperparam[],
     public trials: Trial[],
-    public metric: Metric // public featureOrder: string[]
+    public metric: Metric // public featureOrder: string[],
   ) {}
 
-  static fromJson(configJson: ConfigJson, trialJson) {
-    const hyperparams = [] as Hyperparam[];
+  static fromJson(configJson: ConfigJson, trialJson, paramList) {
+    const allHyperparams = [] as Hyperparam[];
     configJson["hyperparameters"].map((column: HyperparamJson) => {
-      hyperparams.push(Hyperparam.fromJson(column, trialJson));
+      allHyperparams.push(Hyperparam.fromJson(column, trialJson));
     });
+
+    const hyperparams = allHyperparams.filter((param) =>
+      paramList.includes(param.name)
+    );
+
     const trials = [] as Trial[];
 
     trialJson.map((trial: TrialJson) => {
@@ -60,10 +65,20 @@ export class Experiment {
       trial.branch.forEach((b) => unionSet.add(b));
     }
 
+    console.log("paramList", paramList);
+    // hyperparams.map((param) => param.name );
+
+    console.log(
+      "paramList",
+      hyperparams.map((param) => param.name)
+    );
+
     // column 이름 추출
     return new Experiment(
       configJson.name,
+      // hyperparams,
       hyperparams,
+
       trials,
       Metric.fromJson(configJson.metric, unionSet.size)
     );

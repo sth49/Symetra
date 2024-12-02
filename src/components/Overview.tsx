@@ -28,7 +28,7 @@ const Overview = () => {
         <Box display={"flex"} justifyContent={"space-between"} w={"60%"}>
           <Box display={"flex"} alignItems={"center"}>
             <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-              System
+              Target Program
             </Text>
             <Text fontSize="sm" color={"gray.600"}>
               {exp?.name}

@@ -1,4 +1,12 @@
-import { Badge, Box, Heading, Icon, Text, Tooltip } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Heading,
+  Icon,
+  Select,
+  Text,
+  Tooltip,
+} from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { useEffect, useMemo, useState } from "react";
 import { calculateCorrelation } from "../model/correlation";
@@ -18,6 +26,7 @@ const IntraGroupView = () => {
 
   const [result, setResult] = useState(null);
 
+  const [isOutlier, setIsOutlier] = useState(false);
   const [correlations, setCorrelations] = useState<Record<
     string,
     {
@@ -96,11 +105,15 @@ const IntraGroupView = () => {
           }, {})
       );
     }
-  }, [currentSelectedGroup]);
+  }, [currentSelectedGroup, isOutlier]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      <Box display={"flex"}>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
         <Heading
           as="h5"
           size="sm"
@@ -109,10 +122,22 @@ const IntraGroupView = () => {
           display={"flex"}
           alignItems={"center"}
         >
-          Within Group Correlation {"("}
+          Correlation View {"("}
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
+        {/* <>asdf</> */}
+        {/* <Select
+          size={"xs"}
+          width={"100px"}
+          value={isOutlier ? "Outlier" : "Normal"}
+          onChange={(e) => {
+            setIsOutlier(e.target.value === "Outlier");
+          }}
+        >
+          <option value={"Normal"}>Normal</option>
+          <option value={"Outlier"}>No Outlier</option>
+        </Select> */}
       </Box>
       <Box
         w={"100%"}
@@ -163,7 +188,20 @@ const IntraGroupView = () => {
                   >
                     <Box display={"flex"} alignItems={"center"} width={"85%"}>
                       <Tooltip
-                        label={value.hp.hp1.name}
+                        label={
+                          <div>
+                            <Text
+                              fontSize="xs"
+                              borderBottom={"1px solid white"}
+                            >
+                              {value.hp.hp1.name} (default:{" "}
+                              {value.hp.hp1.defaultString})
+                            </Text>
+                            <Text fontSize="xs">
+                              {value.hp.hp1.description}
+                            </Text>
+                          </div>
+                        }
                         aria-label={value.hp.hp1.displayName}
                       >
                         <Text
@@ -186,7 +224,20 @@ const IntraGroupView = () => {
                       <Icon m={"0 10px"} as={IoClose} />
 
                       <Tooltip
-                        label={value.hp.hp2.name}
+                        label={
+                          <div>
+                            <Text
+                              fontSize="xs"
+                              borderBottom={"1px solid white"}
+                            >
+                              {value.hp.hp2.name} (default:{" "}
+                              {value.hp.hp2.defaultString})
+                            </Text>
+                            <Text fontSize="xs">
+                              {value.hp.hp2.description}
+                            </Text>
+                          </div>
+                        }
                         aria-label={value.hp.hp2.displayName}
                       >
                         <Text

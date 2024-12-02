@@ -44,7 +44,7 @@ const InterGroupView = () => {
     const group2Stats = group2.getStats();
 
     return {
-      Maximum: {
+      Max: {
         group1: group1Stats.max,
         group2: group2Stats.max,
         type: "int",
@@ -54,12 +54,12 @@ const InterGroupView = () => {
         group2: group2Stats.avg,
         type: "float",
       },
-      Minimum: {
+      Min: {
         group1: group1Stats.min,
         group2: group2Stats.min,
         type: "int",
       },
-      Accumulated: {
+      Accum: {
         group1: group1Stats.acc,
         group2: group2Stats.acc,
         type: "int",
@@ -131,6 +131,7 @@ const InterGroupView = () => {
       );
     }
   }, [currentSelectedGroup, groups]);
+  const namePercent = 30;
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -143,7 +144,7 @@ const InterGroupView = () => {
           display={"flex"}
           alignItems={"center"}
         >
-          Between Group Difference {"("}
+          Comparison View {"("}
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
@@ -199,9 +200,13 @@ const InterGroupView = () => {
           paddingBottom: "4px",
         }}
       >
-        <Box width={"30%"}></Box>
+        <Box width={`${namePercent}%`}></Box>
 
-        <Box width={"35%"} display={"flex"} justifyContent={"center"}>
+        <Box
+          width={`${(100 - namePercent) / 2}%`}
+          display={"flex"}
+          justifyContent={"center"}
+        >
           <Text
             align={"center"}
             fontWeight={"bold"}
@@ -214,7 +219,11 @@ const InterGroupView = () => {
             {currentSelectedGroup ? currentSelectedGroup.name : "None"}
           </Text>
         </Box>
-        <Box width={"35%"} display={"flex"} justifyContent={"center"}>
+        <Box
+          width={`${(100 - namePercent) / 2}%`}
+          display={"flex"}
+          justifyContent={"center"}
+        >
           <Select
             w={"85%"}
             value={group2 ? group2.id.toString() : ""}
@@ -254,17 +263,17 @@ const InterGroupView = () => {
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"30%"} pl={2}>
+                <Box width={`${namePercent}%`} pl={2}>
                   <Text fontSize={"sm"}>Size</Text>
                 </Box>
-                <Box width={"35%"}>
+                <Box width={`${(100 - namePercent) / 2}%`}>
                   <Text align={"center"} fontSize={"sm"}>
                     {formatting(currentSelectedGroup.trials.length, "int")}{" "}
                     trials
                   </Text>
                 </Box>
 
-                <Box width={"35%"}>
+                <Box width={`${(100 - namePercent) / 2}%`}>
                   <Text align={"center"} fontSize={"sm"}>
                     {formatting(group2.trials.length, "int")} trials
                   </Text>
@@ -281,11 +290,14 @@ const InterGroupView = () => {
                   }}
                   className="inter-group-view-item"
                 >
-                  <Box width={"30%"} pl={2}>
-                    <Text fontSize={"sm"}>{key} CVRG</Text>
+                  <Box width={`${namePercent}%`} pl={2}>
+                    <Text fontSize={"sm"}>
+                      {key === "Mean" ? "Mean" : key + "."} Coverage
+                    </Text>
                   </Box>
                   <Box
-                    width={"35%"}
+                    // width={"35%"}
+                    width={`${(100 - namePercent) / 2}%`}
                     style={{
                       display: "flex",
                       justifyContent: "center",
@@ -299,7 +311,7 @@ const InterGroupView = () => {
                   </Box>
 
                   <Box
-                    width={"35%"}
+                    width={`${(100 - namePercent) / 2}%`}
                     style={{
                       display: "flex",
                       justifyContent: "center",
@@ -330,11 +342,12 @@ const InterGroupView = () => {
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"30%"} pl={2}>
-                  <Text fontSize={"sm"}>Union CVRG</Text>
+                <Box width={`${namePercent}`} pl={2}>
+                  <Text fontSize={"sm"}>Union Coverage</Text>
                 </Box>
                 <Box
-                  width={"70%"}
+                  // width={"70%"}
+                  width={`${100 - namePercent}%`}
                   style={{
                     display: "flex",
                     justifyContent: "center",
@@ -370,14 +383,24 @@ const InterGroupView = () => {
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"30%"} pl={2}>
-                  <Text fontSize={"sm"}>Covered Branch</Text>
+                <Box width={`${namePercent}%`} pl={2}>
+                  <Text fontSize={"sm"}>Coverage Pattern</Text>
                 </Box>
-                <Box width={"35%"} height={"25px"} pr={1} pl={1}>
+                <Box
+                  width={`${(100 - namePercent) / 2}%`}
+                  height={"25px"}
+                  pr={1}
+                  pl={1}
+                >
                   <AreaChart trialGroup={currentSelectedGroup} />
                 </Box>
 
-                <Box width={"35%"} height={"25px"} pr={1} pl={1}>
+                <Box
+                  width={`${(100 - namePercent) / 2}%`}
+                  height={"25px"}
+                  pr={1}
+                  pl={1}
+                >
                   <AreaChart trialGroup={group2} />
                 </Box>
               </div>
@@ -389,11 +412,12 @@ const InterGroupView = () => {
                 }}
                 className="inter-group-view-item"
               >
-                <Box width={"30%"} pl={2}>
-                  <Text fontSize={"sm"}>Superimposed</Text>
+                <Box width={`${namePercent}%`} pl={2}>
+                  <Text fontSize={"sm"}>Coverage Pattern (overlaid)</Text>
                 </Box>
                 <Box
-                  width={"70%"}
+                  // width={"70%"}
+                  width={`${100 - namePercent}%`}
                   height={"25px"}
                   position={"relative"}
                   pr={1}
@@ -438,7 +462,8 @@ const InterGroupView = () => {
                         className="inter-group-view-item"
                       >
                         <Box
-                          width={"30%"}
+                          // width={"30%"}
+                          width={`${namePercent}%`}
                           display={"flex"}
                           alignItems={"center"}
                           pl={2}
@@ -472,7 +497,8 @@ const InterGroupView = () => {
                           </Tooltip>
                         </Box>
                         <Box
-                          width={"35%"}
+                          // width={"35%"}
+                          width={`${(100 - namePercent) / 2}%`}
                           display={"flex"}
                           justifyContent={"space-around"}
                           alignItems={"center"}
@@ -486,7 +512,8 @@ const InterGroupView = () => {
                           />
                         </Box>
                         <Box
-                          width={"35%"}
+                          // width={"35%"}
+                          width={`${(100 - namePercent) / 2}%`}
                           display={"flex"}
                           justifyContent={"center"}
                           alignItems={"center"}

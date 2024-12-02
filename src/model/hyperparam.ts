@@ -13,7 +13,6 @@ export enum HyperparamTypes {
   // Discrete,
   Binary,
   Nominal,
-  Ordinal,
 }
 
 export const HparamIcons = {

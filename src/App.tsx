@@ -11,8 +11,6 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
-  MenuOptionGroup,
-  Select,
 } from "@chakra-ui/react";
 import Overview from "./components/Overview";
 import CoverageView from "./components/CoverageView";
@@ -88,7 +86,8 @@ function App() {
         setTarget(targets);
 
         // 초기 타겟 설정
-        const initialTarget = targets[0].name;
+        // const initialTarget = targets[0].name;
+        const initialTarget = "grep_2200";
         setCurrentTarget(initialTarget);
 
         // 초기 데이터 로드
@@ -96,15 +95,21 @@ function App() {
           `./data/tuned_parameters_${initialTarget}_final.json`
         );
         const trialJson = module.default;
-
+        const paramList = Object.keys(trialJson[0].config);
+        console.log("paramList", paramList);
         const updatedConfig = { ...configData, name: initialTarget };
-        const experiment = await Experiment.fromJson(updatedConfig, trialJson);
+        const experiment = await Experiment.fromJson(
+          updatedConfig,
+          trialJson,
+          paramList
+        );
         setExp(experiment);
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
 
         console.log("Initial load complete for target:", initialTarget);
+        console.log("Loaded experiment for target:", experiment);
       } catch (error) {
         console.error("Failed to initialize app:", error);
       }
@@ -124,14 +129,21 @@ function App() {
         );
         const trialJson = module.default;
 
+        const paramList = Object.keys(trialJson[0].config);
+
         const updatedConfig = { ...configData, name: currentTarget };
-        const experiment = await Experiment.fromJson(updatedConfig, trialJson);
+        const experiment = await Experiment.fromJson(
+          updatedConfig,
+          trialJson,
+          paramList
+        );
         setExp(experiment);
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
 
         console.log("Loaded experiment for target:", currentTarget);
+        console.log("Loaded experiment for target:", experiment);
       } catch (error) {
         console.error(
           `Failed to load experiment data for ${currentTarget}:`,
@@ -165,7 +177,6 @@ function App() {
                 <Overview />
               </Box>
             )}
-            {/* asdf */}
             {target && (
               <Menu>
                 <MenuButton

@@ -64,8 +64,8 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
 
   const columns = useMemo(
     () => [
-      { label: `${item.name}`, key: "value", width: 60, align: "center" },
-      { label: "Count", key: "count", width: 60, align: "right" },
+      { label: `${item.name}`, key: "value", width: 100, align: "center" },
+      { label: "Count", key: "count", width: 40, align: "right" },
       {
         label: "Effect",
         key: "effect",
@@ -74,9 +74,9 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
         align: "right",
       },
       {
-        label: "Trials by Coverage",
+        label: "Trials by CVRG",
         key: "distribution",
-        width: 125,
+        width: 105,
         align: "center",
       },
     ],
@@ -205,7 +205,8 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                     textAlign="center"
                     textDecorationLine={row.isDefault ? "underline" : "none"}
                   >
-                    {item.hp.valueType === "string" &&
+                    {row[column.key]}
+                    {/* {item.hp.valueType === "string" &&
                     row[column.key].includes(":")
                       ? row[column.key].split(":").map((part, index, array) => (
                           <React.Fragment key={index}>
@@ -230,7 +231,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                             )}
                           </React.Fragment>
                         ))
-                      : row[column.key]}
+                      : row[column.key]} */}
                   </Text>
                   <Tooltip
                     label={"This is better than the default value on average"}
@@ -261,7 +262,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                   hparamKey={item.name}
                   hparamValue={row["value"]}
                   trialIds={row.trialIds}
-                  width={110}
+                  width={100}
                   height={30}
                 />
               ) : null}

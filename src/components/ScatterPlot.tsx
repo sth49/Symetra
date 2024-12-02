@@ -80,13 +80,15 @@ const ScatterPlotBase = ({
   const y = (d: TooltipData) => d.val2;
 
   const data = useMemo(() => {
-    return result.value.value.val1.map((val1, i) => ({
-      val1,
-      val2: result.value.value.val2[i],
-      hp1: result.value.hp.hp1,
-      hp2: result.value.hp.hp2,
-      id: ids[i],
-    }));
+    return result.value.value.val1.map((val1, i) => {
+      return {
+        val1,
+        val2: result.value.value.val2[i],
+        hp1: result.value.hp.hp1,
+        hp2: result.value.hp.hp2,
+        id: ids[i],
+      };
+    });
   }, [result]);
 
   const xScale = useMemo(() => {
@@ -121,10 +123,12 @@ const ScatterPlotBase = ({
       val2: result.value.value.val2[i],
       hp1: result.value.hp.hp1,
       hp2: result.value.hp.hp2,
-      // 각 데이터 포인트마다 고유한 지터링 값 저장
+      id: ids[i],
       jitter: Math.random(),
     }));
   }, [result]);
+
+  console.log(dataWithJitter);
 
   const yScale = useMemo(() => {
     return scaleLinear<number>({
@@ -217,7 +221,7 @@ const ScatterPlotBase = ({
               marginBottom: "5px",
             }}
           >
-            Trial {formatting(tooltipData.id, "int")}
+            Trial {formatting(tooltipData.id + 1, "int")}
           </div>
           <div>
             {tooltipData.hp1.displayName}:{" "}
