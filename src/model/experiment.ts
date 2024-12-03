@@ -65,13 +65,7 @@ export class Experiment {
       trial.branch.forEach((b) => unionSet.add(b));
     }
 
-    console.log("paramList", paramList);
     // hyperparams.map((param) => param.name );
-
-    console.log(
-      "paramList",
-      hyperparams.map((param) => param.name)
-    );
 
     // column 이름 추출
     return new Experiment(

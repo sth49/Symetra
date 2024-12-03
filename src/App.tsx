@@ -96,7 +96,6 @@ function App() {
         );
         const trialJson = module.default;
         const paramList = Object.keys(trialJson[0].config);
-        console.log("paramList", paramList);
         const updatedConfig = { ...configData, name: initialTarget };
         const experiment = await Experiment.fromJson(
           updatedConfig,
@@ -107,9 +106,6 @@ function App() {
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
-
-        console.log("Initial load complete for target:", initialTarget);
-        console.log("Loaded experiment for target:", experiment);
       } catch (error) {
         console.error("Failed to initialize app:", error);
       }
@@ -141,9 +137,6 @@ function App() {
 
         const hyperparams = experiment.hyperparams;
         setHyperparams(hyperparams);
-
-        console.log("Loaded experiment for target:", currentTarget);
-        console.log("Loaded experiment for target:", experiment);
       } catch (error) {
         console.error(
           `Failed to load experiment data for ${currentTarget}:`,

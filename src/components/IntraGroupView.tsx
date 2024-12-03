@@ -94,7 +94,6 @@ const IntraGroupView = () => {
               )[0]
           ],
       });
-      console.log(results);
       setCorrelations(
         Object.keys(results)
           .filter((a) => !Number.isNaN(results[a].correlation))

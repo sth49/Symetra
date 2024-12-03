@@ -52,7 +52,7 @@ export function calculateCorrelation(
   groupTrials: Trial[],
   param1: Hyperparam,
   param2: Hyperparam,
-  removeOutliers: boolean = false
+  removeOutliers: boolean = true
 ) {
   const values1 = groupTrials.map((trial) => trial.params[param1.name]);
   const values2 = groupTrials.map((trial) => trial.params[param2.name]);
@@ -283,8 +283,6 @@ function calculatePhiCoefficient(
   values2: any[],
   metrics: number[]
 ) {
-  console.log("values1", values1);
-  console.log("values2", values2);
   const uniqueValues1 = Array.from(new Set(values1));
   const uniqueValues2 = Array.from(new Set(values2));
 
@@ -334,14 +332,12 @@ function calculatePhiCoefficient(
             const value1 = values1[i] ? "T" : "F";
             const value2 = values2[i] ? "T" : "F";
             if (value1 === bin1 && value2 === bin2) {
-              console.log(bin1, bin2, sum, metric);
               return sum + metric;
             } else {
               return sum;
             }
           }, 0) / count || 0;
 
-        console.log(count, metricMean);
         return {
           bin: bin2,
           count: count,

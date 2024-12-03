@@ -57,8 +57,6 @@ const ScatterPlotBase = ({
     hideTooltip,
   } = useTooltip<TooltipData>();
 
-  console.log("result", result);
-
   const { metricScale, colorScale } = useMetricScale();
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
@@ -139,8 +137,6 @@ const ScatterPlotBase = ({
       metric: metrics[i],
     }));
   }, [result]);
-
-  console.log(dataWithJitter);
 
   const yScale = useMemo(() => {
     return scaleLinear<number>({
