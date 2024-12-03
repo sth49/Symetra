@@ -7,6 +7,8 @@ import { useTooltipInPortal } from "@visx/tooltip";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import * as d3 from "d3";
 import { ParentSize } from "@visx/responsive";
+import { useMetricScale } from "../model/colorScale";
+import { formatting } from "../model/utils";
 
 interface HeatmapBaseProps {
   result: any;
@@ -20,6 +22,9 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
     scroll: true,
   });
 
+  console.log("result", result);
+
+  const { metricScale, colorScale } = useMetricScale();
   const binData: Bins[] = useMemo(() => {
     return result && result.value.value.bins;
   }, [result]);
@@ -54,10 +59,6 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
     range: [0, yMax], // y축 방향 수정
   });
 
-  const colorScale = d3
-    .scaleSequential(d3.interpolateBlues)
-    .domain([0, colorMax]);
-
   const opacityScale = scaleLinear<number>({
     range: [0.1, 1],
     domain: [0, colorMax],
@@ -74,7 +75,6 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
             data={binData}
             xScale={xScale}
             yScale={yScale}
-            colorScale={colorScale}
             opacityScale={opacityScale}
             binWidth={binWidth}
             binHeight={binHeight}
@@ -92,7 +92,10 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
                         height={Math.max(0, bin.height)} // height 값을 0 이상으로 설정
                         x={bin.x}
                         y={bin.y}
-                        fill={bin.color}
+                        // fill={colorScale(metricScale( ????))}
+                        fill={colorScale(
+                          metricScale(binData[bin.row].bins[bin.column].metric)
+                        )}
                         fillOpacity={bin.opacity}
                       />
                       <text
@@ -104,6 +107,21 @@ const HeatmapBase = ({ result, width = 0, height = 0 }: HeatmapBaseProps) => {
                         fill={colorMax / 2 < bin.count ? "white" : "black"}
                       >
                         {bin.count}
+                      </text>
+                      <text
+                        x={bin.x + bin.width / 2}
+                        y={bin.y + bin.height / 2 + 14}
+                        fontSize={12}
+                        textAnchor="middle"
+                        dy=".33em"
+                        fill={colorMax / 2 < bin.count ? "white" : "black"}
+                      >
+                        (
+                        {formatting(
+                          binData[bin.row].bins[bin.column].metric,
+                          "float"
+                        )}
+                        )
                       </text>
                     </g>
                   );

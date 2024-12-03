@@ -26,7 +26,6 @@ const IntraGroupView = () => {
 
   const [result, setResult] = useState(null);
 
-  const [isOutlier, setIsOutlier] = useState(false);
   const [correlations, setCorrelations] = useState<Record<
     string,
     {
@@ -105,7 +104,7 @@ const IntraGroupView = () => {
           }, {})
       );
     }
-  }, [currentSelectedGroup, isOutlier]);
+  }, [currentSelectedGroup]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -126,18 +125,6 @@ const IntraGroupView = () => {
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
-        {/* <>asdf</> */}
-        {/* <Select
-          size={"xs"}
-          width={"100px"}
-          value={isOutlier ? "Outlier" : "Normal"}
-          onChange={(e) => {
-            setIsOutlier(e.target.value === "Outlier");
-          }}
-        >
-          <option value={"Normal"}>Normal</option>
-          <option value={"Outlier"}>No Outlier</option>
-        </Select> */}
       </Box>
       <Box
         w={"100%"}
@@ -274,6 +261,9 @@ const IntraGroupView = () => {
                 <ScatterPlot
                   result={result}
                   ids={currentSelectedGroup.trials.map((trial) => trial.id)}
+                  metrics={currentSelectedGroup.trials.map(
+                    (trial) => trial.metric
+                  )}
                 />
               </>
             ) : result && result.value.type === "phi" ? (

@@ -25,6 +25,7 @@ interface ScatterPlotBaseProps {
     };
   };
   ids: number[];
+  metrics: number[];
   width?: number;
   height?: number;
 }
@@ -35,11 +36,15 @@ interface TooltipData {
   hp1: Hyperparam;
   hp2: Hyperparam;
   id?: number;
+  metric?: number;
 }
-
+import { useConstDataStore } from "./store/constDataStore";
+import { useMetricScale } from "../model/colorScale";
+import MetricBadge from "./MetricBadge";
 const ScatterPlotBase = ({
   result,
   ids,
+  metrics,
   width,
   height,
 }: ScatterPlotBaseProps) => {
@@ -53,6 +58,8 @@ const ScatterPlotBase = ({
   } = useTooltip<TooltipData>();
 
   console.log("result", result);
+
+  const { metricScale, colorScale } = useMetricScale();
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
@@ -79,6 +86,9 @@ const ScatterPlotBase = ({
   const x = (d: TooltipData) => d.val1;
   const y = (d: TooltipData) => d.val2;
 
+  const { exp } = useConstDataStore();
+  const trials = exp.trials;
+
   const data = useMemo(() => {
     return result.value.value.val1.map((val1, i) => {
       return {
@@ -87,6 +97,7 @@ const ScatterPlotBase = ({
         hp1: result.value.hp.hp1,
         hp2: result.value.hp.hp2,
         id: ids[i],
+        metric: metrics[i],
       };
     });
   }, [result]);
@@ -125,6 +136,7 @@ const ScatterPlotBase = ({
       hp2: result.value.hp.hp2,
       id: ids[i],
       jitter: Math.random(),
+      metric: metrics[i],
     }));
   }, [result]);
 
@@ -182,9 +194,9 @@ const ScatterPlotBase = ({
                   cx={xScale(point.val1 as number)}
                   cy={yScale(point.val2)}
                   r={3}
-                  fill={tooltipData === point ? "#FF0066" : "#0070f3"}
-                  fillOpacity={0.8}
-                  opacity={tooltipData === point ? 1 : 0.5}
+                  // fill={tooltipData === point ? "#FF0066" : "#0070f3"}
+                  fill={colorScale(metricScale(point.metric))}
+                  // opacity={tooltipData === point ? 1 : 0.5}
                   onMouseEnter={(event) => handleMouseOver(event, point)}
                   onMouseLeave={hideTooltip}
                 />
@@ -199,9 +211,8 @@ const ScatterPlotBase = ({
                   }
                   cy={yScale(point.val2)}
                   r={3}
-                  fill={tooltipData === point ? "#FF0066" : "#0070f3"}
-                  fillOpacity={0.8}
-                  opacity={tooltipData === point ? 1 : 0.5}
+                  // fill={tooltipData === point ? "#FF0066" : "#0070f3"}
+                  fill={colorScale(metricScale(point.metric))}
                   onMouseEnter={(event) => handleMouseOver(event, point)}
                   onMouseLeave={hideTooltip}
                 />
@@ -223,6 +234,19 @@ const ScatterPlotBase = ({
           >
             Trial {formatting(tooltipData.id + 1, "int")}
           </div>
+          <div
+            style={{
+              display: "flex",
+            }}
+          >
+            CVRG:{" "}
+            {
+              <div>
+                <MetricBadge metricValue={tooltipData.metric} type="int" />
+              </div>
+            }
+          </div>
+
           <div>
             {tooltipData.hp1.displayName}:{" "}
             {typeof tooltipData.val1 === "boolean"

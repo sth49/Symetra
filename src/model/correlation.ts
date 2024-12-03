@@ -56,6 +56,7 @@ export function calculateCorrelation(
 ) {
   const values1 = groupTrials.map((trial) => trial.params[param1.name]);
   const values2 = groupTrials.map((trial) => trial.params[param2.name]);
+  const metrics = groupTrials.map((trial) => trial.metric);
 
   if (
     param1.type === HyperparamTypes.Continuous &&
@@ -81,7 +82,7 @@ export function calculateCorrelation(
     param1.type === HyperparamTypes.Binary &&
     param2.type === HyperparamTypes.Binary
   ) {
-    return calculatePhiCoefficient(param1, param2, values1, values2);
+    return calculatePhiCoefficient(param1, param2, values1, values2, metrics);
   } else if (
     (param1.type === HyperparamTypes.Continuous &&
       param2.type === HyperparamTypes.Binary) ||
@@ -279,8 +280,11 @@ function calculatePhiCoefficient(
   param1: Hyperparam,
   param2: Hyperparam,
   values1: any[],
-  values2: any[]
+  values2: any[],
+  metrics: number[]
 ) {
+  console.log("values1", values1);
+  console.log("values2", values2);
   const uniqueValues1 = Array.from(new Set(values1));
   const uniqueValues2 = Array.from(new Set(values2));
 
@@ -319,10 +323,30 @@ function calculatePhiCoefficient(
     return {
       bin: bin1,
       bins: ["T", "F"].map((bin2) => {
+        const count =
+          metrics.reduce((sum, metric, i) => {
+            const value1 = values1[i] ? "T" : "F";
+            const value2 = values2[i] ? "T" : "F";
+            return sum + (value1 === bin1 && value2 === bin2 ? 1 : 0);
+          }, 0) || 0;
+        const metricMean =
+          metrics.reduce((sum, metric, i) => {
+            const value1 = values1[i] ? "T" : "F";
+            const value2 = values2[i] ? "T" : "F";
+            if (value1 === bin1 && value2 === bin2) {
+              console.log(bin1, bin2, sum, metric);
+              return sum + metric;
+            } else {
+              return sum;
+            }
+          }, 0) / count || 0;
+
+        console.log(count, metricMean);
         return {
           bin: bin2,
-          count: eval(`n${bin1 === "T" ? 1 : 2}${bin2 === "T" ? 1 : 2}`),
+          count: count,
           name: `${param1.name}=${bin1}, ${param2.name}=${bin2}`,
+          metric: metricMean,
         };
       }),
     };
