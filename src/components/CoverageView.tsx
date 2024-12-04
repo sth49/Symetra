@@ -238,15 +238,17 @@ const CoverageView: React.FC = () => {
     const selectedIds = Array.from(selectedPoints);
 
     // 배열을 문자열로 변환하여 파일로 저장
-    // const blob = new Blob([JSON.stringify(selectedIds)], { type: 'text/plain' });
-    // const url = window.URL.createObjectURL(blob);
-    // const link = document.createElement('a');
-    // link.href = url;
-    // link.download = 'selected_points.txt';
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
-    // window.URL.revokeObjectURL(url);
+    const blob = new Blob([JSON.stringify(selectedIds)], {
+      type: "text/plain",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "selected_points.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
 
     updatedGroups.addGroup(
       exp.trials.filter((trial) => selectedPoints.has(trial.id))

@@ -93,9 +93,9 @@ export class Hyperparam {
     });
     // hparam.shapValues = shapValue;
     // console.log(hparam.getMeanAbsoluteEffect());
-    // if (hparam.getMeanAbsoluteEffect() < 0.3) {
-    //   hparam.visible = false;
-    // }
+    if (hparam.getMeanAbsoluteEffect() < 0.3) {
+      hparam.visible = false;
+    }
     // console.log("visibility", hparam.name, hparam.visible);
     return hparam;
   }

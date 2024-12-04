@@ -240,7 +240,7 @@ const HparamTable = () => {
       },
       {
         id: "effect",
-        header: "Abs. Effect",
+        header: "Effect",
         accessorKey: "effect",
         cell: (info) => {
           const { row } = info;

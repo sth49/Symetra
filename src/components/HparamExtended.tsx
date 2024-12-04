@@ -128,17 +128,13 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
               }
             }}
           >
-            {column.key !== "distribution" && (
+            {column.key !== "distribution" && sortConfig.key === column.key && (
               <Icon
                 color={"gray"}
                 width={2}
                 mr={1}
                 as={
-                  sortConfig.key === column.key
-                    ? sortConfig.direction === "ascending"
-                      ? FaSortUp
-                      : FaSortDown
-                    : FaSort
+                  sortConfig.direction === "ascending" ? FaSortUp : FaSortDown
                 }
               />
             )}
