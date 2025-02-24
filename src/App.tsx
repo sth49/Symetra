@@ -23,6 +23,7 @@ import InterGroupView from "./components/InterGroupView";
 import IntraGroupView from "./components/IntraGroupView";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { formatting } from "./model/utils";
+import CodeDetail from "./components/CodeDetail";
 function App() {
   const { exp, setExp, setHyperparams, target, setTarget } =
     useConstDataStore();
@@ -87,21 +88,29 @@ function App() {
 
         // 초기 타겟 설정
         // const initialTarget = targets[0].name;
-        const initialTarget = "grep_2200";
+        // const initialTarget = "gcal_2200";
+        const initialTarget = "grep_2200_250224";
         setCurrentTarget(initialTarget);
 
         // 초기 데이터 로드
         const module = await import(
           `./data/tuned_parameters_${initialTarget}_final.json`
         );
+        const branchInfo = await import(
+          `./data/branch_info_${initialTarget.split("_")[0]}.json`
+        );
+        console.log(`./data/branch_info_${initialTarget.split("_")[0]}.json`);
+        console.log("branchInfo", branchInfo.default);
         const trialJson = module.default;
         const paramList = Object.keys(trialJson[0].config);
         const updatedConfig = { ...configData, name: initialTarget };
         const experiment = await Experiment.fromJson(
           updatedConfig,
           trialJson,
-          paramList
+          paramList,
+          branchInfo.default
         );
+        console.log("experiment", experiment.branchInfo);
         setExp(experiment);
 
         const hyperparams = experiment.hyperparams;
@@ -123,6 +132,12 @@ function App() {
         const module = await import(
           `./data/tuned_parameters_${currentTarget}_final.json`
         );
+        const branchInfo = await import(
+          `./data/branch_info_${currentTarget.split("_")[0]}.json`
+        );
+        console.log(`./data/branch_info_${currentTarget.split("_")[0]}.json`);
+        console.log("branchInfo", branchInfo.default);
+
         const trialJson = module.default;
 
         const paramList = Object.keys(trialJson[0].config);
@@ -131,7 +146,8 @@ function App() {
         const experiment = await Experiment.fromJson(
           updatedConfig,
           trialJson,
-          paramList
+          paramList,
+          branchInfo.default
         );
         setExp(experiment);
 
@@ -243,11 +259,12 @@ function App() {
                     <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0.5}>
                       <TrialGroupView />
                     </Box>
-                    <Box height={"25%"} m={0.5} bg="white" mr={1}>
-                      <IntraGroupView />
-                    </Box>
-                    <Box height={"calc(44% - 8px)"} m={0.5} bg="white" mr={1}>
+
+                    <Box height={"calc(40% - 8px)"} m={0.5} bg="white" mr={1}>
                       <InterGroupView />
+                    </Box>
+                    <Box height={"29%"} m={0.5} bg="white" mr={1} mb={2}>
+                      <CodeDetail />
                     </Box>
                   </Box>
                 </Box>

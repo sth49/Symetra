@@ -37,15 +37,55 @@ export class Target {
     );
   }
 }
+function parseBranchInfo(info: string) {
+  const originalPath = info.match(/File:(.*?)\s/)?.[1] || "";
+  // console.log("Original path:", originalPath); // gcal-4.1/src/gcal.c
+
+  const line = parseInt(info.match(/Line:(\d+)/)?.[1] || "0");
+  const condition = parseInt(info.match(/Branch:(\d+)/)?.[1] || "0");
+
+  // program 폴더는 이미 public에 있으므로 경로 앞에 추가
+  const filePath = `program/${originalPath}`;
+  // console.log("Final file path:", filePath);
+
+  return { filePath, line, condition };
+}
+
+export class BranchInfo {
+  public fileName: string;
+  constructor(
+    public branch: string,
+    public filePath: string,
+    public line: number,
+    public condition: number
+  ) {
+    this.fileName = filePath.split("/").pop();
+  }
+  static fromJson(index, branchInfoString) {
+    try {
+      // const filePath = branchInfoString.split(" ")[0].split("File:")[1];
+      // const line = parseInt(branchInfoString.split(" ")[1].split("Line:")[1]);
+      // const condition = parseInt(branchInfoString.split(" ")[2].split(":")[1]);
+
+      const { filePath, line, condition } = parseBranchInfo(branchInfoString);
+
+      return new BranchInfo(index, filePath, line, condition);
+    } catch (e) {
+      // console.log("error", e);
+      return new BranchInfo(index, "Could not found the condition...", 0, -1);
+    }
+  }
+}
 export class Experiment {
   constructor(
     public name: string,
     public hyperparams: Hyperparam[],
     public trials: Trial[],
-    public metric: Metric // public featureOrder: string[],
+    public metric: Metric, // public featureOrder: string[],
+    public branchInfo: BranchInfo[]
   ) {}
 
-  static fromJson(configJson: ConfigJson, trialJson, paramList) {
+  static fromJson(configJson: ConfigJson, trialJson, paramList, branchInfo) {
     const allHyperparams = [] as Hyperparam[];
     configJson["hyperparameters"].map((column: HyperparamJson) => {
       allHyperparams.push(Hyperparam.fromJson(column, trialJson));
@@ -57,6 +97,9 @@ export class Experiment {
 
     const trials = [] as Trial[];
 
+    // console.log(trialJson[0]);
+    // console.log(trialJson[1]);
+
     trialJson.map((trial: TrialJson) => {
       trials.push(Trial.fromJson(trial));
     });
@@ -67,14 +110,27 @@ export class Experiment {
 
     // hyperparams.map((param) => param.name );
 
+    const branchInfoList = [] as BranchInfo[];
+    // branchInfo.map((branchInfoString, index) => {
+    //   console.log("branchInfoString", branchInfoString);
+    // });
+    console.log("branchInfo", branchInfo);
+    Object.keys(branchInfo).map((key, index) => {
+      // console.log("key", key);
+      // console.log("index", index);
+      // console.log("branchInfoString", branchInfo[index]);
+      branchInfoList.push(BranchInfo.fromJson(key, branchInfo[key]));
+    });
+
+    // console.log("branchInfoString", branchInfo[index]);
+
     // column 이름 추출
     return new Experiment(
       configJson.name,
-      // hyperparams,
       hyperparams,
-
       trials,
-      Metric.fromJson(configJson.metric, unionSet.size)
+      Metric.fromJson(configJson.metric, unionSet.size),
+      branchInfoList
     );
   }
 }

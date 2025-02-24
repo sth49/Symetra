@@ -23,6 +23,7 @@ export class Trial {
     public branch: Set<number>
   ) {}
   static fromJson(json: TrialJson) {
+    // console.log("Trial fromJson", json);
     return new Trial(
       json.id,
       json.config,

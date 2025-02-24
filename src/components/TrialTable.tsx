@@ -582,6 +582,7 @@ const TrialTable = () => {
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                         padding: "8px 8px",
+                        cursor: "pointer",
                       }}
                     >
                       {header.isPlaceholder ? null : (
@@ -655,6 +656,7 @@ const TrialTable = () => {
                       transform: `translateY(${
                         virtualRow.start - index * virtualRow.size
                       }px)`,
+                      cursor: "pointer",
                     }}
                     className={`virtual-table-row ${
                       row.getIsSelected() ? "selected" : ""

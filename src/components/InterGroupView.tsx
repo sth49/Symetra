@@ -19,6 +19,7 @@ import { Tooltip } from "@chakra-ui/react";
 import AreaChart from "./AreaChart";
 import MetricBadge from "./MetricBadge";
 import SelectIcon from "./SelectIcon";
+import OverlappedCharts from "./OverlappedCharts";
 const InterGroupView = () => {
   const { exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -134,7 +135,7 @@ const InterGroupView = () => {
   const namePercent = 30;
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
+    <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
         <Heading
           as="h5"
@@ -170,6 +171,7 @@ const InterGroupView = () => {
           </FormLabel>
 
           <Select
+            cursor={"pointer"}
             placeholder=""
             size={"xs"}
             width={"50%"}
@@ -225,6 +227,7 @@ const InterGroupView = () => {
           justifyContent={"center"}
         >
           <Select
+            cursor={"pointer"}
             w={"85%"}
             value={group2 ? group2.id.toString() : ""}
             size={"sm"}
@@ -423,7 +426,11 @@ const InterGroupView = () => {
                   pr={1}
                   pl={1}
                 >
-                  <AreaChart trialGroup={currentSelectedGroup} />
+                  <OverlappedCharts
+                    trialGroup1={currentSelectedGroup}
+                    trialGroup2={group2 || currentSelectedGroup}
+                  />
+                  {/* <AreaChart trialGroup={currentSelectedGroup} />
                   <Box
                     width={"100%"}
                     height={"25px"}
@@ -435,7 +442,7 @@ const InterGroupView = () => {
                     pl={1}
                   >
                     <AreaChart trialGroup={group2} />
-                  </Box>
+                  </Box> */}
                 </Box>
               </div>
             </>

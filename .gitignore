@@ -33,6 +33,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!public/program/grep-3.4/lib/
 lib64/
 parts/
 sdist/

@@ -43,6 +43,9 @@ interface CustomStore {
 
   selectOneTrial: number | null;
   setSelectOneTrial: (selectOneTrial: number | null) => void;
+
+  selectedBranchId: string | null;
+  setSelectedBranchId: (branchId: string | null) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -97,4 +100,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   selectOneTrial: null,
   setSelectOneTrial: (selectOneTrial) => set({ selectOneTrial }),
+
+  selectedBranchId: null,
+  setSelectedBranchId: (branchId) => set({ selectedBranchId: branchId }),
 }));
