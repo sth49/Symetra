@@ -3,6 +3,7 @@ import {
   FormControl,
   FormLabel,
   Heading,
+  Input,
   Select,
   Text,
 } from "@chakra-ui/react";
@@ -13,6 +14,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { BranchInfo } from "../model/experiment";
 import { formatting } from "../model/utils";
+
+import {
+  Column,
+  Table,
+  ExpandedState,
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  getExpandedRowModel,
+  ColumnDef,
+  flexRender,
+} from "@tanstack/react-table";
 
 function sliceAroundLine(
   content: string,
@@ -107,11 +121,28 @@ function CodeDetail() {
   const displayContent = useMemo(() => {
     if (!fileContent || !branchInfo?.line)
       return {
-        content: "// Loading file content...",
+        content: "// There is no branch information.",
         startLine: 1,
       };
     return sliceAroundLine(fileContent, branchInfo.line, numLine);
   }, [fileContent, branchInfo, numLine]);
+
+  const data2 = useMemo(() => {
+    return data.map((d, i) => ({
+      id: i,
+      filePath: d.filePath,
+      children: experiment.branchInfo
+        .filter((b) => b.filePath === d.filePath)
+        .map((b) => ({
+          id: b.branch,
+          branch: b.branch,
+          line: b.line,
+          condition: b.condition,
+        })),
+    }));
+  }, [data, experiment.branchInfo]);
+
+  const [expanded, setExpanded] = useState({});
 
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
@@ -131,70 +162,132 @@ function CodeDetail() {
         >
           Code Detail View
         </Heading>
-        <FormControl
-          display="flex"
-          justifyContent="right"
-          width={"35%"}
-          alignItems={"center"}
-          mr={1}
-        >
-          <FormLabel htmlFor="branch" mr={1} mb={0}>
-            <Text fontSize="xs" color="gray.600">
-              Branch
-            </Text>
-          </FormLabel>
-          <Select
-            cursor={"pointer"}
-            size={"xs"}
-            width={"90%"}
-            onChange={(e) => {
-              console.log("Selected branch:", e.target.value);
-              setSelectBranchId(e.target.value);
-            }}
-            value={selectedBranchId}
-          >
-            <option value={""}>Select Branch</option>
-            {experiment.branchInfo.map((branch) => (
-              <option key={branch.branch} value={branch.branch}>
-                {branch.branch}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl
-          display="flex"
-          justifyContent="right"
-          width={"30%"}
-          alignItems={"center"}
-          mr={1}
-        >
-          <FormLabel htmlFor="branch" mr={1} mb={0}>
-            <Text fontSize="xs" color="gray.600">
-              # Lines
-            </Text>
-          </FormLabel>
-          <Select
-            cursor={"pointer"}
-            size={"xs"}
-            width={"60%"}
-            onChange={(e) => {
-              console.log("Selected branch:", e.target.value);
-              setNumLine(
-                e.target.value === "All" ? -1 : parseInt(e.target.value)
-              );
-            }}
-            value={numLine}
-          >
-            {["All", "5", "10", "20"].map((num) => (
-              <option key={num} value={num}>
-                {num}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
       </Box>
-      {selectedBranchId !== "" ? (
-        <>
+      <Box w={"100%"} p={1} height={`calc(100% - 35px)`}>
+        <Box w={"100%"} h={"40%"} overflowY={"auto"}>
+          {data &&
+            data
+              .sort(
+                (a, b) =>
+                  b.count - a.count || a.filePath.localeCompare(b.filePath)
+              )
+              .map((d) => (
+                <>
+                  <Box
+                    key={d.filePath}
+                    p={1}
+                    onClick={() => {
+                      setExpanded({
+                        ...expanded,
+                        [d.filePath]: expanded[d.filePath] ? false : true,
+                      });
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Text fontSize="sm" color="gray.600">
+                      {d.filePath} ({formatting(d.count, "int")} /{" "}
+                      {formatting(experiment.branchInfo.length, "int")},{" "}
+                      {formatting(
+                        (d.count / experiment.branchInfo.length) * 100,
+                        "float"
+                      )}
+                      %)
+                    </Text>
+                  </Box>
+                  {expanded[d.filePath] && (
+                    <>
+                      {data2
+                        .filter((d2) => d2.filePath === d.filePath)
+                        .map((d2) =>
+                          d2.children.map((child) => {
+                            return (
+                              <Box
+                                backgroundColor={"gray.100"}
+                                p={1}
+                                pl={2}
+                                onClick={() => {
+                                  setSelectBranchId(child.branch);
+                                }}
+                                style={{ cursor: "pointer" }}
+                              >
+                                <Text
+                                  fontSize="xs"
+                                  color="gray.600"
+                                  fontWeight={
+                                    selectedBranchId === child.branch
+                                      ? "bold"
+                                      : "normal"
+                                  }
+                                >
+                                  {child.branch} (Line: {child.line}, Branch:{" "}
+                                  {child.condition})
+                                </Text>
+                              </Box>
+                            );
+                          })
+                        )}
+                    </>
+                  )}
+                </>
+              ))}
+        </Box>
+
+        <Box w={"100%"} h={"47px"}>
+          <Box display={"flex"} justifyContent={"space-between"} pl={2} pr={2}>
+            <FormControl
+              display="flex"
+              justifyContent="right"
+              width={"35%"}
+              alignItems={"center"}
+              mr={1}
+            >
+              <FormLabel htmlFor="branch" mr={1} mb={0}>
+                <Text fontSize="xs" color="gray.600">
+                  Branch
+                </Text>
+              </FormLabel>
+              <Input
+                value={selectedBranchId}
+                onChange={(e) => {
+                  setSelectBranchId(e.target.value);
+                }}
+                size={"xs"}
+                width={"90%"}
+                placeholder={"Branch ID"}
+              />
+            </FormControl>
+            <FormControl
+              display="flex"
+              justifyContent="right"
+              width={"30%"}
+              alignItems={"center"}
+              mr={1}
+            >
+              <FormLabel htmlFor="branch" mr={1} mb={0}>
+                <Text fontSize="xs" color="gray.600">
+                  # Lines
+                </Text>
+              </FormLabel>
+              <Select
+                cursor={"pointer"}
+                size={"xs"}
+                width={"60%"}
+                onChange={(e) => {
+                  console.log("Selected branch:", e.target.value);
+                  setNumLine(
+                    e.target.value === "All" ? -1 : parseInt(e.target.value)
+                  );
+                }}
+                value={numLine}
+              >
+                {["All", "5", "10", "20"].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
           <Box pl={2} pr={2} display={"flex"} justifyContent={"space-between"}>
             {branchInfo && (
               <>
@@ -204,65 +297,43 @@ function CodeDetail() {
               </>
             )}
           </Box>
-          <Box w={"100%"} p={1} height={`calc(100% - 55px)`}>
-            <SyntaxHighlighter
-              customStyle={{
-                fontSize: "12px",
-                width: "100%",
-                height: "100%",
-              }}
-              startingLineNumber={displayContent.startLine}
-              language="c"
-              style={materialOceanic}
-              wrapLines={true}
-              showLineNumbers={true}
-              lineProps={(lineNumber) => {
-                let style: React.CSSProperties = {
-                  display: "block",
-                  width: "100%", // 전체 너비 차지
-                  minWidth: "100%", // 최소 너비 설정
-                  boxSizing: "border-box", // 패딩과 보더를 포함한 너비 계산
-                };
-
-                if (lineNumber === branchInfo?.line) {
-                  style.backgroundColor = "rgba(40, 200, 40, 0.2)";
-                  style.borderLeft = "3px solid rgba(40, 200, 40, 0.8)";
-                  style.width = "150%";
-                  style.position = "relative"; // 상대 위치 설정
-                  style.left = 0; // 왼쪽 정렬
-                  style.right = 0; // 오른쪽 끝까지 확장
-                }
-
-                return { style };
-              }}
-            >
-              {displayContent.content}
-            </SyntaxHighlighter>
-          </Box>
-        </>
-      ) : (
-        <Box w={"100%"} p={1} height={`calc(100% - 55px)`} overflowY={"auto"}>
-          {data &&
-            data
-              .sort(
-                (a, b) =>
-                  b.count - a.count || a.filePath.localeCompare(b.filePath)
-              )
-              .map((d) => (
-                <Box key={d.filePath} p={1}>
-                  <Text fontSize="sm" color="gray.600">
-                    {d.filePath} ({formatting(d.count, "int")} /{" "}
-                    {formatting(experiment.branchInfo.length, "int")},{" "}
-                    {formatting(
-                      (d.count / experiment.branchInfo.length) * 100,
-                      "float"
-                    )}
-                    %)
-                  </Text>
-                </Box>
-              ))}
         </Box>
-      )}
+        <Box w={"100%"} height={`calc(60% - 47px)`}>
+          <SyntaxHighlighter
+            customStyle={{
+              fontSize: "12px",
+              width: "100%",
+              height: "100%",
+            }}
+            startingLineNumber={displayContent.startLine}
+            language="c"
+            style={materialOceanic}
+            wrapLines={true}
+            showLineNumbers={true}
+            lineProps={(lineNumber) => {
+              let style: React.CSSProperties = {
+                display: "block",
+                width: "100%", // 전체 너비 차지
+                minWidth: "100%", // 최소 너비 설정
+                boxSizing: "border-box", // 패딩과 보더를 포함한 너비 계산
+              };
+
+              if (lineNumber === branchInfo?.line) {
+                style.backgroundColor = "rgba(40, 200, 40, 0.2)";
+                style.borderLeft = "3px solid rgba(40, 200, 40, 0.8)";
+                style.width = "150%";
+                style.position = "relative"; // 상대 위치 설정
+                style.left = 0; // 왼쪽 정렬
+                style.right = 0; // 오른쪽 끝까지 확장
+              }
+
+              return { style };
+            }}
+          >
+            {displayContent.content}
+          </SyntaxHighlighter>
+        </Box>
+      </Box>
     </div>
   );
 }

@@ -96,7 +96,7 @@ const CoverageView: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
 
-  const margin = { top: 120, right: 40, bottom: 160, left: 40 };
+  const margin = { top: 80, right: 40, bottom: 40, left: 40 };
 
   const legendWidth = 130;
   const legendHeight = 100;

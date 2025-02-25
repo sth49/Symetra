@@ -203,7 +203,6 @@ const InterGroupView = () => {
         }}
       >
         <Box width={`${namePercent}%`}></Box>
-
         <Box
           width={`${(100 - namePercent) / 2}%`}
           display={"flex"}

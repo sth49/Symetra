@@ -236,8 +236,11 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"99%"} bg="white" m={0.5}>
+                    <Box height={"59%"} bg="white" m={0.5}>
                       <CoverageView />
+                    </Box>
+                    <Box height={"39.5%"} bg="white" m={0.5} mb={2}>
+                      <TrialGroupView />
                     </Box>
                   </Box>
                   <Box
@@ -246,8 +249,11 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"99%"} m={0.5} bg="white">
+                    <Box height={"59%"} m={0.5} bg="white">
                       <TrialView />
+                    </Box>
+                    <Box height={"39.5%"} m={0.5} bg="white" mb={2}>
+                      <InterGroupView />
                     </Box>
                   </Box>
                   <Box
@@ -256,14 +262,14 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0.5}>
+                    {/* <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0.5}>
                       <TrialGroupView />
-                    </Box>
+                    </Box> */}
 
-                    <Box height={"calc(40% - 8px)"} m={0.5} bg="white" mr={1}>
+                    {/* <Box height={"calc(40% - 8px)"} m={0.5} bg="white" mr={1}>
                       <InterGroupView />
-                    </Box>
-                    <Box height={"29%"} m={0.5} bg="white" mr={1} mb={2}>
+                    </Box> */}
+                    <Box height={"99%"} m={0.5} bg="white" mr={1} mb={2}>
                       <CodeDetail />
                     </Box>
                   </Box>
