@@ -13,20 +13,9 @@ import { useCustomStore } from "../store";
 import { useEffect, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { BranchInfo } from "../model/experiment";
-import { formatting } from "../model/utils";
 
-import {
-  Column,
-  Table,
-  ExpandedState,
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getExpandedRowModel,
-  ColumnDef,
-  flexRender,
-} from "@tanstack/react-table";
+import CodeFileTable from "./CodeFileTable";
+import OverlappedCharts from "./OverlappedCharts";
 
 function sliceAroundLine(
   content: string,
@@ -127,23 +116,13 @@ function CodeDetail() {
     return sliceAroundLine(fileContent, branchInfo.line, numLine);
   }, [fileContent, branchInfo, numLine]);
 
-  const data2 = useMemo(() => {
-    return data.map((d, i) => ({
-      id: i,
-      filePath: d.filePath,
-      children: experiment.branchInfo
-        .filter((b) => b.filePath === d.filePath)
-        .map((b) => ({
-          id: b.branch,
-          branch: b.branch,
-          line: b.line,
-          condition: b.condition,
-        })),
-    }));
-  }, [data, experiment.branchInfo]);
+  const currentSelectedGroup = useCustomStore(
+    (state) => state.currentSelectedGroup
+  );
 
-  const [expanded, setExpanded] = useState({});
-
+  const currentSelectedGroup2 = useCustomStore(
+    (state) => state.currentSelectedGroup2
+  );
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
       <Box
@@ -164,74 +143,6 @@ function CodeDetail() {
         </Heading>
       </Box>
       <Box w={"100%"} p={1} height={`calc(100% - 35px)`}>
-        <Box w={"100%"} h={"40%"} overflowY={"auto"}>
-          {data &&
-            data
-              .sort(
-                (a, b) =>
-                  b.count - a.count || a.filePath.localeCompare(b.filePath)
-              )
-              .map((d) => (
-                <>
-                  <Box
-                    key={d.filePath}
-                    p={1}
-                    onClick={() => {
-                      setExpanded({
-                        ...expanded,
-                        [d.filePath]: expanded[d.filePath] ? false : true,
-                      });
-                    }}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <Text fontSize="sm" color="gray.600">
-                      {d.filePath} ({formatting(d.count, "int")} /{" "}
-                      {formatting(experiment.branchInfo.length, "int")},{" "}
-                      {formatting(
-                        (d.count / experiment.branchInfo.length) * 100,
-                        "float"
-                      )}
-                      %)
-                    </Text>
-                  </Box>
-                  {expanded[d.filePath] && (
-                    <>
-                      {data2
-                        .filter((d2) => d2.filePath === d.filePath)
-                        .map((d2) =>
-                          d2.children.map((child) => {
-                            return (
-                              <Box
-                                backgroundColor={"gray.100"}
-                                p={1}
-                                pl={2}
-                                onClick={() => {
-                                  setSelectBranchId(child.branch);
-                                }}
-                                style={{ cursor: "pointer" }}
-                              >
-                                <Text
-                                  fontSize="xs"
-                                  color="gray.600"
-                                  fontWeight={
-                                    selectedBranchId === child.branch
-                                      ? "bold"
-                                      : "normal"
-                                  }
-                                >
-                                  {child.branch} (Line: {child.line}, Branch:{" "}
-                                  {child.condition})
-                                </Text>
-                              </Box>
-                            );
-                          })
-                        )}
-                    </>
-                  )}
-                </>
-              ))}
-        </Box>
-
         <Box w={"100%"} h={"47px"}>
           <Box display={"flex"} justifyContent={"space-between"} pl={2} pr={2}>
             <FormControl
@@ -298,7 +209,7 @@ function CodeDetail() {
             )}
           </Box>
         </Box>
-        <Box w={"100%"} height={`calc(60% - 47px)`}>
+        <Box w={"100%"} height={`calc(60% - 77px)`}>
           <SyntaxHighlighter
             customStyle={{
               fontSize: "12px",
@@ -333,6 +244,13 @@ function CodeDetail() {
             {displayContent.content}
           </SyntaxHighlighter>
         </Box>
+        <Box w={"100%"} height={`30px`}>
+          <OverlappedCharts
+            trialGroup1={currentSelectedGroup}
+            trialGroup2={currentSelectedGroup2}
+          />
+        </Box>
+        <CodeFileTable />
       </Box>
     </div>
   );

@@ -1,112 +1,316 @@
-import { Box, Text } from "@chakra-ui/react";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useMetricScale } from "../model/colorScale";
+import { formatting, getTextColor } from "../model/utils";
+
+import { useMemo } from "react";
 import { useCustomStore } from "../store";
-import AreaChart from "./AreaChart";
-import { formatting } from "../model/utils";
-import { useCallback } from "react";
+import { Box } from "@chakra-ui/react";
+import { performStatisticalTest } from "../model/statistic";
+
+import { useConstDataStore } from "./store/constDataStore";
+import MetricBadge from "./MetricBadge";
 
 const TrialGroupTable = () => {
-  const groups = useCustomStore((state) => state.groups);
-  const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
-  const setCurrentSelectedGroup = useCustomStore(
+  const currentSelectedGroup = useCustomStore(
+    (state) => state.currentSelectedGroup
+  );
+  const setCurrnetSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
+  const { hyperparams } = useConstDataStore();
+  const groups = useCustomStore((state) => state.groups);
 
-  const handleMouseEnter = useCallback(
-    (group) => {
-      setHoveredGroup(new Set(group.trials.map((trial) => trial.id)));
-    },
-    [setHoveredGroup]
-  );
+  const data = useMemo(() => {
+    return groups.groups.map((group) => {
+      const groupData = groups.groups.map((g) => {
+        if (group.id === g.id) {
+          return {
+            id: g.id.toString(),
+            difference: 0,
+          };
+        }
+        const differences = hyperparams.map((param) => {
+          const group1 = group.getHyperparam(param.name);
+          const group2 = g.getHyperparam(param.name);
+          const pValue =
+            performStatisticalTest(group1, group2, param.type, param).pValue ||
+            1;
+          return {
+            param: param.name,
+            pValue,
+          };
+        });
 
-  const handleMouseLeave = useCallback(() => {
-    setHoveredGroup(new Set());
-  }, [setHoveredGroup]);
+        const diffCount = differences.filter((d) => d.pValue < 0.05).length;
+        return {
+          id: g.id.toString(),
+          difference: diffCount,
+        };
+      });
 
-  return (
-    <div style={{ height: "100%", width: "100%", padding: "4px" }}>
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "1px solid #ddd",
-          padding: "4px",
-        }}
-      >
-        <Box width={"20%"}>
-          <Text align={"center"} fontWeight={"bold"} color={"gray.600"}>
-            Name
-          </Text>
-        </Box>
+      return {
+        id: group.id,
+        name: group.name,
+        size: group.trials.length,
+        mean: group.getStats().avg,
+        ...Object.assign(
+          {},
+          ...groupData.map((d) => ({ [d.id]: d.difference }))
+        ),
+      };
+    });
+  }, [groups.groups, hyperparams]);
 
-        <Box width={"20%"} display={"flex"} justifyContent={"center"}>
-          <Text align={"center"} fontWeight={"bold"} color={"gray.600"}>
-            Count
-          </Text>
-        </Box>
-        <Box width={"60%"} display={"flex"} justifyContent={"center"}>
-          <Text align={"center"} fontWeight={"bold"} color={"gray.600"}>
-            Covered Branch
-          </Text>
-        </Box>
-      </div>
-      <div
-        style={{
-          height: "calc(100% - 30px)",
-          width: "100%",
-          position: "relative",
-          overflowY: "auto",
-          paddingRight: "4px",
-        }}
-      >
-        <div
-          style={{ height: `calc(100% - 35px)` }}
-          onMouseLeave={handleMouseLeave}
-        >
-          {groups.groups.map((group, idx) => (
-            <div
-              key={idx} // key값은 index로 설정
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "4px",
-                height: "35px",
-                overflowY: "auto",
-                userSelect: "none",
+  const { colorScale, metricScale } = useMetricScale();
+
+  const columns = useMemo(() => {
+    return [
+      {
+        id: "checkbox",
+        header: "",
+        accessorKey: "check",
+        cell: (info) => (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={currentSelectedGroup.id === info.row.original.id}
+              onChange={() => {
+                setCurrnetSelectedGroup(groups.getGroup(info.row.original.id));
               }}
-              className="trial-group-table-row"
-              onMouseEnter={() => handleMouseEnter(group)}
-              onMouseLeave={handleMouseLeave}
-              onClick={() => setCurrentSelectedGroup(group)}
-            >
-              <Box width={"20%"}>
-                <Text align={"left"} fontSize={"sm"}>
-                  {group.name}
-                </Text>
-              </Box>
+              style={{
+                cursor: "pointer",
+              }}
+            />
+          </div>
+        ),
+        meta: { align: "center" },
+        enableSorting: false,
+        size: 25,
+      },
+      {
+        id: "name",
+        header: "Group",
+        accessorKey: "name",
+        cell: (info) => info.getValue(),
+        meta: { align: "left" },
+        type: "string",
+        size: 90,
+      },
+      {
+        id: "size",
+        header: "Size",
+        accessorKey: "size",
+        cell: (info) => formatting(info.getValue(), "int"),
+        meta: { align: "right" },
+        type: "number",
+        size: 50,
+      },
+      {
+        id: "mean",
+        header: "Mean",
+        accessorKey: "mean",
+        type: "number",
+
+        cell: (info) => {
+          const { cell } = info;
+          return (
+            <MetricBadge metricValue={cell.getValue()} type={"float"} />
+            // <Box
+            //   background={colorScale(metricScale(cell.getValue()))}
+            //   color={getTextColor(colorScale(metricScale(cell.getValue())))}
+            //   width={"100%"}
+            //   pr={1}
+            // >
+            //   {formatting(info.getValue(), "float")}
+            // </Box>
+          );
+        },
+        meta: { align: "right" },
+        size: 60,
+      },
+      ...groups.groups.map((group) => {
+        return {
+          id: group.id.toString(),
+          header: "",
+          accessorKey: group.id.toString(),
+          cell: (info) => {
+            return (
               <Box
-                width={"20%"}
-                display={"flex"}
-                justifyContent={"right"}
-                fontSize={"sm"}
-              >
-                <Text align={"center"}>
-                  {formatting(group.trials.length, "int")}
-                </Text>
-              </Box>
-              <Box
-                width={"60%"}
-                height={"100%"}
+                width={"100%"}
+                pr={1}
                 display={"flex"}
                 justifyContent={"center"}
               >
-                <AreaChart trialGroup={group} />
+                {formatting(info.getValue(), "int")}
               </Box>
-            </div>
-          ))}
-        </div>
+            );
+          },
+          meta: { align: "right" },
+          size: 45,
+        };
+      }),
+    ];
+  }, [groups, setCurrnetSelectedGroup, colorScale, metricScale]);
+
+  console.log("columns", columns);
+
+  const table = useReactTable({
+    data,
+    columns,
+    initialState: {
+      columnPinning: {
+        left: ["check"],
+        right: [],
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    debugTable: true,
+    enableRowSelection: true,
+  });
+
+  return (
+    <Box
+      style={{
+        // width: "230px",
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        overflow: "hidden",
+        // paddingTop: "30px",
+      }}
+    >
+      <div
+        className="container"
+        style={{
+          overflow: "auto",
+          overflowX: "hidden",
+          height: "99%",
+          padding: "0 4px",
+        }}
+      >
+        <table
+          className="hparam-table"
+          style={{
+            tableLayout: "fixed",
+          }}
+        >
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className="hparam-table-sticky-header">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      style={{
+                        width: `${header.getSize()}px`,
+                        position: "sticky",
+                        top: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        padding: "8px 4px",
+                      }}
+                    >
+                      {header.isPlaceholder ? null : (
+                        <div
+                          {...{
+                            className: header.column.getCanSort()
+                              ? "cursor-pointer select-none"
+                              : "",
+                            onClick: header.column.getToggleSortingHandler(),
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            height: "100%",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </div>
+                      )}
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+          <tbody key={"tbody"}>
+            {table.getRowModel().rows.map((row) => {
+              return (
+                <>
+                  <tr
+                    key={row.id}
+                    className={`hparam-table-row ${
+                      currentSelectedGroup.id === row.original.id
+                        ? "selected"
+                        : ""
+                    } `}
+                    style={{
+                      padding: "0 10px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setCurrnetSelectedGroup(groups.getGroup(row.original.id));
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const { column } = cell;
+                      return (
+                        <td
+                          key={cell.id}
+                          style={{
+                            width: column.getSize(),
+                            // @ts-ignore
+                            textAlign: cell.column.columnDef.meta.align,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            alignItems: "center",
+                            height: "30px",
+                            padding: "0px 4px",
+                            // borderBottom: "1px solid #e0e0e0",
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-    </div>
+    </Box>
   );
 };
 

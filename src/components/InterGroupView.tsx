@@ -26,6 +26,10 @@ const InterGroupView = () => {
     (state) => state.currentSelectedGroup
   );
 
+  const setCurrentSelectedGroup2 = useCustomStore(
+    (state) => state.setCurrentSelectedGroup2
+  );
+
   const [sortDirection, setSortDirection] = useState("htl");
   const groups = useCustomStore((state) => state.groups);
   const [group2, setGroup2] = useState(
@@ -36,6 +40,10 @@ const InterGroupView = () => {
       return false;
     })[0]
   );
+
+  useEffect(() => {
+    setCurrentSelectedGroup2(group2);
+  }, [group2, setCurrentSelectedGroup2]);
 
   const stats = useMemo(() => {
     if (!currentSelectedGroup || !group2) {

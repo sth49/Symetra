@@ -24,6 +24,9 @@ interface CustomStore {
   currentSelectedGroup: Group | null;
   setCurrentSelectedGroup: (group: Group | null) => void;
 
+  currentSelectedGroup2: Group | null;
+  setCurrentSelectedGroup2: (group: Group | null) => void;
+
   editGroupName: (groupId: number, newName: string) => void;
 
   clickedHparamValue: HparamValue | null;
@@ -63,6 +66,9 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   currentSelectedGroup: null,
   setCurrentSelectedGroup: (group) => set({ currentSelectedGroup: group }),
+
+  currentSelectedGroup2: null,
+  setCurrentSelectedGroup2: (group) => set({ currentSelectedGroup2: group }),
 
   editGroupName: (groupId, newName) =>
     set((state) => {

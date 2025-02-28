@@ -14,6 +14,7 @@ const MetricBadge = ({ metricValue, type = "int" }: MetricBadgeProps) => {
       backgroundColor={colorScale(metricScale(metricValue))}
       color={getTextColor(colorScale(metricScale(metricValue)))}
       display={"flex"}
+      justifyContent={"center"}
       alignItems={"center"}
       fontWeight={"normal"}
       userSelect={"none"}

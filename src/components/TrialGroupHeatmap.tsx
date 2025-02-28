@@ -18,36 +18,13 @@ interface TooltipData {
   differences: Array<{ param: string; pValue: number }>;
 }
 
-const tooltipStyles = {
-  ...defaultStyles,
-  background: "rgba(0, 0, 0, 0.8)",
-  color: "white",
-  padding: "12px",
-  borderRadius: "4px",
-  fontSize: "12px",
-};
-
 const margin = { top: 30, right: 10, bottom: 10, left: 90 };
 
 const TrialGroupHeatmap = () => {
   const groups = useCustomStore((state) => state.groups);
   const { hyperparams } = useConstDataStore();
-  const currentSelectedGroup = useCustomStore(
-    (state) => state.currentSelectedGroup
-  );
 
-  const {
-    tooltipOpen,
-    tooltipLeft,
-    tooltipTop,
-    tooltipData,
-    hideTooltip,
-    showTooltip,
-  } = useTooltip<TooltipData>();
-
-  const { TooltipInPortal } = useTooltipInPortal({
-    scroll: true,
-  });
+  const { hideTooltip, showTooltip } = useTooltip<TooltipData>();
 
   // Calculate statistical differences between groups
   const heatmapData = useMemo(() => {

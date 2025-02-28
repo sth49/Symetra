@@ -10,16 +10,18 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { FaCircle } from "react-icons/fa";
 import { Box, Button, Icon, IconButton, Text } from "@chakra-ui/react";
-import { FaEye } from "react-icons/fa6";
-import { FaEyeSlash } from "react-icons/fa6";
 import BarChart from "./BarChart";
-import { FaAngleUp } from "react-icons/fa6";
-import { FaAngleDown } from "react-icons/fa6";
-import { FaSort } from "react-icons/fa6";
-import { FaSortUp } from "react-icons/fa6";
-import { FaSortDown } from "react-icons/fa6";
+import {
+  FaAngleUp,
+  FaAngleDown,
+  FaSort,
+  FaSortUp,
+  FaSortDown,
+  FaCircle,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import HparamExtended from "./HparamExtended";
 import React from "react";
 
@@ -471,6 +473,7 @@ const HparamTable = () => {
                     } `}
                     style={{
                       padding: "0 10px",
+                      cursor: "pointer",
                     }}
                   >
                     {row.getVisibleCells().map((cell) => {

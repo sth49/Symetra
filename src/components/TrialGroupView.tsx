@@ -1,12 +1,11 @@
 import { Box, Heading } from "@chakra-ui/react";
-import { useEffect } from "react";
-import TrialGroupGraph from "./TrialGroupGraph";
+import { useEffect, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { useCustomStore } from "../store";
 import GroupDetailView from "./GroupDetailView";
 import { Groups } from "../model/group";
 import Heatmap from "./Heatmap";
-import TrialGroupHeatmap from "./TrialGroupHeatmap";
+import TrialGroupTable from "./TrialGroupTable";
 
 const TrialGroupView = () => {
   // const [visible, setVisible] = useState(true);
@@ -15,6 +14,7 @@ const TrialGroupView = () => {
   const setCurrnetSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
   );
+
   useEffect(() => {
     console.log("TrialGroupView initialized");
     const updatedGroups = new Groups();
@@ -140,6 +140,12 @@ const TrialGroupView = () => {
     setCurrnetSelectedGroup(updatedGroups.groups[0]);
   }, [exp]);
 
+  const groups = useCustomStore((state) => state.groups);
+
+  const groupNames = useMemo(() => {
+    return groups.groups.map((group) => group.name);
+  }, [groups]);
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box display={"flex"} justifyContent={"space-between"}>
@@ -147,10 +153,61 @@ const TrialGroupView = () => {
           Trial Group View
         </Heading>
       </Box>
-      <Box height={`calc(100% - 35px - 65px)`}>
-        {/* <TrialGroupGraph /> */}
-        <TrialGroupHeatmap />
+      <Box
+        height={`calc(100% - 35px - 65px)`}
+        style={{
+          display: "flex",
+          position: "relative",
+        }}
+      >
+        {/* <TrialGroupTable /> */}
+        <Box style={{ position: "relative", zIndex: 1 }}>
+          <TrialGroupTable />
+        </Box>
+        <Box
+          flex={1}
+          // height="100%"
+          height={65}
+          width={`calc(100% - 230px)`}
+          position={"absolute"}
+          zIndex={2}
+          // paddingLeft={"230px"}
+          marginTop={"-30px"}
+          marginLeft={"230px"}
+          // backgroundColor={"#f0f0f0"}
+        >
+          <svg width={"100%"} height={"100%"}>
+            {groupNames.map((name, i) => {
+              return (
+                <>
+                  <text
+                    key={i}
+                    x={22.5 + i * 45}
+                    y={64} // rect의 높이(66px)에 맞춤
+                    fill={"black"}
+                    fontSize={12}
+                    textAnchor="end" // 텍스트 앵커 포인트를 시작점으로 설정
+                    dominantBaseline="text-after-edge" // 텍스트 기준선을 텍스트 하단으로 설정
+                    transform={`rotate(45, ${22.5 + i * 45}, 55)`} // 회전 중심을 바닥에 맞춤
+                  >
+                    {name}
+                  </text>
+                  {/* <line
+                    x1={22.5 + i * 45}
+                    y1={0}
+                    x2={22.5 + i * 45}
+                    y2={"120%"}
+                    stroke={"#ccc"}
+                    strokeWidth={1}
+                    // transform={`rotate(-45, ${22.5 + i * 45}, 60)`}
+                  ></line> */}
+                </>
+              );
+            })}
+          </svg>
+        </Box>
       </Box>
+
       <GroupDetailView />
     </div>
   );
