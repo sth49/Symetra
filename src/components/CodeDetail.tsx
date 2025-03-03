@@ -10,12 +10,14 @@ import {
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialOceanic } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { useCustomStore } from "../store";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { BranchInfo } from "../model/experiment";
 
 import CodeFileTable from "./CodeFileTable";
 import OverlappedCharts from "./OverlappedCharts";
+import { formatting } from "../model/utils";
+import SpeedometerGauge from "./SpeedMeterGauge";
 
 function sliceAroundLine(
   content: string,
@@ -37,7 +39,7 @@ function sliceAroundLine(
 
 function CodeDetail() {
   const [fileContent, setFileContent] = useState<string>("");
-  const [numLine, setNumLine] = useState<number>(5);
+  const [numLine, setNumLine] = useState<number>(15);
   const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
   const setSelectBranchId = useCustomStore(
     (state) => state.setSelectedBranchId
@@ -47,23 +49,6 @@ function CodeDetail() {
   const [branchInfo, setBranchInfo] = useState<BranchInfo | undefined>(
     undefined
   );
-
-  const data = useMemo(() => {
-    // file에 해당하는 브랜치 개수 구하기
-    const branchCount = {};
-    experiment.branchInfo.forEach((branch) => {
-      if (branchCount[branch.filePath]) {
-        branchCount[branch.filePath]++;
-      } else {
-        branchCount[branch.filePath] = 1;
-      }
-    });
-
-    return Object.keys(branchCount).map((filePath) => ({
-      filePath: filePath,
-      count: branchCount[filePath],
-    }));
-  }, [experiment.branchInfo]);
 
   useEffect(() => {
     if (selectedBranchId) {
@@ -102,11 +87,6 @@ function CodeDetail() {
     loadFile();
   }, [branchInfo?.filePath]);
 
-  // const displayContent = useMemo(() => {
-  //   if (!fileContent || !branchInfo?.line) return "// Loading file content...";
-  //   return sliceAroundLine(fileContent, branchInfo.line, numLine);
-  // }, [fileContent, branchInfo, numLine]);
-  // CodeDetail 컴포넌트에서
   const displayContent = useMemo(() => {
     if (!fileContent || !branchInfo?.line)
       return {
@@ -123,6 +103,37 @@ function CodeDetail() {
   const currentSelectedGroup2 = useCustomStore(
     (state) => state.currentSelectedGroup2
   );
+
+  const data = useMemo(() => {
+    if (!currentSelectedGroup || !currentSelectedGroup2) {
+      return [];
+    }
+    const group1 = currentSelectedGroup?.getOrignalBranches(
+      experiment.branchInfo
+    );
+
+    const group2 = currentSelectedGroup2?.getOrignalBranches(
+      experiment.branchInfo
+    );
+
+    return {
+      group1: group1,
+      group2: group2,
+    };
+  }, [currentSelectedGroup, currentSelectedGroup2, experiment.branchInfo]);
+
+  const containerRef = useRef(null);
+
+  // Position the yellow rectangle to align with the highlighted line
+  const calculateYPosition = () => {
+    if (!branchInfo) return 0;
+    if (!containerRef.current) return 0;
+    const lineHeight = 18; // 24px
+    const lineOffset =
+      (branchInfo.line - displayContent.startLine) * lineHeight + 15;
+    return lineOffset;
+  };
+
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
       <Box
@@ -143,8 +154,15 @@ function CodeDetail() {
         </Heading>
       </Box>
       <Box w={"100%"} p={1} height={`calc(100% - 35px)`}>
-        <Box w={"100%"} h={"47px"}>
+        <Box w={"100%"} height={`30px`} padding={1}>
+          <OverlappedCharts
+            trialGroup1={currentSelectedGroup}
+            trialGroup2={currentSelectedGroup2}
+          />
+        </Box>
+        <Box w={"100%"} h={"50px"}>
           <Box display={"flex"} justifyContent={"space-between"} pl={2} pr={2}>
+            {/* <Text fontSize={"sm"}>{branchInfo.fileName}</Text> */}
             <FormControl
               display="flex"
               justifyContent="right"
@@ -167,6 +185,7 @@ function CodeDetail() {
                 placeholder={"Branch ID"}
               />
             </FormControl>
+
             <FormControl
               display="flex"
               justifyContent="right"
@@ -191,7 +210,7 @@ function CodeDetail() {
                 }}
                 value={numLine}
               >
-                {["All", "5", "10", "20"].map((num) => (
+                {["10", "15", "20", "All"].map((num) => (
                   <option key={num} value={num}>
                     {num}
                   </option>
@@ -199,18 +218,160 @@ function CodeDetail() {
               </Select>
             </FormControl>
           </Box>
-          <Box pl={2} pr={2} display={"flex"} justifyContent={"space-between"}>
-            {branchInfo && (
+          <Box
+            pl={2}
+            pr={2}
+            display={"flex"}
+            justifyContent={"space-between"}
+            alignItems={"center"}
+          >
+            {selectedBranchId && branchInfo && (
               <>
-                <Text fontSize={"sm"}>File: {branchInfo.fileName}</Text>
-                <Text fontSize={"sm"}>Line: {branchInfo.line}</Text>
-                <Text fontSize={"sm"}>Branch: {branchInfo.condition}</Text>
+                <Text fontSize={"xs"}>
+                  {currentSelectedGroup?.name} (
+                  {Array.isArray(data)
+                    ? "N/A"
+                    : formatting(data.group1[selectedBranchId], "int")}
+                  {", "}
+                  {Array.isArray(data)
+                    ? "N/A"
+                    : formatting(
+                        data.group1[selectedBranchId] /
+                          currentSelectedGroup.getLength(),
+                        "float",
+                        2
+                      )}
+                  %)
+                </Text>
+                <SpeedometerGauge
+                  group1Value={data.group1[selectedBranchId]}
+                  group2Value={data.group2[selectedBranchId]}
+                  size="25px"
+                />
+                <Text fontSize={"xs"}>
+                  {currentSelectedGroup2?.name} (
+                  {Array.isArray(data)
+                    ? "N/A"
+                    : formatting(data.group2[selectedBranchId], "int")}
+                  {", "}
+                  {Array.isArray(data)
+                    ? "N/A"
+                    : formatting(
+                        data.group2[selectedBranchId] /
+                          currentSelectedGroup2.getLength(),
+                        "float",
+                        2
+                      )}
+                  %)
+                </Text>
               </>
             )}
           </Box>
         </Box>
-        <Box w={"100%"} height={`calc(60% - 77px)`}>
-          <SyntaxHighlighter
+
+        <Box
+          w={"100%"}
+          height={`calc(57.5% - 80px)`}
+          position={"relative"}
+          ref={containerRef}
+        >
+          <Box position="relative" width="100%" height="100%" overflow="auto">
+            <div
+              style={{ position: "relative", width: "100%", minHeight: "100%" }}
+            >
+              {selectedBranchId && (
+                <Box
+                  width="22px"
+                  height="18px" // Set to line height
+                  style={{
+                    position: "absolute",
+                    zIndex: 1000,
+                    top: calculateYPosition(),
+                    left: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                    backgroundColor: "white",
+                  }}
+                >
+                  <SpeedometerGauge
+                    group1Value={data.group1[selectedBranchId]}
+                    group2Value={data.group2[selectedBranchId]}
+                    size="18px"
+                  />
+                </Box>
+              )}
+
+              {/* <svg
+                width="10%"
+                height="18px" // Set to line height
+                style={{
+                  position: "absolute",
+                  zIndex: 1000,
+                  top: calculateYPosition(),
+                  left: 0,
+                }}
+              >
+                <rect
+                  x="0"
+                  y="0"
+                  width="100"
+                  height="100%"
+                  fill="yellow"
+                ></rect>
+              </svg> */}
+
+              <SyntaxHighlighter
+                customStyle={{
+                  fontSize: "12px",
+                  width: "100%",
+                  height: "100%",
+                }}
+                startingLineNumber={displayContent.startLine}
+                language="c"
+                style={materialOceanic}
+                wrapLines={true}
+                showLineNumbers={true}
+                lineProps={(lineNumber) => {
+                  let style = {
+                    display: "block",
+                    width: "100%",
+                    minWidth: "100%",
+                    boxSizing: "border-box",
+                  };
+
+                  if (lineNumber === branchInfo?.line) {
+                    style.backgroundColor = "rgba(40, 200, 40, 0.2)";
+                    style.borderLeft = "3px solid rgba(40, 200, 40, 0.8)";
+                    style.width = "150%";
+                    style.position = "relative";
+                    style.left = 0;
+                    style.right = 0;
+                  }
+
+                  return { style };
+                }}
+              >
+                {displayContent.content}
+              </SyntaxHighlighter>
+            </div>
+          </Box>
+
+          {/* <Box
+            position={"absolute"}
+            width={"100%"}
+            height={"100%"}
+            overflow={"auto"}
+          >
+            <svg
+              width="10%"
+              height="100%"
+              style={{ position: "absolute", zIndex: 1000 }}
+            >
+              <rect x="0" y="0" width="100" height="100" fill="yellow"></rect>
+            </svg>
+          </Box> */}
+
+          {/* <SyntaxHighlighter
             customStyle={{
               fontSize: "12px",
               width: "100%",
@@ -242,14 +403,9 @@ function CodeDetail() {
             }}
           >
             {displayContent.content}
-          </SyntaxHighlighter>
+          </SyntaxHighlighter> */}
         </Box>
-        <Box w={"100%"} height={`30px`}>
-          <OverlappedCharts
-            trialGroup1={currentSelectedGroup}
-            trialGroup2={currentSelectedGroup2}
-          />
-        </Box>
+
         <CodeFileTable />
       </Box>
     </div>

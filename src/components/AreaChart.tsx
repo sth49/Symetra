@@ -41,10 +41,10 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
 
+  const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
+
   const selectedData = useMemo(() => {
-    const branches = currentSelectedGroup.getBranches(
-      target.filter((t) => t.name === exp.name)[0].max
-    );
+    const branches = currentSelectedGroup.getBranches(exp.branchInfo);
     return branches.map((b, i) => ({
       x: i,
       y: b[1],
@@ -53,9 +53,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
   }, [currentSelectedGroup]);
 
   const data = useMemo(() => {
-    const branches = trialGroup.getBranches(
-      target.filter((t) => t.name === exp.name)[0].max
-    );
+    const branches = trialGroup.getBranches(exp.branchInfo);
     console.log("Branches:", branches);
     return selectedData.map((d) => {
       if (branches.find((b) => b[0] === d.branch) === undefined) {
@@ -143,6 +141,20 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
           fill={currentSelectedGroup.id === trialGroup.id ? "blue" : "red"}
           opacity={currentSelectedGroup.id === trialGroup.id ? 0.2 : 0.5}
         />
+        {selectedBranchId && (
+          <Line
+            x1={xScale(
+              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
+            )}
+            x2={xScale(
+              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
+            )}
+            y1={margin.top}
+            y2={height - margin.bottom}
+            stroke="black"
+            strokeWidth={1}
+          />
+        )}
         {tooltipLeft && (
           <Line
             from={{ x: tooltipLeft, y: 0 }}

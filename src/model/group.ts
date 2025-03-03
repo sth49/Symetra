@@ -1,3 +1,4 @@
+import { BranchInfo } from "./experiment";
 import { Trial } from "./trial";
 
 export class Groups {
@@ -83,11 +84,14 @@ export class Group {
     return unionSet;
   }
 
-  getOrignalBranches(maxBranch: number = 3365) {
-    const branchCount = {};
-    for (let i = 1; i < maxBranch + 1; i++) {
-      branchCount[i] = 0;
+  getOrignalBranches(branchInfo: BranchInfo[]) {
+    if (branchInfo.length === 0) {
+      return {};
     }
+    const branchCount = {};
+    branchInfo.map((b) => {
+      branchCount[b.branch] = 0;
+    });
     this.trials.forEach((trial) => {
       trial.branch.forEach((b) => {
         if (branchCount[b] === undefined) {
@@ -98,9 +102,24 @@ export class Group {
       });
     });
     return branchCount;
+
+    // const branchCount = {};
+    // for (let i = 1; i < maxBranch + 1; i++) {
+    //   branchCount[i] = 0;
+    // }
+    // this.trials.forEach((trial) => {
+    //   trial.branch.forEach((b) => {
+    //     if (branchCount[b] === undefined) {
+    //       branchCount[b] = 1;
+    //     } else {
+    //       branchCount[b]++;
+    //     }
+    //   });
+    // });
+    // return branchCount;
   }
 
-  getBranches(maxBranch: number = 3365) {
+  getBranches(branchInfo: BranchInfo[]) {
     //format {3: 45, } means branch 3 has 45 trials
     // const branchCount = {};
     // for (let i = 1; i < maxBranch + 1; i++) {
@@ -115,7 +134,7 @@ export class Group {
     //     }
     //   });
     // });
-    const branchCount = this.getOrignalBranches(maxBranch);
+    const branchCount = this.getOrignalBranches(branchInfo);
 
     Object.keys(branchCount).forEach((key) => {
       branchCount[key] = branchCount[key] / this.trials.length;

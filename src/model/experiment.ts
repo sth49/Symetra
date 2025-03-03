@@ -42,13 +42,12 @@ function parseBranchInfo(info: string) {
   // console.log("Original path:", originalPath); // gcal-4.1/src/gcal.c
 
   const line = parseInt(info.match(/Line:(\d+)/)?.[1] || "0");
-  const condition = parseInt(info.match(/Branch:(\d+)/)?.[1] || "0");
 
   // program 폴더는 이미 public에 있으므로 경로 앞에 추가
   const filePath = `program/${originalPath}`;
   // console.log("Final file path:", filePath);
 
-  return { filePath, line, condition };
+  return { filePath, line };
 }
 
 export class BranchInfo {
@@ -56,8 +55,7 @@ export class BranchInfo {
   constructor(
     public branch: string,
     public filePath: string,
-    public line: number,
-    public condition: number
+    public line: number
   ) {
     this.fileName = filePath.split("/").pop();
   }
@@ -67,12 +65,12 @@ export class BranchInfo {
       // const line = parseInt(branchInfoString.split(" ")[1].split("Line:")[1]);
       // const condition = parseInt(branchInfoString.split(" ")[2].split(":")[1]);
 
-      const { filePath, line, condition } = parseBranchInfo(branchInfoString);
+      const { filePath, line } = parseBranchInfo(branchInfoString);
 
-      return new BranchInfo(index, filePath, line, condition);
+      return new BranchInfo(index, filePath, line);
     } catch (e) {
       // console.log("error", e);
-      return new BranchInfo(index, "Could not found the condition...", 0, -1);
+      return new BranchInfo(index, "Could not found the condition...", 0);
     }
   }
 }
@@ -115,10 +113,7 @@ export class Experiment {
     //   console.log("branchInfoString", branchInfoString);
     // });
     console.log("branchInfo", branchInfo);
-    Object.keys(branchInfo).map((key, index) => {
-      // console.log("key", key);
-      // console.log("index", index);
-      // console.log("branchInfoString", branchInfo[index]);
+    Object.keys(branchInfo).map((key) => {
       branchInfoList.push(BranchInfo.fromJson(key, branchInfo[key]));
     });
 

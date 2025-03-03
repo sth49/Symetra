@@ -129,6 +129,12 @@ const InterGroupView = () => {
             hp.type,
             hp
           ).pValue || 1,
+        ...performStatisticalTest(
+          currentSelectedGroup.getHyperparam(hp.name),
+          group2.getHyperparam(hp.name),
+          hp.type,
+          hp
+        ),
       };
     });
   }, [currentSelectedGroup, exp?.hyperparams, group2, insignificantHparams]);
@@ -461,9 +467,11 @@ const InterGroupView = () => {
                 // .sort((a, b) => a.pValue - b.pValue)
                 .sort((a, b) => {
                   if (sortDirection === "htl") {
-                    return a.pValue - b.pValue;
+                    return b.interpretationLevel - a.interpretationLevel;
+                    // return a.pValue - b.pValue;
                   }
-                  return b.pValue - a.pValue;
+                  // return b.pValue - a.pValue;
+                  return a.interpretationLevel - b.interpretationLevel;
                 })
                 .map((d) => {
                   return (
@@ -503,7 +511,7 @@ const InterGroupView = () => {
                               userSelect={"none"}
                             >
                               <Icon as={d.icon} mr={1} color={"gray.600"} />
-                              {d.name}
+                              {d.name} ({d.effectSizeInterpretation})
                               {d.pValue < 0.05 && (
                                 <Text color={"red.600"}>*</Text>
                               )}

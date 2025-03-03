@@ -14,22 +14,21 @@ import { useCustomStore } from "../store";
 import { Box, Button, Icon, IconButton } from "@chakra-ui/react";
 import { formatting } from "../model/utils";
 import CodeFileExtended from "./CodeFileExtended";
-
+import { FaAngleUp, FaAngleDown } from "react-icons/fa";
 const CodeFileTable = () => {
-  const currSelectedGroup = useCustomStore(
+  const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
 
-  const currSelectedGroup2 = useCustomStore(
+  const currentSelectedGroup2 = useCustomStore(
     (state) => state.currentSelectedGroup2
   );
 
   const experiment = useConstDataStore((state) => state.exp);
-  const target = useConstDataStore((state) => state.target);
   const [showNum, setShowNum] = useState(5);
 
   const data = useMemo(() => {
-    if (!currSelectedGroup || !currSelectedGroup2) {
+    if (!currentSelectedGroup || !currentSelectedGroup2) {
       return [];
     }
     const branchCount = {};
@@ -41,12 +40,12 @@ const CodeFileTable = () => {
       }
     });
 
-    const group1 = currSelectedGroup?.getOrignalBranches(
-      target.filter((t) => t.name === experiment.name)[0].max
+    const group1 = currentSelectedGroup?.getOrignalBranches(
+      experiment.branchInfo
     );
 
-    const group2 = currSelectedGroup2?.getOrignalBranches(
-      target.filter((t) => t.name === experiment.name)[0].max
+    const group2 = currentSelectedGroup2?.getOrignalBranches(
+      experiment.branchInfo
     );
 
     return Object.keys(branchCount).map((filePath, i) => {
@@ -96,46 +95,10 @@ const CodeFileTable = () => {
         children: children,
       };
     });
-  }, [
-    currSelectedGroup,
-    currSelectedGroup2,
-    experiment.branchInfo,
-    experiment.name,
-    target,
-  ]);
+  }, [currentSelectedGroup, currentSelectedGroup2, experiment.branchInfo]);
 
   const columns = useMemo(() => {
     return [
-      {
-        id: "expander",
-        header: "",
-        accessorKey: "expander",
-        cell: (info) => {
-          const { row } = info;
-          return (
-            <IconButton
-              size={"xs"}
-              icon={
-                row.getIsExpanded() ? (
-                  <Icon as={FaMinus} color={"gray.500"} />
-                ) : (
-                  <Icon as={FaPlus} color={"gray.500"} />
-                )
-              }
-              onClick={() => {
-                row.toggleExpanded();
-                setShowNum(5);
-              }}
-              aria-label={""}
-            />
-          );
-        },
-        meta: {
-          align: "left",
-        },
-        enableSorting: false,
-        size: 30,
-      },
       {
         id: "filePath",
         header: "File Path",
@@ -159,7 +122,7 @@ const CodeFileTable = () => {
       },
       {
         id: "group1Count",
-        header: currSelectedGroup?.name,
+        header: currentSelectedGroup?.name,
         accessorKey: "group1Count",
         cell: (info) => formatting(info.getValue(), "int"),
         meta: {
@@ -170,7 +133,7 @@ const CodeFileTable = () => {
       },
       {
         id: "group2Count",
-        header: currSelectedGroup2?.name,
+        header: currentSelectedGroup2?.name,
         accessorKey: "group2Count",
         cell: (info) => formatting(info.getValue(), "int"),
         meta: {
@@ -179,8 +142,38 @@ const CodeFileTable = () => {
         enableSorting: true,
         size: 60,
       },
+      {
+        id: "expander",
+        header: "",
+        accessorKey: "expander",
+        cell: (info) => {
+          const { row } = info;
+          return (
+            <IconButton
+              size={"xs"}
+              icon={
+                row.getIsExpanded() ? (
+                  <Icon as={FaAngleDown} color={"gray.500"} />
+                ) : (
+                  <Icon as={FaAngleUp} color={"gray.500"} />
+                )
+              }
+              onClick={() => {
+                row.toggleExpanded();
+                setShowNum(5);
+              }}
+              aria-label={""}
+            />
+          );
+        },
+        meta: {
+          align: "right",
+        },
+        enableSorting: false,
+        size: 30,
+      },
     ];
-  }, [currSelectedGroup, currSelectedGroup2]);
+  }, [currentSelectedGroup, currentSelectedGroup2]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -213,10 +206,10 @@ const CodeFileTable = () => {
   });
 
   return (
-    <div style={{ width: "100%", height: "40%" }}>
+    <div style={{ width: "100%", height: "42%" }}>
       <div
         style={{
-          height: "90%",
+          height: "100%",
           width: "100%",
           position: "relative",
           overflow: "hidden",
@@ -326,7 +319,7 @@ const CodeFileTable = () => {
                               width: column.getSize(),
                               // @ts-ignore
                               textAlign: cell.column.columnDef.meta.align,
-                              // padding: "0 8px",
+                              padding: "0 8px",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -358,10 +351,13 @@ const CodeFileTable = () => {
 
                           <Button
                             size={"xs"}
+                            m={1}
+                            width={"100%"}
                             onClick={() => {
                               setShowNum(showNum + 5);
                             }}
                           >
+                            <Icon as={FaAngleDown} mr={2} />
                             {"Show More"}
                           </Button>
                         </td>

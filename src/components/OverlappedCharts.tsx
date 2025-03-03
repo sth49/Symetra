@@ -41,6 +41,8 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
     (state) => state.setSelectedBranchId
   );
 
+  const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
+
   // 툴팁 상태 관리
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
@@ -49,20 +51,19 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
     if (!currentSelectedGroup) {
       return [];
     }
-    const branches = currentSelectedGroup.getBranches(
-      target.filter((t) => t.name === exp.name)[0].max
-    );
+    const branches = currentSelectedGroup.getBranches(exp.branchInfo);
     return branches.map((b, i) => ({
       x: i,
       y: b[1],
       branch: b[0],
     }));
-  }, [currentSelectedGroup]);
+  }, [currentSelectedGroup, exp.name, target]);
 
   const data1 = useMemo(() => {
-    const branches = trialGroup1.getBranches(
-      target.filter((t) => t.name === exp.name)[0].max
-    );
+    if (!trialGroup1) {
+      return [];
+    }
+    const branches = trialGroup1.getBranches(exp.branchInfo);
     return selectedData.map((d) => {
       if (branches.find((b) => b[0] === d.branch) === undefined) {
         return {
@@ -78,12 +79,13 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         };
       }
     });
-  }, [trialGroup1, selectedData]);
+  }, [trialGroup1, target, selectedData, exp.name]);
 
   const data2 = useMemo(() => {
-    const branches = trialGroup2.getBranches(
-      target.filter((t) => t.name === exp.name)[0].max
-    );
+    if (!trialGroup2) {
+      return [];
+    }
+    const branches = trialGroup2.getBranches(exp.branchInfo);
     return selectedData.map((d) => {
       if (branches.find((b) => b[0] === d.branch) === undefined) {
         return {
@@ -99,7 +101,7 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         };
       }
     });
-  }, [trialGroup2, selectedData]);
+  }, [trialGroup2, target, selectedData, exp.name]);
 
   const xAccessor = (d: { x: number }) => d.x;
   const yAccessor = (d: { y: number }) => d.y;
@@ -187,6 +189,21 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
           fill={currentSelectedGroup.id === trialGroup2.id ? "blue" : "red"}
           opacity={currentSelectedGroup.id === trialGroup2.id ? 0.2 : 0.5}
         />
+
+        {selectedBranchId && (
+          <Line
+            x1={xScale(
+              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
+            )}
+            x2={xScale(
+              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
+            )}
+            y1={margin.top}
+            y2={height - margin.bottom}
+            stroke="black"
+            strokeWidth={1}
+          />
+        )}
         {tooltipLeft !== null && (
           <Line
             from={{ x: tooltipLeft, y: 0 }}
@@ -230,6 +247,9 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
 };
 
 const OverlappedCharts = ({ trialGroup1, trialGroup2 }: AreaChartProps) => {
+  if (!trialGroup1 || !trialGroup2) {
+    return null;
+  }
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <ParentSize>
