@@ -307,9 +307,9 @@ const HparamTable = () => {
               size={"xs"}
               icon={
                 row.getIsExpanded() ? (
-                  <Icon as={FaAngleDown} color={"gray.500"} />
-                ) : (
                   <Icon as={FaAngleUp} color={"gray.500"} />
+                ) : (
+                  <Icon as={FaAngleDown} color={"gray.500"} />
                 )
               }
               onClick={() => {

@@ -7,6 +7,7 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
+import { FaSort, FaSortUp, FaSortDown, FaAsterisk } from "react-icons/fa";
 import { useCustomStore } from "../store";
 import { memo, useEffect, useMemo, useState } from "react";
 import { formatting } from "../model/utils";
@@ -20,6 +21,91 @@ import AreaChart from "./AreaChart";
 import MetricBadge from "./MetricBadge";
 import SelectIcon from "./SelectIcon";
 import OverlappedCharts from "./OverlappedCharts";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+
+const starRender = (value) => {
+  if (value === 0) {
+    return <Icon as={FaAsterisk} color={"blue.600"} width={"8px"} />;
+  } else if (value === 1) {
+    return (
+      <Box display={"flex"} alignItems={"center"} justifyContent={"center"}>
+        <Icon as={FaAsterisk} color={"blue.600"} width={"8px"} />
+        <Icon as={FaAsterisk} color={"blue.600"} width={"8px"} />
+      </Box>
+    );
+  } else if (value === 2) {
+    return (
+      <Box
+        display={"flex"}
+        alignItems={"center"}
+        flexDir={"column"}
+        justifyContent={"center"}
+      >
+        <Icon as={FaAsterisk} color={"blue.600"} width={"8px"} height={"8px"} />
+        <Box display={"flex"} alignItems={"center"}>
+          <Icon
+            as={FaAsterisk}
+            color={"blue.600"}
+            width={"8px"}
+            height={"8px"}
+          />
+          <Icon
+            as={FaAsterisk}
+            color={"blue.600"}
+            width={"8px"}
+            height={"8px"}
+          />
+        </Box>
+      </Box>
+    );
+  } else if (value === 3) {
+    return (
+      <Box
+        display={"flex"}
+        alignItems={"center"}
+        flexDir={"column"}
+        justifyContent={"center"}
+      >
+        <Box display={"flex"} alignItems={"center"}>
+          <Icon
+            as={FaAsterisk}
+            color={"blue.600"}
+            width={"8px"}
+            height={"8px"}
+          />
+          <Icon
+            as={FaAsterisk}
+            color={"blue.600"}
+            width={"8px"}
+            height={"8px"}
+          />
+        </Box>
+        <Box display={"flex"} alignItems={"center"}>
+          <Icon
+            as={FaAsterisk}
+            color={"blue.600"}
+            width={"8px"}
+            height={"8px"}
+          />
+          <Icon
+            as={FaAsterisk}
+            color={"blue.600"}
+            width={"8px"}
+            height={"8px"}
+          />
+        </Box>
+      </Box>
+    );
+  }
+  return null;
+};
+
 const InterGroupView = () => {
   const { exp } = useConstDataStore();
   const currentSelectedGroup = useCustomStore(
@@ -99,7 +185,7 @@ const InterGroupView = () => {
 
   const data = useMemo(() => {
     if (!currentSelectedGroup || !group2) {
-      return null;
+      return [];
     }
     const trialIds1 =
       (currentSelectedGroup &&
@@ -122,13 +208,6 @@ const InterGroupView = () => {
         dist: hp.name,
         type: hp.type,
         icon: hp.icon,
-        pValue:
-          performStatisticalTest(
-            currentSelectedGroup.getHyperparam(hp.name),
-            group2.getHyperparam(hp.name),
-            hp.type,
-            hp
-          ).pValue || 1,
         ...performStatisticalTest(
           currentSelectedGroup.getHyperparam(hp.name),
           group2.getHyperparam(hp.name),
@@ -137,7 +216,7 @@ const InterGroupView = () => {
         ),
       };
     });
-  }, [currentSelectedGroup, exp?.hyperparams, group2, insignificantHparams]);
+  }, [currentSelectedGroup, exp?.hyperparams, group2]);
 
   useEffect(() => {
     if (currentSelectedGroup) {
@@ -146,11 +225,170 @@ const InterGroupView = () => {
       );
     }
   }, [currentSelectedGroup, groups]);
-  const namePercent = 30;
+
+  const columns = useMemo(() => {
+    return [
+      {
+        id: "name",
+        header: "Name",
+        accessorKey: "name",
+        cell: (info) => {
+          const hparamIcon = info.row.original.icon;
+          const { row } = info;
+          return (
+            <Box display={"flex"} alignItems={"center"}>
+              <Tooltip
+                label={
+                  <div>
+                    <Text fontSize="xs" borderBottom={"1px solid white"}>
+                      {row.original.fullName} (default: {row.original.default})
+                    </Text>
+                    <Text fontSize="xs">{row.original.desc}</Text>
+                  </div>
+                }
+              >
+                <Text
+                  userSelect={"none"}
+                  display={"flex"}
+                  alignItems={"center"}
+                >
+                  <Icon as={hparamIcon} mr={1} color={"gray.600"} />
+                  {info.getValue()}
+                </Text>
+              </Tooltip>
+            </Box>
+          );
+        },
+        meta: {
+          align: "center",
+        },
+        enableSorting: true,
+        size: 35,
+      },
+      {
+        id: "effect",
+        header: "Effect",
+        accessorKey: "interpretationLevel",
+        cell: (info) => starRender(info.getValue()),
+        meta: {
+          align: "center",
+        },
+        enableSorting: true,
+        size: 25,
+      },
+      {
+        id: "pValue",
+        header: "p-val",
+        accessorKey: "pValue",
+        cell: (info) => {
+          const d = info.row.original;
+          if (d.pValue < 0.05)
+            return <Icon as={FaAsterisk} color={"red.600"} width={"8px"} />;
+        },
+        meta: {
+          align: "center",
+        },
+        enableSorting: true,
+        size: 20,
+      },
+      {
+        id: "group1",
+        header: currentSelectedGroup?.name || "Group 1",
+        accessorKey: "group1",
+        cell: (info) => {
+          const d = info.row.original;
+          return (
+            <BarChart
+              dist={d.dist}
+              trialIds={d.trialIds1}
+              width={90}
+              height={30}
+            />
+          );
+        },
+        meta: {
+          align: "center",
+        },
+        enableSorting: false,
+        size: 60,
+      },
+      {
+        id: "group2",
+        header: (
+          <Box>
+            <Select
+              cursor={"pointer"}
+              // w={"85%"}
+              value={group2 ? group2.id.toString() : ""}
+              size={"sm"}
+              onChange={(e) => {
+                const newGroup = groups.getGroup(parseInt(e.target.value));
+                setGroup2(newGroup);
+              }}
+            >
+              {groups.groups
+                .filter((g) => g.id !== currentSelectedGroup.id)
+                .map((group) => (
+                  <option key={group.id} value={group.id.toString()}>
+                    {group.name}
+                  </option>
+                ))}
+            </Select>
+          </Box>
+        ),
+        accessorKey: "group2",
+        cell: (info) => {
+          const d = info.row.original;
+          return (
+            <BarChart
+              dist={d.dist}
+              trialIds={d.trialIds2}
+              width={90}
+              height={30}
+            />
+          );
+        },
+        meta: {
+          align: "center",
+        },
+        enableSorting: false,
+        size: 60,
+      },
+    ];
+  }, [currentSelectedGroup?.id, currentSelectedGroup?.name, group2, groups]);
+
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "pValue",
+      desc: true,
+    },
+  ]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+    },
+    defaultColumn: {
+      minSize: 10,
+      maxSize: 80,
+    },
+
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    debugTable: true,
+    enableRowSelection: true,
+  });
 
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
-      <Box display={"flex"} justifyContent={"space-between"}>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
         <Heading
           as="h5"
           size="sm"
@@ -163,398 +401,307 @@ const InterGroupView = () => {
           <SelectIcon />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
-      </Box>
-
-      <Box
-        height={"70px"}
-        p={2}
-        display={"flex"}
-        flexDirection={"column"}
-        justifyContent={"space-between"}
-      >
-        <FormControl
-          display="flex"
-          justifyContent="space-between"
-          width={"100%"}
-          alignItems={"center"}
-        >
-          <FormLabel htmlFor="sorted-by-difference" mr={1} mb={0}>
-            <Text fontSize="xs" color="gray.600">
-              Sorted by difference between groups
-            </Text>
-          </FormLabel>
-
-          <Select
-            cursor={"pointer"}
-            placeholder=""
-            size={"xs"}
-            width={"50%"}
-            onChange={(e) => setSortDirection(e.target.value)}
-            value={sortDirection}
-          >
-            <option value="htl">most different to least different</option>
-            <option value="lth">least different to most different</option>
-          </Select>
-        </FormControl>
-        <Box display={"flex"}>
-          <Text color={"red.600"} mr={1}>
-            *
-          </Text>
+        {/* <Box display={"flex"} pr={2} alignItems={"center"}>
+          <Icon as={FaAsterisk} color={"red.600"} width={"8px"} />
           <Text fontSize={"xs"} color={"gray.600"}>
             Two groups are significantly different (
             {data?.filter((d) => d.pValue < 0.05).length || 0} / {data?.length})
           </Text>
-        </Box>
+        </Box> */}
       </Box>
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "1px solid #ddd",
-          paddingRight: "4px",
-          paddingBottom: "4px",
-        }}
-      >
-        <Box width={`${namePercent}%`}></Box>
-        <Box
-          width={`${(100 - namePercent) / 2}%`}
-          display={"flex"}
-          justifyContent={"center"}
+      <div style={{ width: "100%", height: `calc(100% - 35px)` }}>
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            position: "relative",
+            overflow: "hidden",
+          }}
         >
-          <Text
-            align={"center"}
-            fontWeight={"bold"}
-            alignItems={"center"}
-            display={"flex"}
-            justifyContent={"center"}
-            color={"gray.600"}
-          >
-            <SelectIcon />
-            {currentSelectedGroup ? currentSelectedGroup.name : "None"}
-          </Text>
-        </Box>
-        <Box
-          width={`${(100 - namePercent) / 2}%`}
-          display={"flex"}
-          justifyContent={"center"}
-        >
-          <Select
-            cursor={"pointer"}
-            w={"85%"}
-            value={group2 ? group2.id.toString() : ""}
-            size={"sm"}
-            onChange={(e) => {
-              const newGroup = groups.getGroup(parseInt(e.target.value));
-              setGroup2(newGroup);
+          <div
+            className="container"
+            style={{
+              overflow: "auto",
+              overflowX: "hidden",
+              height: "99%",
+              padding: "0 4px",
             }}
           >
-            {groups.groups
-              .filter((g) => g.id !== currentSelectedGroup.id)
-              .map((group) => (
-                <option key={group.id} value={group.id.toString()}>
-                  {group.name}
-                </option>
-              ))}
-          </Select>
-        </Box>
-      </div>
-
-      <Box
-        w={"100%"}
-        height={`calc(100% - 36px - 36px - 80px)`}
-        p={1}
-        pt={0}
-        overflow={"auto"}
-      >
-        <div style={{ width: "100%", position: "relative" }}>
-          {stats && (
-            <>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "5px 0",
-                  height: "35px",
-                }}
-                className="inter-group-view-item"
-              >
-                <Box width={`${namePercent}%`} pl={2}>
-                  <Text fontSize={"sm"}>Size</Text>
-                </Box>
-                <Box width={`${(100 - namePercent) / 2}%`}>
-                  <Text align={"center"} fontSize={"sm"}>
-                    {formatting(currentSelectedGroup.trials.length, "int")}{" "}
-                    trials
-                  </Text>
-                </Box>
-
-                <Box width={`${(100 - namePercent) / 2}%`}>
-                  <Text align={"center"} fontSize={"sm"}>
-                    {formatting(group2.trials.length, "int")} trials
-                  </Text>
-                </Box>
-              </div>
-
-              {Object.keys(stats).map((key) => (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "5px 0",
-                    height: "35px",
-                  }}
-                  className="inter-group-view-item"
-                >
-                  <Box width={`${namePercent}%`} pl={2}>
-                    <Text fontSize={"sm"}>
-                      {key === "Mean" ? "Mean" : key + "."} Coverage
-                    </Text>
-                  </Box>
-                  <Box
-                    // width={"35%"}
-                    width={`${(100 - namePercent) / 2}%`}
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
+            <table
+              className="hparam-table"
+              style={{
+                tableLayout: "fixed",
+                width: "100%",
+              }}
+            >
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr
+                    key={headerGroup.id}
+                    className="hparam-table-sticky-header"
                   >
-                    <MetricBadge
-                      metricValue={stats[key].group1}
-                      type={stats[key].type}
-                    />
-                  </Box>
-
-                  <Box
-                    width={`${(100 - namePercent) / 2}%`}
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <MetricBadge
-                      metricValue={stats[key].group2}
-                      type={stats[key].type}
-                    />
-                  </Box>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "5px 0",
-                    }}
-                    className="inter-group-view-item"
-                  ></div>
-                </div>
-              ))}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "5px 0",
-                  height: "35px",
-                }}
-                className="inter-group-view-item"
-              >
-                <Box width={`${namePercent}`} pl={2}>
-                  <Text fontSize={"sm"}>Union Coverage</Text>
-                </Box>
-                <Box
-                  // width={"70%"}
-                  width={`${100 - namePercent}%`}
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <MetricBadge
-                    metricValue={
-                      new Set([
-                        ...currentSelectedGroup.getUnion(),
-                        ...group2.getUnion(),
-                      ]).size
-                    }
-                    type={"int"}
-                  />
-                </Box>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "5px 0",
-                  }}
-                  className="inter-group-view-item"
-                ></div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "5px 0",
-                }}
-                className="inter-group-view-item"
-              >
-                <Box width={`${namePercent}%`} pl={2}>
-                  <Text fontSize={"sm"}>Coverage Pattern</Text>
-                </Box>
-                <Box
-                  width={`${(100 - namePercent) / 2}%`}
-                  height={"25px"}
-                  pr={1}
-                  pl={1}
-                >
-                  <AreaChart trialGroup={currentSelectedGroup} />
-                </Box>
-
-                <Box
-                  width={`${(100 - namePercent) / 2}%`}
-                  height={"25px"}
-                  pr={1}
-                  pl={1}
-                >
-                  <AreaChart trialGroup={group2} />
-                </Box>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "5px 0",
-                }}
-                className="inter-group-view-item"
-              >
-                <Box width={`${namePercent}%`} pl={2}>
-                  <Text fontSize={"sm"}>Coverage Pattern (overlaid)</Text>
-                </Box>
-                <Box
-                  // width={"70%"}
-                  width={`${100 - namePercent}%`}
-                  height={"25px"}
-                  position={"relative"}
-                  pr={1}
-                  pl={1}
-                >
-                  <OverlappedCharts
-                    trialGroup1={currentSelectedGroup}
-                    trialGroup2={group2 || currentSelectedGroup}
-                  />
-                  {/* <AreaChart trialGroup={currentSelectedGroup} />
-                  <Box
-                    width={"100%"}
-                    height={"25px"}
-                    position={"absolute"}
-                    left="50%"
-                    top="50%"
-                    transform="translate(-50%, -50%)"
-                    pr={1}
-                    pl={1}
-                  >
-                    <AreaChart trialGroup={group2} />
-                  </Box> */}
-                </Box>
-              </div>
-            </>
-          )}
-
-          <div style={{ height: "90%", width: "100%", position: "relative" }}>
-            {data &&
-              data
-                // .sort((a, b) => a.pValue - b.pValue)
-                .sort((a, b) => {
-                  if (sortDirection === "htl") {
-                    return b.interpretationLevel - a.interpretationLevel;
-                    // return a.pValue - b.pValue;
-                  }
-                  // return b.pValue - a.pValue;
-                  return a.interpretationLevel - b.interpretationLevel;
-                })
-                .map((d) => {
-                  return (
-                    <>
-                      <div
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <th
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          style={{
+                            width: `${header.getSize()}px`,
+                            position: "sticky",
+                            top: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            padding: "8px 4px",
+                          }}
+                        >
+                          {header.isPlaceholder ? null : (
+                            <div
+                              {...{
+                                className: header.column.getCanSort()
+                                  ? "cursor-pointer select-none"
+                                  : "",
+                                onClick:
+                                  header.column.getToggleSortingHandler(),
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: "100%",
+                                height: "100%",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {header.column.getCanSort() &&
+                                header.column.getIsSorted() !== false && (
+                                  <Icon
+                                    color="gray.600"
+                                    onClick={header.column.getToggleSortingHandler()}
+                                    as={
+                                      (header.column.getIsSorted() as string) ===
+                                      "asc"
+                                        ? FaSortUp
+                                        : (header.column.getIsSorted() as string) ===
+                                          "desc"
+                                        ? FaSortDown
+                                        : FaSort
+                                    }
+                                  />
+                                )}
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <tbody key={"tbody"}>
+                {stats &&
+                  Object.keys(stats).map((key) => (
+                    <tr
+                      className={`hparam-table-row`}
+                      style={{
+                        padding: "0 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <td
                         style={{
-                          display: "flex",
+                          padding: "0 8px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          alignItems: "center",
                           height: "35px",
                         }}
-                        className="inter-group-view-item"
+                        colSpan={3}
                       >
-                        <Box
-                          // width={"30%"}
-                          width={`${namePercent}%`}
-                          display={"flex"}
-                          alignItems={"center"}
-                          pl={2}
-                        >
-                          <Tooltip
-                            label={
-                              <div>
-                                <Text
-                                  fontSize="xs"
-                                  borderBottom={"1px solid white"}
-                                >
-                                  {d.fullName} (default: {d.default})
-                                </Text>
-                                <Text fontSize="xs">{d.desc}</Text>
-                              </div>
-                            }
-                          >
-                            <Text
-                              display={"flex"}
-                              justifyContent={"left"}
-                              fontSize={"sm"}
-                              alignItems={"center"}
-                              userSelect={"none"}
+                        <Text fontSize={"sm"}>{key} Coverage</Text>
+                      </td>
+                      <td
+                        style={{
+                          padding: "0 4px",
+                          height: "35px",
+                        }}
+                      >
+                        <MetricBadge
+                          metricValue={stats[key].group1}
+                          type={stats[key].type}
+                        />
+                      </td>
+                      <td
+                        style={{
+                          padding: "0 4px",
+                          height: "35px",
+                        }}
+                      >
+                        <MetricBadge
+                          metricValue={stats[key].group2}
+                          type={stats[key].type}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+
+                {currentSelectedGroup && group2 && (
+                  <>
+                    <tr
+                      className={`hparam-table-row`}
+                      style={{
+                        padding: "0 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "0 8px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          alignItems: "center",
+                          height: "35px",
+                        }}
+                        colSpan={3}
+                      >
+                        {/* {key} */}
+                        <Text fontSize={"sm"}>Union Coverage</Text>
+                      </td>
+                      <td
+                        colSpan={2}
+                        style={{
+                          padding: "0 4px",
+                          height: "35px",
+                        }}
+                      >
+                        <MetricBadge
+                          metricValue={
+                            new Set([
+                              ...currentSelectedGroup.getUnion(),
+                              ...group2.getUnion(),
+                            ]).size
+                          }
+                          type={"int"}
+                        />
+                      </td>
+                    </tr>
+
+                    <tr
+                      className={`hparam-table-row`}
+                      style={{
+                        padding: "0 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "0 8px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          alignItems: "center",
+                          height: "35px",
+                        }}
+                        colSpan={3}
+                      >
+                        <Text fontSize={"sm"}>Coverage Pattern</Text>
+                      </td>
+                      <td>
+                        <Box height={"25px"} pr={1} pl={1}>
+                          <AreaChart trialGroup={currentSelectedGroup} />
+                        </Box>
+                      </td>
+                      <td>
+                        <Box height={"25px"} pr={1} pl={1}>
+                          <AreaChart trialGroup={group2} />
+                        </Box>
+                      </td>
+                    </tr>
+
+                    <tr
+                      className={`hparam-table-row`}
+                      style={{
+                        padding: "0 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "0 8px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          alignItems: "center",
+                          height: "35px",
+                        }}
+                        colSpan={3}
+                      >
+                        <Text fontSize={"sm"}>Coverage Pattern (overlaid)</Text>
+                      </td>
+                      <td colSpan={2}>
+                        <Box height={"25px"} pr={1} pl={1}>
+                          <OverlappedCharts
+                            trialGroup1={currentSelectedGroup}
+                            trialGroup2={group2 || currentSelectedGroup}
+                          />
+                        </Box>
+                      </td>
+                    </tr>
+                  </>
+                )}
+                {table.getRowModel().rows.map((row) => {
+                  return (
+                    <>
+                      <tr
+                        key={row.id}
+                        className={`hparam-table-row`}
+                        style={{
+                          padding: "0 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const { column } = cell;
+                          return (
+                            <td
+                              key={cell.id}
+                              style={{
+                                width: column.getSize(),
+                                // @ts-ignore
+                                textAlign: cell.column.columnDef.meta.align,
+                                padding: "0 8px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                alignItems: "center",
+                                height: "35px",
+                              }}
                             >
-                              <Icon as={d.icon} mr={1} color={"gray.600"} />
-                              {d.name} ({d.effectSizeInterpretation})
-                              {d.pValue < 0.05 && (
-                                <Text color={"red.600"}>*</Text>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
                               )}
-                            </Text>
-                          </Tooltip>
-                        </Box>
-                        <Box
-                          // width={"35%"}
-                          width={`${(100 - namePercent) / 2}%`}
-                          display={"flex"}
-                          justifyContent={"space-around"}
-                          alignItems={"center"}
-                          p={"0 4px"}
-                        >
-                          <BarChart
-                            dist={d.dist}
-                            trialIds={d.trialIds1}
-                            width={90}
-                            height={30}
-                          />
-                        </Box>
-                        <Box
-                          // width={"35%"}
-                          width={`${(100 - namePercent) / 2}%`}
-                          display={"flex"}
-                          justifyContent={"center"}
-                          alignItems={"center"}
-                          p={"0 4px"}
-                        >
-                          <BarChart
-                            dist={d.dist}
-                            trialIds={d.trialIds2}
-                            width={90}
-                            height={30}
-                          />
-                        </Box>
-                      </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
                     </>
                   );
                 })}
+              </tbody>
+            </table>
           </div>
         </div>
-      </Box>
+      </div>
     </div>
   );
 };

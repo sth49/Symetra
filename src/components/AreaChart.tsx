@@ -31,7 +31,7 @@ const tooltipStyles = {
 
 const AreaChartBase = ({ trialGroup, width, height }) => {
   const { currentSelectedGroup } = useCustomStore();
-  const { target, exp } = useConstDataStore();
+  const { exp } = useConstDataStore();
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
   const setSelectedBranchId = useCustomStore(
     (state) => state.setSelectedBranchId
