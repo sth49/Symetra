@@ -1,12 +1,4 @@
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Heading,
-  Icon,
-  Switch,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Heading, Icon, Text } from "@chakra-ui/react";
 import { FaSort, FaSortUp, FaSortDown, FaAsterisk } from "react-icons/fa";
 import { useCustomStore } from "../store";
 import { memo, useEffect, useMemo, useState } from "react";
@@ -112,31 +104,31 @@ const InterGroupView = () => {
     (state) => state.currentSelectedGroup
   );
 
+  const currentSelectedGroup2 = useCustomStore(
+    (state) => state.currentSelectedGroup2
+  );
+
   const setCurrentSelectedGroup2 = useCustomStore(
     (state) => state.setCurrentSelectedGroup2
   );
 
-  const [sortDirection, setSortDirection] = useState("htl");
   const groups = useCustomStore((state) => state.groups);
-  const [group2, setGroup2] = useState(
-    groups.groups.filter((group) => {
-      if (currentSelectedGroup) {
-        return group.id !== currentSelectedGroup.id;
-      }
-      return false;
-    })[0]
-  );
+  // const [group2, setGroup2] = useState(
+  //   currentSelectedGroup !== currentSelectedGroup2
+  //     ? currentSelectedGroup2
+  //     : groups.groups.filter((group) => group.id !== currentSelectedGroup.id)[0]
+  // );
 
-  useEffect(() => {
-    setCurrentSelectedGroup2(group2);
-  }, [group2, setCurrentSelectedGroup2]);
+  // useEffect(() => {
+  //   setCurrentSelectedGroup2(group2);
+  // }, [group2, setCurrentSelectedGroup2]);
 
   const stats = useMemo(() => {
-    if (!currentSelectedGroup || !group2) {
+    if (!currentSelectedGroup || !currentSelectedGroup2) {
       return null;
     }
     const group1Stats = currentSelectedGroup.getStats();
-    const group2Stats = group2.getStats();
+    const group2Stats = currentSelectedGroup2.getStats();
 
     return {
       Max: {
@@ -160,40 +152,23 @@ const InterGroupView = () => {
         type: "int",
       },
     };
-  }, [currentSelectedGroup, group2]);
-
-  const insignificantHparams = useMemo(() => {
-    if (!currentSelectedGroup || !exp) {
-      return [];
-    }
-    return exp.hyperparams
-      .map((hp) => {
-        return {
-          name: hp.name,
-          pValue:
-            performStatisticalTest(
-              currentSelectedGroup.getHyperparam(hp.name),
-              hp.values,
-              hp.type,
-              hp
-            ).pValue || 1,
-        };
-      })
-      .filter((d) => d.pValue > 0.05)
-      .map((d) => d.name);
-  }, [currentSelectedGroup, exp]);
+  }, [currentSelectedGroup, currentSelectedGroup2]);
 
   const data = useMemo(() => {
-    if (!currentSelectedGroup || !group2) {
+    if (!currentSelectedGroup || !currentSelectedGroup2) {
       return [];
     }
     const trialIds1 =
       (currentSelectedGroup &&
         currentSelectedGroup.trials.map((trial) => trial.id)) ||
       [];
-    const trialIds2 = (group2 && group2.trials.map((trial) => trial.id)) || [];
+    const trialIds2 =
+      (currentSelectedGroup2 &&
+        currentSelectedGroup2.trials.map((trial) => trial.id)) ||
+      [];
 
     return exp?.hyperparams.map((hp, index) => {
+      console.log(currentSelectedGroup2.name);
       return {
         id: index,
         name: hp.displayName,
@@ -210,21 +185,29 @@ const InterGroupView = () => {
         icon: hp.icon,
         ...performStatisticalTest(
           currentSelectedGroup.getHyperparam(hp.name),
-          group2.getHyperparam(hp.name),
+          currentSelectedGroup2.getHyperparam(hp.name),
           hp.type,
           hp
         ),
       };
     });
-  }, [currentSelectedGroup, exp?.hyperparams, group2]);
+  }, [currentSelectedGroup, exp?.hyperparams, currentSelectedGroup2]);
 
   useEffect(() => {
-    if (currentSelectedGroup) {
-      setGroup2(
+    if (
+      currentSelectedGroup &&
+      (currentSelectedGroup2 === currentSelectedGroup || !currentSelectedGroup2)
+    ) {
+      setCurrentSelectedGroup2(
         groups.groups.filter((group) => group.id !== currentSelectedGroup.id)[0]
       );
     }
-  }, [currentSelectedGroup, groups]);
+  }, [
+    currentSelectedGroup,
+    currentSelectedGroup2,
+    groups,
+    setCurrentSelectedGroup2,
+  ]);
 
   const columns = useMemo(() => {
     return [
@@ -293,7 +276,11 @@ const InterGroupView = () => {
       },
       {
         id: "group1",
-        header: currentSelectedGroup?.name || "Group 1",
+        header:
+          currentSelectedGroup?.name +
+            " (" +
+            formatting(currentSelectedGroup?.trials.length, "int") +
+            ")" || "Group 1",
         accessorKey: "group1",
         cell: (info) => {
           const d = info.row.original;
@@ -303,6 +290,7 @@ const InterGroupView = () => {
               trialIds={d.trialIds1}
               width={90}
               height={30}
+              isGroup={true}
             />
           );
         },
@@ -314,27 +302,28 @@ const InterGroupView = () => {
       },
       {
         id: "group2",
-        header: (
-          <Box>
-            <Select
-              cursor={"pointer"}
-              // w={"85%"}
-              value={group2 ? group2.id.toString() : ""}
-              size={"sm"}
-              onChange={(e) => {
-                const newGroup = groups.getGroup(parseInt(e.target.value));
-                setGroup2(newGroup);
-              }}
-            >
-              {groups.groups
-                .filter((g) => g.id !== currentSelectedGroup.id)
-                .map((group) => (
-                  <option key={group.id} value={group.id.toString()}>
-                    {group.name}
-                  </option>
-                ))}
-            </Select>
-          </Box>
+        header: () => (
+          <Select
+            cursor={"pointer"}
+            // w={"85%"}
+            value={
+              currentSelectedGroup2 ? currentSelectedGroup2.id.toString() : ""
+            }
+            size={"xs"}
+            onChange={(e) => {
+              const newGroup = groups.getGroup(parseInt(e.target.value));
+              setCurrentSelectedGroup2(newGroup);
+              // setGroup2(newGroup);
+            }}
+          >
+            {groups.groups
+              .filter((g) => g.id !== currentSelectedGroup.id)
+              .map((group) => (
+                <option key={group.id} value={group.id.toString()}>
+                  {group.name} ({formatting(group.getLength(), "int")})
+                </option>
+              ))}
+          </Select>
         ),
         accessorKey: "group2",
         cell: (info) => {
@@ -345,6 +334,7 @@ const InterGroupView = () => {
               trialIds={d.trialIds2}
               width={90}
               height={30}
+              isGroup={true}
             />
           );
         },
@@ -355,11 +345,16 @@ const InterGroupView = () => {
         size: 60,
       },
     ];
-  }, [currentSelectedGroup?.id, currentSelectedGroup?.name, group2, groups]);
+  }, [
+    currentSelectedGroup,
+    currentSelectedGroup2,
+    groups,
+    setCurrentSelectedGroup2,
+  ]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "pValue",
+      id: "effect",
       desc: true,
     },
   ]);
@@ -398,7 +393,7 @@ const InterGroupView = () => {
           alignItems={"center"}
         >
           Comparison View {"("}
-          <SelectIcon />
+          <SelectIcon type="g1" />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
         {/* <Box display={"flex"} pr={2} alignItems={"center"}>
@@ -553,7 +548,7 @@ const InterGroupView = () => {
                     </tr>
                   ))}
 
-                {currentSelectedGroup && group2 && (
+                {currentSelectedGroup && currentSelectedGroup2 && (
                   <>
                     <tr
                       className={`hparam-table-row`}
@@ -587,7 +582,7 @@ const InterGroupView = () => {
                           metricValue={
                             new Set([
                               ...currentSelectedGroup.getUnion(),
-                              ...group2.getUnion(),
+                              ...currentSelectedGroup2.getUnion(),
                             ]).size
                           }
                           type={"int"}
@@ -622,7 +617,7 @@ const InterGroupView = () => {
                       </td>
                       <td>
                         <Box height={"25px"} pr={1} pl={1}>
-                          <AreaChart trialGroup={group2} />
+                          <AreaChart trialGroup={currentSelectedGroup2} />
                         </Box>
                       </td>
                     </tr>
@@ -651,7 +646,9 @@ const InterGroupView = () => {
                         <Box height={"25px"} pr={1} pl={1}>
                           <OverlappedCharts
                             trialGroup1={currentSelectedGroup}
-                            trialGroup2={group2 || currentSelectedGroup}
+                            trialGroup2={
+                              currentSelectedGroup2 || currentSelectedGroup
+                            }
                           />
                         </Box>
                       </td>

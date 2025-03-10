@@ -28,19 +28,8 @@ interface BarChartProps {
   width: number;
   height: number;
   opacity?: number;
+  isGroup?: boolean;
 }
-
-const BarChartBase = ({
-  dist,
-  trialIds = [],
-  viewType = "inter",
-  width,
-  height,
-  opacity,
-}: BarChartProps) => {
-  return <>asdf</>;
-};
-
 const BarChart = ({
   dist,
   trialIds,
@@ -48,6 +37,7 @@ const BarChart = ({
   width,
   height,
   opacity,
+  isGroup = false,
 }: BarChartProps) => {
   const {
     tooltipOpen,
@@ -61,6 +51,12 @@ const BarChart = ({
     scroll: true,
   });
   const { exp } = useConstDataStore();
+  const currentSelectedGroup = useCustomStore(
+    (state) => state.currentSelectedGroup
+  );
+  const currentSelectedGroup2 = useCustomStore(
+    (state) => state.currentSelectedGroup2
+  );
   const setClickedHparamValue = useCustomStore(
     (state) => state.setClickedHparamValue
   );
@@ -264,7 +260,7 @@ const BarChart = ({
                 </svg>
                 {tooltipOpen && tooltipData && (
                   <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
-                    <Box>
+                    <Box zIndex={100}>
                       <Text fontWeight={"bold"} align={"left"} mb={2}>
                         {tooltipData.key} {tooltipData.value}
                       </Text>
@@ -280,13 +276,45 @@ const BarChart = ({
             const binCount = 5;
             const isInteger = data.every(Number.isInteger);
             const isSame = data.every((val, i, arr) => val === arr[0]);
-            const xMin = Math.min(...(allData as number[]));
-            const xMax =
-              isInteger && isSame
-                ? xMin + 10
-                : isSame
-                ? xMin + 0.5
-                : Math.max(...(allData as number[]));
+
+            const groupData = currentSelectedGroup
+              ? currentSelectedGroup.trials.map(
+                  (trial) => trial.params[dist] as number
+                )
+              : [];
+            const groupData2 = currentSelectedGroup2
+              ? currentSelectedGroup2.trials.map(
+                  (trial) => trial.params[dist] as number
+                )
+              : [];
+
+            // const xMin = isGroup
+            //   ? Math.min(
+            //       ...(groupData as number[]),
+            //       ...(groupData2 as number[])
+            //     )
+            //   : Math.min(...(allData as number[]));
+            // const xMax = isGroup
+            //   ? Math.max(...groupData, ...groupData2)
+            //   : isInteger && isSame
+            //   ? xMin + 10
+            //   : isSame
+            //   ? xMin + 0.5
+            //   : Math.max(...(allData as number[]));
+
+            const xMin = isGroup
+              ? Math.min(
+                  ...(groupData as number[]),
+                  ...(groupData2 as number[])
+                )
+              : Math.min(...(allData as number[]));
+
+            const xMax = isGroup
+              ? Math.max(
+                  ...(groupData as number[]),
+                  ...(groupData2 as number[])
+                )
+              : Math.max(...(allData as number[]));
 
             const xScale = scaleLinear({
               domain: [xMin, xMax],
@@ -298,15 +326,41 @@ const BarChart = ({
             const xRange = niceXMax - niceXMin;
             const binSize = xRange / binCount;
 
+            // const bins = Array.from({ length: binCount }, (_, i) => ({
+            //   x0: isInteger
+            //     ? Math.floor(xMin + i * binSize).toString()
+            //     : (xMin + i * binSize).toFixed(2),
+            //   x1: isInteger
+            //     ? Math.floor(xMin + (i + 1) * binSize).toString()
+            //     : (xMin + (i + 1) * binSize).toFixed(2),
+            //   count: 0,
+            // }));
+
             const bins = Array.from({ length: binCount }, (_, i) => ({
               x0: isInteger
-                ? Math.floor(xMin + i * binSize).toString()
-                : (xMin + i * binSize).toFixed(2),
+                ? Math.floor(niceXMin + i * binSize).toString()
+                : (niceXMin + i * binSize).toFixed(2),
               x1: isInteger
-                ? Math.floor(xMin + (i + 1) * binSize).toString()
-                : (xMin + (i + 1) * binSize).toFixed(2),
+                ? Math.floor(niceXMin + (i + 1) * binSize).toString()
+                : (niceXMin + (i + 1) * binSize).toFixed(2),
               count: 0,
             }));
+
+            if (dist === "seed-time") {
+              console.log("groupData", groupData);
+              console.log("groupData2", groupData2);
+              console.log("allData", allData);
+              console.log("xMin", xMin);
+              console.log("allMin", Math.min(...(allData as number[])));
+              console.log("xMax", xMax);
+              console.log("allMax", Math.max(...(allData as number[])));
+              console.log("xScale", xScale);
+              console.log("niceXMin", niceXMin);
+              console.log("niceXMax", niceXMax);
+              console.log("xRange", xRange);
+              console.log("binSize", binSize);
+              console.log("bins", bins);
+            }
 
             data.forEach((d) => {
               const binIndex = Math.floor((Number(d) - xMin) / binSize);

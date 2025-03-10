@@ -43,11 +43,13 @@ const CodeFileTable = () => {
     const group1 = currentSelectedGroup?.getOrignalBranches(
       experiment.branchInfo
     );
+    const length1 = currentSelectedGroup.getLength();
 
     const group2 = currentSelectedGroup2?.getOrignalBranches(
       experiment.branchInfo
     );
 
+    const length2 = currentSelectedGroup2.getLength();
     return Object.keys(branchCount).map((filePath, i) => {
       const children = experiment.branchInfo
         .filter((b) => b.filePath === filePath)
@@ -55,25 +57,16 @@ const CodeFileTable = () => {
           const g1 = group1[b.branch] ? group1[b.branch] : 0;
           const g2 = group2[b.branch] ? group2[b.branch] : 0;
           const diff = Math.abs(g1 - g2);
-          let priority = 0;
-          if (g1 === 0 && g2 === 0) {
-            priority = 0;
-          } else if ((g1 === 0 && g2 !== 0) || (g1 !== 0 && g2 === 0)) {
-            priority = 2;
-          } else {
-            priority = 1;
-          }
 
           return {
             id: b.branch,
             line: b.line,
-            group1: g1,
+            group1: (g1 / length1) * 100,
             diff:
               formatting(g1 / diff, "float").toString() +
               " || " +
               formatting(g2 / diff, "float").toString(),
-            group2: g2,
-            priority: priority,
+            group2: (g2 / length2) * 100,
           };
         });
 
@@ -206,7 +199,7 @@ const CodeFileTable = () => {
   });
 
   return (
-    <div style={{ width: "100%", height: "42%" }}>
+    <div style={{ width: "100%", height: "25%" }}>
       <div
         style={{
           height: "100%",

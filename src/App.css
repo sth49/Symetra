@@ -24,12 +24,20 @@ body {
   user-select: none;
   white-space: nowrap;
 }
-
+.heatmap-cell:hover {
+  /* background-color: var(--selected-color); */
+  /* filter: brightness(0.8); */
+  border: 1px solid red;
+}
 .hparam-table-row {
   font-size: smaller;
 }
 .hparam-table-row.selected {
   background-color: var(--selected-color);
+}
+.hparam-table-row.selected2 {
+  /* background-color: var(--selected-color); */
+  font-weight: bold;
 }
 
 .hparam-table-row.selected:hover {

@@ -4,9 +4,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMetricScale } from "../model/colorScale";
 import { formatting, getTextColor } from "../model/utils";
 
+import * as d3 from "d3";
 import { useMemo } from "react";
 import { useCustomStore } from "../store";
 import { Box } from "@chakra-ui/react";
@@ -15,58 +15,109 @@ import { performStatisticalTest } from "../model/statistic";
 import { useConstDataStore } from "./store/constDataStore";
 import MetricBadge from "./MetricBadge";
 
+const EmptyBox = () => {
+  return (
+    <Box
+      width={"100%"}
+      backgroundColor={"#F7F7F7"}
+      height={"10px"}
+      p={1}
+      display={"flex"}
+      justifyContent={"center"}
+      borderRadius={"5px"}
+      // border={"1px solid #CFCFCF"}
+    ></Box>
+  );
+};
+
 const TrialGroupTable = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
+  const currentSelectedGroup2 = useCustomStore(
+    (state) => state.currentSelectedGroup2
+  );
   const setCurrnetSelectedGroup = useCustomStore(
     (state) => state.setCurrentSelectedGroup
+  );
+  const setCurrnetSelectedGroup2 = useCustomStore(
+    (state) => state.setCurrentSelectedGroup2
   );
   const { hyperparams } = useConstDataStore();
   const groups = useCustomStore((state) => state.groups);
 
   const data = useMemo(() => {
-    return groups.groups.map((group) => {
-      const groupData = groups.groups.map((g) => {
-        if (group.id === g.id) {
+    const emptyData = Array.from(
+      { length: 8 - groups.groups.length },
+      (_, i) => {
+        return {
+          id: `empty-${i}`,
+          name: "",
+          size: -1,
+          mean: -1,
+          max: -1,
+        };
+      }
+    );
+
+    console.log("Empty data", emptyData);
+
+    return groups.groups
+      .map((group) => {
+        const groupData = groups.groups.map((g) => {
+          if (group.id === g.id) {
+            return {
+              id: g.id.toString(),
+              difference: 0,
+            };
+          }
+          const differences = hyperparams.map((param) => {
+            const group1 = group.getHyperparam(param.name);
+            const group2 = g.getHyperparam(param.name);
+            return {
+              param: param.name,
+              ...performStatisticalTest(group1, group2, param.type, param),
+            };
+          });
+
+          const diffCount = differences.filter(
+            (d) => d.interpretationLevel > 1
+          ).length;
           return {
             id: g.id.toString(),
-            difference: 0,
-          };
-        }
-        const differences = hyperparams.map((param) => {
-          const group1 = group.getHyperparam(param.name);
-          const group2 = g.getHyperparam(param.name);
-          const pValue =
-            performStatisticalTest(group1, group2, param.type, param).pValue ||
-            1;
-          return {
-            param: param.name,
-            pValue,
+            difference: diffCount,
           };
         });
 
-        const diffCount = differences.filter((d) => d.pValue < 0.05).length;
         return {
-          id: g.id.toString(),
-          difference: diffCount,
+          id: group.id,
+          name: group.name,
+          size: group.trials.length,
+          mean: group.getStats().avg,
+          max: group.getStats().max,
+          ...Object.assign(
+            {},
+            ...groupData.map((d) => ({ [d.id]: d.difference }))
+          ),
         };
-      });
-
-      return {
-        id: group.id,
-        name: group.name,
-        size: group.trials.length,
-        mean: group.getStats().avg,
-        ...Object.assign(
-          {},
-          ...groupData.map((d) => ({ [d.id]: d.difference }))
-        ),
-      };
-    });
+      })
+      .concat(emptyData);
   }, [groups.groups, hyperparams]);
 
-  const { colorScale, metricScale } = useMetricScale();
+  const heatmap = useMemo(() => {
+    return data.map((d) =>
+      groups.groups
+        .map((g) => {
+          return Number(d[g.id.toString()]);
+        })
+        .filter((v) => isNaN(v) === false)
+        .flat()
+    );
+  }, [data, groups.groups]);
+
+  const colorScale = d3
+    .scaleSequential(d3.interpolateOrRd)
+    .domain([0, Math.max(...heatmap.flat())]);
 
   const columns = useMemo(() => {
     return [
@@ -85,8 +136,13 @@ const TrialGroupTable = () => {
             }}
           >
             <input
-              type="checkbox"
-              checked={currentSelectedGroup.id === info.row.original.id}
+              type="radio"
+              disabled={info.row.original.name === ""}
+              checked={
+                currentSelectedGroup &&
+                info.row &&
+                currentSelectedGroup.id === info.row.original.id
+              }
               onChange={() => {
                 setCurrnetSelectedGroup(groups.getGroup(info.row.original.id));
               }}
@@ -104,7 +160,12 @@ const TrialGroupTable = () => {
         id: "name",
         header: "Group",
         accessorKey: "name",
-        cell: (info) => info.getValue(),
+        cell: (info) => {
+          if (info.getValue() === "") {
+            return <EmptyBox />;
+          }
+          return info.getValue();
+        },
         meta: { align: "left" },
         type: "string",
         size: 90,
@@ -113,10 +174,31 @@ const TrialGroupTable = () => {
         id: "size",
         header: "Size",
         accessorKey: "size",
-        cell: (info) => formatting(info.getValue(), "int"),
+        cell: (info) => {
+          if (info.getValue() === -1) {
+            return <EmptyBox />;
+          }
+          return formatting(info.getValue(), "int");
+        },
         meta: { align: "right" },
         type: "number",
-        size: 50,
+        size: 55,
+      },
+      {
+        id: "max",
+        header: "Max",
+        accessorKey: "max",
+        type: "number",
+
+        cell: (info) => {
+          const { cell } = info;
+          if (cell.getValue() === -1) {
+            return <EmptyBox />;
+          }
+          return <MetricBadge metricValue={cell.getValue()} type={"int"} />;
+        },
+        meta: { align: "right" },
+        size: 65,
       },
       {
         id: "mean",
@@ -126,20 +208,13 @@ const TrialGroupTable = () => {
 
         cell: (info) => {
           const { cell } = info;
-          return (
-            <MetricBadge metricValue={cell.getValue()} type={"float"} />
-            // <Box
-            //   background={colorScale(metricScale(cell.getValue()))}
-            //   color={getTextColor(colorScale(metricScale(cell.getValue())))}
-            //   width={"100%"}
-            //   pr={1}
-            // >
-            //   {formatting(info.getValue(), "float")}
-            // </Box>
-          );
+          if (cell.getValue() === -1) {
+            return <EmptyBox />;
+          }
+          return <MetricBadge metricValue={cell.getValue()} type={"float"} />;
         },
         meta: { align: "right" },
-        size: 60,
+        size: 65,
       },
       ...groups.groups.map((group) => {
         return {
@@ -147,23 +222,65 @@ const TrialGroupTable = () => {
           header: "",
           accessorKey: group.id.toString(),
           cell: (info) => {
+            if (
+              info.row.original.name === "" ||
+              info.row.original.id === group.id
+            ) {
+              return <EmptyBox />;
+            }
+
             return (
               <Box
-                width={"100%"}
-                pr={1}
+                width={"20px"}
+                height={"20px"}
                 display={"flex"}
                 justifyContent={"center"}
-              >
-                {formatting(info.getValue(), "int")}
-              </Box>
+                backgroundColor={colorScale(info.getValue()) as string}
+                borderRadius={"20px"}
+                color={getTextColor(colorScale(info.getValue()))}
+                style={{
+                  cursor: "pointer",
+                }}
+                border={
+                  currentSelectedGroup &&
+                  info.row.original.id === currentSelectedGroup.id &&
+                  currentSelectedGroup2 &&
+                  group.id === currentSelectedGroup2.id
+                    ? "1px solid #000"
+                    : "1px solid #fff"
+                }
+                className="heatmap-cell"
+                onClick={() => {
+                  setCurrnetSelectedGroup(
+                    groups.getGroup(info.row.original.id)
+                  );
+                  setCurrnetSelectedGroup2(groups.getGroup(group.id));
+                }}
+              ></Box>
             );
           },
           meta: { align: "right" },
-          size: 45,
+          size: 30,
+        };
+      }),
+      ...Array.from({ length: 8 - groups.groups.length }, (_, i) => {
+        return {
+          id: `empty-${i}`,
+          header: "",
+          accessorKey: `empty-${i}`,
+          cell: () => <EmptyBox />,
+          meta: { align: "right" },
+          size: 30,
         };
       }),
     ];
-  }, [groups, setCurrnetSelectedGroup, colorScale, metricScale]);
+  }, [
+    groups,
+    currentSelectedGroup,
+    setCurrnetSelectedGroup,
+    colorScale,
+    setCurrnetSelectedGroup2,
+  ]);
 
   console.log("columns", columns);
 
@@ -185,12 +302,11 @@ const TrialGroupTable = () => {
   return (
     <Box
       style={{
-        // width: "230px",
         width: "100%",
         height: "100%",
         position: "relative",
         overflow: "hidden",
-        // paddingTop: "30px",
+        paddingTop: "20px",
       }}
     >
       <div
@@ -266,8 +382,10 @@ const TrialGroupTable = () => {
                   <tr
                     key={row.id}
                     className={`hparam-table-row ${
+                      currentSelectedGroup &&
+                      row &&
                       currentSelectedGroup.id === row.original.id
-                        ? "selected"
+                        ? "selected2"
                         : ""
                     } `}
                     style={{

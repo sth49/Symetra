@@ -56,7 +56,7 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
         id: "group1",
         header: currSelectedGroup?.name,
         accessorKey: "group1",
-        cell: (info) => formatting(info.getValue(), "int"),
+        cell: (info) => formatting(info.getValue(), "float") + "%",
         meta: {
           align: "center",
         },
@@ -86,30 +86,30 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
         id: "group2",
         header: currSelectedGroup2?.name,
         accessorKey: "group2",
-        cell: (info) => formatting(info.getValue(), "int"),
+        cell: (info) => formatting(info.getValue(), "float") + "%",
         meta: {
           align: "center",
         },
         enableSorting: true,
         size: 60,
       },
-      {
-        id: "priority",
-        header: "Priority",
-        accessorKey: "priority",
-        cell: (info) => info.getValue(),
-        meta: {
-          align: "center",
-        },
-        enableSorting: true,
-        size: 60,
-      },
+      // {
+      //   id: "priority",
+      //   header: "Priority",
+      //   accessorKey: "priority",
+      //   cell: (info) => info.getValue(),
+      //   meta: {
+      //     align: "center",
+      //   },
+      //   enableSorting: true,
+      //   size: 60,
+      // },
     ];
   }, [currSelectedGroup, currSelectedGroup2]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "priority",
+      id: "group1",
       desc: true,
     },
   ]);

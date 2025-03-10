@@ -227,7 +227,7 @@ const TrialGroupGraph = () => {
           cx={node.x}
           cy={node.y}
           className="node"
-          fill={colorScale(metricScale(Number(node.stats.avg)))}
+          fill={colorScale(Number(node.stats.avg))}
           stroke={
             currnetSelectedGroup && currnetSelectedGroup.id === node.id
               ? "black"

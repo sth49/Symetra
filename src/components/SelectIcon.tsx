@@ -3,11 +3,19 @@ import { Box, Icon } from "@chakra-ui/react";
 import { TbCircleDotted, TbCircleFilled } from "react-icons/tb";
 import { useMetricScale } from "../model/colorScale";
 import { useCustomStore } from "../store";
-const SelectIcon = () => {
-  const { metricScale, colorScale } = useMetricScale();
+
+interface SelectIconProps {
+  type?: string;
+}
+
+const SelectIcon = ({ type }: SelectIconProps) => {
+  const { colorScale } = useMetricScale();
 
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
+  );
+  const currentSelectedGroup2 = useCustomStore(
+    (state) => state.currentSelectedGroup2
   );
 
   return (
@@ -15,9 +23,11 @@ const SelectIcon = () => {
       <Icon
         as={TbCircleFilled}
         color={colorScale(
-          metricScale(
-            currentSelectedGroup ? currentSelectedGroup.getStats().avg : 0
-          )
+          type === "g1" && currentSelectedGroup
+            ? currentSelectedGroup.getStats().avg
+            : currentSelectedGroup2
+            ? currentSelectedGroup2.getStats().avg
+            : 0
         )}
         position="absolute"
         left="50%"

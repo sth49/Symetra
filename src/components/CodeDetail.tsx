@@ -18,6 +18,7 @@ import CodeFileTable from "./CodeFileTable";
 import OverlappedCharts from "./OverlappedCharts";
 import { formatting } from "../model/utils";
 import SpeedometerGauge from "./SpeedMeterGauge";
+import SelectIcon from "./SelectIcon";
 
 function sliceAroundLine(
   content: string,
@@ -147,19 +148,19 @@ function CodeDetail() {
           color="gray.600"
           p={2}
           display={"flex"}
-          alignItems={"space-between"}
-          gap={2}
+          alignItems={"center"}
         >
           Code Detail View
+          {" ("}
+          <SelectIcon type="g1" /> {currentSelectedGroup?.name} {" vs "}
+          <SelectIcon type="g2" />
+          {currentSelectedGroup2?.name}
+          {" )"}
         </Heading>
       </Box>
       <Box w={"100%"} p={1} height={`calc(100% - 35px)`}>
-        <Box w={"100%"} height={`30px`} padding={1}>
-          <OverlappedCharts
-            trialGroup1={currentSelectedGroup}
-            trialGroup2={currentSelectedGroup2}
-          />
-        </Box>
+        <CodeFileTable />
+
         <Box w={"100%"} h={"50px"}>
           <Box display={"flex"} justifyContent={"space-between"} pl={2} pr={2}>
             {/* <Text fontSize={"sm"}>{branchInfo.fileName}</Text> */}
@@ -271,7 +272,7 @@ function CodeDetail() {
 
         <Box
           w={"100%"}
-          height={`calc(57.5% - 80px)`}
+          height={`calc(78% - 80px)`}
           position={"relative"}
           ref={containerRef}
         >
@@ -279,7 +280,7 @@ function CodeDetail() {
             <div
               style={{ position: "relative", width: "100%", minHeight: "100%" }}
             >
-              {selectedBranchId && (
+              {/* {selectedBranchId && (
                 <Box
                   width="22px"
                   height="18px" // Set to line height
@@ -299,7 +300,7 @@ function CodeDetail() {
                     size="18px"
                   />
                 </Box>
-              )}
+              )} */}
 
               {/* <svg
                 width="10%"
@@ -405,8 +406,6 @@ function CodeDetail() {
             {displayContent.content}
           </SyntaxHighlighter> */}
         </Box>
-
-        <CodeFileTable />
       </Box>
     </div>
   );

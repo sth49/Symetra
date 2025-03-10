@@ -22,9 +22,13 @@ export const useMetricScale = () => {
     [metricValues]
   );
 
-  const colorScale = d3
-    .scaleSequential(d3.interpolateViridis)
-    .domain([0, numThresholds]);
+  const colorScale = (value: number) => {
+    if (value === 0) return "#E9392E";
+    const color = d3
+      .scaleSequential(d3.interpolateGreens)
+      .domain([Math.min(...metricValues), Math.max(...metricValues)]);
+    return color(value);
+  };
 
   return { metricScale, colorScale };
 };

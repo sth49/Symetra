@@ -75,7 +75,7 @@ const BranchBarChart = ({
   });
 
   const [niceXMin, niceXMax] = xScale.domain();
-  const { metricScale, colorScale } = useMetricScale();
+  const { colorScale } = useMetricScale();
   const xRange = niceXMax - niceXMin;
   const binSize = xRange / binCount;
 
@@ -116,7 +116,7 @@ const BranchBarChart = ({
                     0,
                     parentHeight - margin.bottom - yScale(Number(bin.count))
                   )}
-                  fill={colorScale(metricScale(Number(bin.x0)))}
+                  fill={colorScale(Number(bin.x0))}
                 />
                 <Bar
                   x={xScale(Number(bin.x0))}

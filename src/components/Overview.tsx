@@ -31,7 +31,7 @@ const Overview = () => {
               Target Program
             </Text>
             <Text fontSize="sm" color={"gray.600"}>
-              {exp?.name}
+              {exp?.name.split("_")[0]}
             </Text>
           </Box>
           <Box display={"flex"} alignItems={"center"}>

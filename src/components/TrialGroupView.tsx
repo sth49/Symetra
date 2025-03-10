@@ -1,4 +1,4 @@
-import { Box, Heading } from "@chakra-ui/react";
+import { Box, Heading, Text } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { useCustomStore } from "../store";
@@ -6,7 +6,10 @@ import GroupDetailView from "./GroupDetailView";
 import { Groups } from "../model/group";
 import Heatmap from "./Heatmap";
 import TrialGroupTable from "./TrialGroupTable";
+import { performStatisticalTest } from "../model/statistic";
 
+import * as d3 from "d3";
+import { formatting } from "../model/utils";
 const TrialGroupView = () => {
   // const [visible, setVisible] = useState(true);
   const { exp } = useConstDataStore();
@@ -146,35 +149,129 @@ const TrialGroupView = () => {
     return groups.groups.map((group) => group.name);
   }, [groups]);
 
+  const { hyperparams } = useConstDataStore();
+
+  const heatmapData = useMemo(() => {
+    return groups.groups
+      .map((group) => {
+        const groupData = groups.groups.map((g) => {
+          if (group.id === g.id) {
+            return 0;
+          }
+          const differences = hyperparams.map((param) => {
+            const group1 = group.getHyperparam(param.name);
+            const group2 = g.getHyperparam(param.name);
+            return {
+              param: param.name,
+              ...performStatisticalTest(group1, group2, param.type, param),
+            };
+          });
+
+          const diffCount = differences.filter(
+            (d) => d.interpretationLevel > 1
+          ).length;
+          return diffCount;
+        });
+        return groupData;
+      })
+      .flat();
+  }, [groups, hyperparams]);
+
+  const minValue = Math.min(...heatmapData);
+  const maxValue = Math.max(...heatmapData);
+
+  const gradientStops = useMemo(() => {
+    return d3.range(0, 1.01, 0.1).map((t) => {
+      const value = minValue + t * (maxValue - minValue);
+      const color = d3
+        .scaleSequential(d3.interpolateOrRd)
+        .domain([minValue, maxValue])(value);
+      return { offset: `${t * 100}%`, color };
+    });
+  }, [minValue, maxValue]);
+
+  console.log(heatmapData);
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      <Box display={"flex"} justifyContent={"space-between"}>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Trial Group View
         </Heading>
+        <Box
+          display={"flex"}
+          justifyContent={"space-between"}
+          alignItems={"center"}
+          style={{
+            width: `calc(100% - 170px)`,
+            padding: "0 10px",
+          }}
+        >
+          <Text fontSize="xs" color="gray.600">
+            # of different parameters
+          </Text>
+
+          <Box
+            display={"flex"}
+            justifyContent={"space-between"}
+            alignItems={"center"}
+          >
+            <Text fontSize="10px" color={"gray.600"}>
+              similar ({formatting(minValue, "int")})
+            </Text>
+            <svg
+              width="100"
+              height="16"
+              style={{
+                padding: "0 5px",
+              }}
+            >
+              <defs>
+                <linearGradient
+                  id="gradient2"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
+                  {gradientStops.map((stop, i) => (
+                    <stop key={i} offset={stop.offset} stopColor={stop.color} />
+                  ))}
+                </linearGradient>
+              </defs>
+              <rect width="90" height="16" fill="url(#gradient2)" />
+            </svg>
+
+            <Text fontSize="10px" color={"gray.600"}>
+              dissimilar({formatting(maxValue, "int")})
+            </Text>
+          </Box>
+        </Box>
+
+        {/* <Box>legned!</Box> */}
       </Box>
       <Box
-        height={`calc(100% - 35px - 65px)`}
+        height={`calc(100% - 35px - 65px - 5px)`}
         style={{
           display: "flex",
           position: "relative",
         }}
       >
-        {/* <TrialGroupTable /> */}
-        <Box style={{ position: "relative", zIndex: 1 }}>
+        <Box style={{ position: "relative", zIndex: 0 }}>
           <TrialGroupTable />
         </Box>
         <Box
           flex={1}
-          // height="100%"
           height={65}
-          width={`calc(100% - 230px)`}
+          width={`calc(100% - 305px)`}
           position={"absolute"}
           zIndex={2}
-          // paddingLeft={"230px"}
-          marginTop={"-30px"}
-          marginLeft={"230px"}
-          // backgroundColor={"#f0f0f0"}
+          marginTop={"-10px"}
+          marginLeft={"305px"}
         >
           <svg width={"100%"} height={"100%"}>
             {groupNames.map((name, i) => {
@@ -182,13 +279,13 @@ const TrialGroupView = () => {
                 <>
                   <text
                     key={i}
-                    x={22.5 + i * 45}
+                    x={15 + i * 30}
                     y={64} // rect의 높이(66px)에 맞춤
                     fill={"black"}
-                    fontSize={12}
+                    fontSize={10}
                     textAnchor="end" // 텍스트 앵커 포인트를 시작점으로 설정
                     dominantBaseline="text-after-edge" // 텍스트 기준선을 텍스트 하단으로 설정
-                    transform={`rotate(45, ${22.5 + i * 45}, 55)`} // 회전 중심을 바닥에 맞춤
+                    transform={`rotate(45, ${15 + i * 30}, 55)`} // 회전 중심을 바닥에 맞춤
                   >
                     {name}
                   </text>
@@ -207,7 +304,12 @@ const TrialGroupView = () => {
           </svg>
         </Box>
       </Box>
-
+      <Box
+        width={"98%"}
+        height={"5px"}
+        borderTop={"1px solid #ddd"}
+        ml={"1%"}
+      ></Box>
       <GroupDetailView />
     </div>
   );

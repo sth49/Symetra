@@ -8,11 +8,11 @@ interface MetricBadgeProps {
   type: string;
 }
 const MetricBadge = ({ metricValue, type = "int" }: MetricBadgeProps) => {
-  const { metricScale, colorScale } = useMetricScale();
+  const { colorScale } = useMetricScale();
   return (
     <Badge
-      backgroundColor={colorScale(metricScale(metricValue))}
-      color={getTextColor(colorScale(metricScale(metricValue)))}
+      backgroundColor={colorScale(metricValue)}
+      color={getTextColor(colorScale(metricValue))}
       display={"flex"}
       justifyContent={"center"}
       alignItems={"center"}

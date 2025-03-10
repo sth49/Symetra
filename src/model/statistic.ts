@@ -94,6 +94,52 @@ export function performStatisticalTest(
   }
 }
 
+function performTTest2(
+  group1: number[],
+  group2: number[],
+  param: any
+): StatTestResult {
+  const mean1 = jstat.mean(group1);
+  const mean2 = jstat.mean(group2);
+  const var1 = jstat.variance(group1, true); // 표본 분산 사용
+  const var2 = jstat.variance(group2, true); // 표본 분산 사용
+  const n1 = group1.length;
+  const n2 = group2.length;
+
+  // Welch's t-test 사용 (분산이 다를 때 더 적합)
+  const pooledSE = Math.sqrt(var1 / n1 + var2 / n2); // 표준 오차 계산
+  const tStatistic = (mean1 - mean2) / pooledSE; // t-통계량 계산
+
+  // Welch's t-test에 맞는 자유도 계산
+  const df =
+    Math.pow(var1 / n1 + var2 / n2, 2) /
+    (Math.pow(var1 / n1, 2) / (n1 - 1) + Math.pow(var2 / n2, 2) / (n2 - 1));
+
+  // p-값 계산 (양측 검정)
+  const pValue = 2 * (1 - jstat.studentt.cdf(Math.abs(tStatistic), df));
+
+  // Cohen's d 효과 크기 계산
+  const pooledSD = Math.sqrt(
+    ((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2)
+  );
+  const cohensD = Math.abs(mean1 - mean2) / pooledSD;
+
+  // 효과 크기 해석
+  const effectSizeResult = getStandardizedInterpretation(cohensD, "Cohen's d");
+
+  return {
+    testType: "Welch's T-Test",
+    statistic: tStatistic,
+    pValue: pValue,
+    effectSize: cohensD,
+    effectSizeType: "Cohen's d",
+    effectSizeInterpretation: effectSizeResult.interpretation,
+    interpretationLevel: effectSizeResult.level,
+    significant: pValue < 0.05,
+    param: param,
+  };
+}
+
 function performTTest(
   group1: number[],
   group2: number[],
@@ -146,11 +192,20 @@ function performChiSquareTest(
   param: any
 ): StatTestResult {
   // 범주형 데이터의 빈도를 계산합니다.
-  const categories = Array.from(new Set([...group1, ...group2]));
+
+  const categories = Array.from(new Set(param.values));
   const observed = categories.map((cat) => [
     group1.filter((x) => x === cat).length,
     group2.filter((x) => x === cat).length,
   ]);
+
+  // if (param.name === "smtlib-display-constants") {
+  //   console.log("Group1: ", group1);
+  //   console.log("Group2: ", group2);
+
+  //   console.log("Categories: ", categories);
+  //   console.log("Observed: ", observed);
+  // }
 
   const rowSums = observed.map((row) => row[0] + row[1]);
   const colSums = [
@@ -178,23 +233,51 @@ function performChiSquareTest(
   for (let i = 0; i < observed.length; i++) {
     for (let j = 0; j < 2; j++) {
       const expected = (rowSums[i] * colSums[j]) / total;
-      chiSquare += Math.pow(observed[i][j] - expected, 2) / expected;
+      // 0으로 나누는 상황 방지
+      if (expected > 0) {
+        chiSquare += Math.pow(observed[i][j] - expected, 2) / expected;
+      } else if (observed[i][j] > 0) {
+        // 예상 빈도는 0인데 관측 빈도가 0이 아닌 경우
+        // 이론적으로 불가능한 상황이므로 큰 값 추가
+        chiSquare += Math.pow(observed[i][j], 2) * 10;
+      }
+      // 관측값과 예상값이 모두 0인 경우는 카이제곱에 기여하지 않음
     }
   }
 
   const degreesOfFreedom = (observed.length - 1) * (2 - 1);
   const pValue = 1 - jstat.chisquare.cdf(chiSquare, degreesOfFreedom);
 
-  // Cramer's V 효과 크기 계산
-  // Cramer's V는 카이제곱 통계량에서 파생된 효과 크기 측정치입니다.
-  const minDimension = Math.min(categories.length, 2) - 1; // 행 또는 열의 수에서 1을 뺀 것 중 작은 값
-  const cramersV = Math.sqrt(chiSquare / (total * minDimension));
+  // Cramer's V 효과 크기 계산 - NaN 처리 추가
+  const minDimension = Math.min(categories.length, 2) - 1;
+
+  // NaN 방지를 위한 안전 장치 추가
+  let cramersV: number;
+  if (minDimension <= 0 || total <= 0 || isNaN(chiSquare)) {
+    cramersV = 0; // 계산할 수 없는 경우 0으로 처리
+    console.log(
+      `경고: Cramer's V 계산 불가 (minDimension=${minDimension}, total=${total}, chiSquare=${chiSquare})`
+    );
+  } else {
+    cramersV = Math.sqrt(chiSquare / (total * minDimension));
+    // 계산 결과가 NaN인 경우 처리
+    if (isNaN(cramersV)) {
+      cramersV = 0;
+      console.log(`경고: Cramer's V 계산 결과가 NaN입니다. 0으로 처리합니다.`);
+    }
+  }
 
   // 효과 크기 해석
   const effectSizeResult = getStandardizedInterpretation(
     cramersV,
     "Cramer's V"
   );
+
+  if (param.name === "smtlib-display-constants") {
+    console.log("Chi-Square: ", chiSquare);
+    console.log("P-Value: ", pValue);
+    console.log("Cramer's V: ", cramersV);
+  }
 
   return {
     testType: "Chi-Square Test",

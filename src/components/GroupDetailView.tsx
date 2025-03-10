@@ -79,7 +79,7 @@ const GroupDetailView = () => {
                   display={"flex"}
                   alignItems={"center"}
                 >
-                  <SelectIcon />
+                  <SelectIcon type="g1" />
                   {currentSelectedGroup.name}{" "}
                   {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
                 </Text>

@@ -113,8 +113,8 @@ const TrialTable = () => {
           const { cell } = info;
           return (
             <Box
-              background={colorScale(metricScale(cell.getValue()))}
-              color={getTextColor(colorScale(metricScale(cell.getValue())))}
+              background={colorScale(cell.getValue())}
+              color={getTextColor(colorScale(cell.getValue()))}
               width={"100%"}
               pr={1}
             >

@@ -169,9 +169,7 @@ const CoverageView: React.FC = () => {
     yScale,
     metricScale,
     containerSize,
-    margin.bottom,
     margin.left,
-    margin.right,
     margin.top,
   ]);
 
@@ -608,7 +606,7 @@ const CoverageView: React.FC = () => {
                     : !isLassoActive && hoveredGroup.size > 0
                     ? "#CBD5E0"
                     : selected === "metric"
-                    ? colorScale(metricScale(d.metric))
+                    ? colorScale(d.metric)
                     : selected !== "" && exp?.hyperparams
                     ? exp?.hyperparams
                         .find((hp) => hp.name === selected)
@@ -662,9 +660,7 @@ const CoverageView: React.FC = () => {
                         y={row * itemHeight + legendMargin.top} // y 좌표 계산
                         width={20}
                         height={15}
-                        fill={colorScale(
-                          metricScale((range[0] + range[1]) / 2)
-                        )}
+                        fill={colorScale((range[0] + range[1]) / 2)}
                       />
                       <text
                         // x={25}

@@ -57,7 +57,7 @@ const ScatterPlotBase = ({
     hideTooltip,
   } = useTooltip<TooltipData>();
 
-  const { metricScale, colorScale } = useMetricScale();
+  const { colorScale } = useMetricScale();
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
@@ -191,7 +191,7 @@ const ScatterPlotBase = ({
                   cy={yScale(point.val2)}
                   r={3}
                   // fill={tooltipData === point ? "#FF0066" : "#0070f3"}
-                  fill={colorScale(metricScale(point.metric))}
+                  fill={colorScale(point.metric)}
                   // opacity={tooltipData === point ? 1 : 0.5}
                   onMouseEnter={(event) => handleMouseOver(event, point)}
                   onMouseLeave={hideTooltip}
@@ -208,7 +208,7 @@ const ScatterPlotBase = ({
                   cy={yScale(point.val2)}
                   r={3}
                   // fill={tooltipData === point ? "#FF0066" : "#0070f3"}
-                  fill={colorScale(metricScale(point.metric))}
+                  fill={colorScale(point.metric)}
                   onMouseEnter={(event) => handleMouseOver(event, point)}
                   onMouseLeave={hideTooltip}
                 />
