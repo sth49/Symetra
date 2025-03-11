@@ -6,7 +6,6 @@ import {
   Select,
   Text,
 } from "@chakra-ui/react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { useCustomStore } from "../store";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
