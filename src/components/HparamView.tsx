@@ -93,7 +93,7 @@ const HparamView = () => {
             mr={2}
             fontWeight={"bold"}
           >
-            Base Branch Coverage
+            Base Branch Coverage Value
           </Text>
         </Tooltip>
 

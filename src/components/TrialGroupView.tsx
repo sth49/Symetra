@@ -184,7 +184,7 @@ const TrialGroupView = () => {
     return d3.range(0, 1.01, 0.1).map((t) => {
       const value = minValue + t * (maxValue - minValue);
       const color = d3
-        .scaleSequential(d3.interpolateOrRd)
+        .scaleSequential(d3.interpolateRdPu)
         .domain([minValue, maxValue])(value);
       return { offset: `${t * 100}%`, color };
     });

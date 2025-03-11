@@ -116,7 +116,7 @@ const TrialGroupTable = () => {
   }, [data, groups.groups]);
 
   const colorScale = d3
-    .scaleSequential(d3.interpolateOrRd)
+    .scaleSequential(d3.interpolateRdPu)
     .domain([0, Math.max(...heatmap.flat())]);
 
   const columns = useMemo(() => {

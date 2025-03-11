@@ -89,7 +89,7 @@ const Overview = () => {
 
         <Box display={"flex"} alignItems={"center"}>
           <Text fontSize="sm" color={"gray.600"} fontWeight={"bold"} pr={3}>
-            Color Legend for Coverage
+            Color Legend for Coverage Value
           </Text>
           <MetricLegend />
         </Box>

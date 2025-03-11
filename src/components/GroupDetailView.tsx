@@ -144,7 +144,7 @@ const GroupDetailView = () => {
               pl={2}
             >
               <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                Mean Coverage
+                Mean Coverage Value
               </Text>
               <MetricBadge
                 metricValue={currentSelectedGroup.getStats().avg}

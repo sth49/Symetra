@@ -35,8 +35,6 @@ const BaseBidirectionalChart: React.FC<
   const diff = leftValue - rightValue;
 
   // Find the maximum absolute value to create a symmetrical scale
-  const maxAbsValue = Math.max(Math.abs(leftValue), Math.abs(rightValue));
-
   // Create scale for the bars (using absolute values for width calculation)
   const barScale = scaleLinear<number>({
     domain: [0, 100],

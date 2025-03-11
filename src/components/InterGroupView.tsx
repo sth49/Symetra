@@ -131,7 +131,7 @@ const InterGroupView = () => {
     const group2Stats = currentSelectedGroup2.getStats();
 
     return {
-      Max: {
+      Maximum: {
         group1: group1Stats.max,
         group2: group2Stats.max,
         type: "int",
@@ -141,12 +141,12 @@ const InterGroupView = () => {
         group2: group2Stats.avg,
         type: "float",
       },
-      Min: {
+      Minimum: {
         group1: group1Stats.min,
         group2: group2Stats.min,
         type: "int",
       },
-      Accum: {
+      Accumulated: {
         group1: group1Stats.acc,
         group2: group2Stats.acc,
         type: "int",
@@ -250,7 +250,16 @@ const InterGroupView = () => {
       },
       {
         id: "effect",
-        header: "Effect",
+        header: (
+          <div style={{ lineHeight: "1.2" }}>
+            <Text fontSize="xs" wordBreak="break-all">
+              Effect
+            </Text>
+            <Text fontSize="xs" wordBreak="break-all">
+              Size
+            </Text>
+          </div>
+        ),
         accessorKey: "interpretationLevel",
         cell: (info) => starRender(info.getValue()),
         meta: {
@@ -261,7 +270,14 @@ const InterGroupView = () => {
       },
       {
         id: "pValue",
-        header: "p-val",
+        header: () => (
+          <Box display={"flex"}>
+            <Text fontStyle={"italic"} fontSize={"xs"}>
+              p{" "}
+            </Text>
+            <Text>&lt;0.05</Text>
+          </Box>
+        ),
         accessorKey: "pValue",
         cell: (info) => {
           const d = info.row.original;
@@ -396,13 +412,6 @@ const InterGroupView = () => {
           <SelectIcon type="g1" />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
-        {/* <Box display={"flex"} pr={2} alignItems={"center"}>
-          <Icon as={FaAsterisk} color={"red.600"} width={"8px"} />
-          <Text fontSize={"xs"} color={"gray.600"}>
-            Two groups are significantly different (
-            {data?.filter((d) => d.pValue < 0.05).length || 0} / {data?.length})
-          </Text>
-        </Box> */}
       </Box>
       <div style={{ width: "100%", height: `calc(100% - 35px)` }}>
         <div
@@ -521,7 +530,7 @@ const InterGroupView = () => {
                         }}
                         colSpan={3}
                       >
-                        <Text fontSize={"sm"}>{key} Coverage</Text>
+                        <Text fontSize={"sm"}>{key} Coverage Value</Text>
                       </td>
                       <td
                         style={{
@@ -569,7 +578,7 @@ const InterGroupView = () => {
                         colSpan={3}
                       >
                         {/* {key} */}
-                        <Text fontSize={"sm"}>Union Coverage</Text>
+                        <Text fontSize={"sm"}>Union Coverage Value</Text>
                       </td>
                       <td
                         colSpan={2}

@@ -32,7 +32,7 @@ const MetricLegend = () => {
         style={{
           width: "16px",
           height: "16px",
-          backgroundColor: "#E9392E",
+          backgroundColor: "#98171A",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

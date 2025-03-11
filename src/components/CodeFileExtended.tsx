@@ -9,12 +9,18 @@ import { useMemo, useState } from "react";
 
 import { FaSort, FaSortUp, FaSortDown, FaPlus, FaMinus } from "react-icons/fa";
 import { useCustomStore } from "../store";
-import { Box, Icon, IconButton } from "@chakra-ui/react";
+import { Box, Icon, Text } from "@chakra-ui/react";
 import { formatting } from "../model/utils";
 import BidirectionalChart from "./BidirectionalChart";
 interface CodeFileExtendedProps {
-  item;
-  showNum;
+  item: {
+    line: number;
+    ids: string[];
+    group1: number;
+    group2: number;
+    diff: number;
+  }[];
+  showNum: number;
 }
 
 const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
@@ -31,34 +37,7 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
   );
 
   const data = useMemo(() => {
-    const groupByLine = {};
-    item.forEach((child) => {
-      if (!groupByLine[child.line]) {
-        groupByLine[child.line] = {
-          line: child.line,
-          ids: [child.id],
-          group1: child.group1,
-          group2: child.group2,
-        };
-      }
-      // Add this line to the lines array if it's not already there
-      else if (!groupByLine[child.line].ids.includes(child.id)) {
-        groupByLine[child.line].ids.push(child.id);
-        groupByLine[child.line].group1 += child.group1;
-        groupByLine[child.line].group2 += child.group2;
-      }
-    });
-    return Object.values(groupByLine)
-      .map((group: any) => ({
-        ...group,
-        group1: group.group1 / group.ids.length,
-        group2: group.group2 / group.ids.length,
-        diff: Math.abs(
-          group.group1 / group.ids.length - group.group2 / group.ids.length
-        ),
-      }))
-      .sort((a, b) => b.diff - a.diff)
-      .slice(0, showNum);
+    return item.slice(0, showNum);
   }, [item, showNum]);
 
   console.log("data", data);
@@ -75,17 +54,26 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
         enableSorting: true,
         size: 40,
       },
-      // {
-      //   id: "ids",
-      //   header: "Branch ID",
-      //   accessorKey: "ids",
-      //   cell: (info) => info.getValue(),
-      //   meta: {
-      //     align: "center",
-      //   },
-      //   enableSorting: true,
-      //   size: 60,
-      // },
+      {
+        id: "ids",
+        header: (
+          <div style={{ lineHeight: "1.2" }}>
+            <Text fontSize="xs" wordBreak="break-all">
+              # of
+            </Text>
+            <Text fontSize="xs" wordBreak="break-all">
+              Branches
+            </Text>
+          </div>
+        ),
+        accessorKey: "ids",
+        cell: (info) => info.getValue().length,
+        meta: {
+          align: "center",
+        },
+        enableSorting: true,
+        size: 60,
+      },
 
       {
         id: "group1",
@@ -272,7 +260,9 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
                         textAlign: cell.column.columnDef.meta.align,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        fontWeight: row.original.ids.includes(selectedBranchId)
+                        fontWeight: (row.original.ids as string[]).includes(
+                          selectedBranchId
+                        )
                           ? "bold"
                           : "normal",
                         fontSize: "12px",

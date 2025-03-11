@@ -43,6 +43,11 @@ function parseBranchInfo(info: string) {
 
   const line = parseInt(info.match(/Line:(\d+)/)?.[1] || "0");
 
+  // if (line === 0) {
+  //   console.log("Error: Could not find the line number");
+  //   console.log("Info:", info);
+  // }
+
   // program 폴더는 이미 public에 있으므로 경로 앞에 추가
   const filePath = `program/${originalPath}`;
   // console.log("Final file path:", filePath);
