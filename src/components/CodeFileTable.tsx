@@ -15,6 +15,7 @@ import { Box, Button, Icon, IconButton } from "@chakra-ui/react";
 import { formatting } from "../model/utils";
 import CodeFileExtended from "./CodeFileExtended";
 import { FaAngleUp, FaAngleDown } from "react-icons/fa";
+import BidirectionalChart from "./BidirectionalChart";
 const CodeFileTable = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
@@ -56,20 +57,28 @@ const CodeFileTable = () => {
         .map((b) => {
           const g1 = group1[b.branch] ? group1[b.branch] : 0;
           const g2 = group2[b.branch] ? group2[b.branch] : 0;
-          const diff = Math.abs(g1 - g2);
 
           return {
             id: b.branch,
             line: b.line,
             group1: (g1 / length1) * 100,
-            diff:
-              formatting(g1 / diff, "float").toString() +
-              " || " +
-              formatting(g2 / diff, "float").toString(),
             group2: (g2 / length2) * 100,
           };
         });
-
+      const g1Count =
+          (children.reduce(
+            (acc, child) => (child.group1 !== 0 ? acc + 1 : acc),
+            0
+          ) /
+            branchCount[filePath]) *
+          100,
+        g2Count =
+          (children.reduce(
+            (acc, child) => (child.group2 !== 0 ? acc + 1 : acc),
+            0
+          ) /
+            branchCount[filePath]) *
+          100;
       return {
         id: i,
         count: branchCount[filePath],
@@ -77,14 +86,9 @@ const CodeFileTable = () => {
           filePath.split("/").slice(-2)[0] +
           "/" +
           filePath.split("/").slice(-1)[0],
-        group1Count: children.reduce(
-          (acc, child) => (child.group1 !== 0 ? acc + 1 : acc),
-          0
-        ),
-        group2Count: children.reduce(
-          (acc, child) => (child.group2 !== 0 ? acc + 1 : acc),
-          0
-        ),
+        group1Count: g1Count,
+        diff: Math.abs(g1Count - g2Count),
+        group2Count: g2Count,
         children: children,
       };
     });
@@ -101,6 +105,7 @@ const CodeFileTable = () => {
           align: "left",
         },
         enableSorting: true,
+        size: 50,
       },
       {
         id: "count",
@@ -117,23 +122,41 @@ const CodeFileTable = () => {
         id: "group1Count",
         header: currentSelectedGroup?.name,
         accessorKey: "group1Count",
-        cell: (info) => formatting(info.getValue(), "int"),
+        cell: (info) => formatting(info.getValue(), "int") + " %",
         meta: {
           align: "right",
         },
         enableSorting: true,
-        size: 60,
+        size: 40,
+      },
+      {
+        id: "diff",
+        header: "Difference",
+        accessorKey: "diff",
+        cell: (info) => (
+          <Box>
+            <BidirectionalChart
+              leftValue={info.row.original.group1Count}
+              rightValue={info.row.original.group2Count}
+              height={20}
+            />
+          </Box>
+        ),
+        meta: {
+          align: "right",
+        },
+        enableSorting: true,
       },
       {
         id: "group2Count",
         header: currentSelectedGroup2?.name,
         accessorKey: "group2Count",
-        cell: (info) => formatting(info.getValue(), "int"),
+        cell: (info) => formatting(info.getValue(), "int") + " %",
         meta: {
           align: "right",
         },
         enableSorting: true,
-        size: 60,
+        size: 40,
       },
       {
         id: "expander",
@@ -170,7 +193,7 @@ const CodeFileTable = () => {
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "group1Count",
+      id: "diff",
       desc: true,
     },
   ]);
@@ -331,15 +354,14 @@ const CodeFileTable = () => {
                     {row.getIsExpanded() && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={6}
                           style={{
                             backgroundColor: "#f9f9f9",
                           }}
                         >
                           <CodeFileExtended
-                            item={row.original.children
-                              .sort((a, b) => b.priority - a.priority)
-                              .slice(0, showNum)}
+                            item={row.original.children}
+                            showNum={showNum}
                           />
 
                           <Button

@@ -46,6 +46,7 @@
     "@visx/scale": "^3.5.0",
     "@visx/shape": "^3.5.0",
     "@visx/stats": "^3.5.0",
+    "@visx/text": "^3.12.0",
     "@visx/tooltip": "^3.3.0",
     "@visx/vendor": "^3.5.0",
     "@visx/visx": "^3.10.4",

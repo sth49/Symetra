@@ -11,12 +11,13 @@ import { FaSort, FaSortUp, FaSortDown, FaPlus, FaMinus } from "react-icons/fa";
 import { useCustomStore } from "../store";
 import { Box, Icon, IconButton } from "@chakra-ui/react";
 import { formatting } from "../model/utils";
-import SpeedometerGauge from "./SpeedMeterGauge";
+import BidirectionalChart from "./BidirectionalChart";
 interface CodeFileExtendedProps {
   item;
+  showNum;
 }
 
-const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
+const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
   const currSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
@@ -28,19 +29,41 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
   const setSelectBranchId = useCustomStore(
     (state) => state.setSelectedBranchId
   );
+
+  const data = useMemo(() => {
+    const groupByLine = {};
+    item.forEach((child) => {
+      if (!groupByLine[child.line]) {
+        groupByLine[child.line] = {
+          line: child.line,
+          ids: [child.id],
+          group1: child.group1,
+          group2: child.group2,
+        };
+      }
+      // Add this line to the lines array if it's not already there
+      else if (!groupByLine[child.line].ids.includes(child.id)) {
+        groupByLine[child.line].ids.push(child.id);
+        groupByLine[child.line].group1 += child.group1;
+        groupByLine[child.line].group2 += child.group2;
+      }
+    });
+    return Object.values(groupByLine)
+      .map((group: any) => ({
+        ...group,
+        group1: group.group1 / group.ids.length,
+        group2: group.group2 / group.ids.length,
+        diff: Math.abs(
+          group.group1 / group.ids.length - group.group2 / group.ids.length
+        ),
+      }))
+      .sort((a, b) => b.diff - a.diff)
+      .slice(0, showNum);
+  }, [item, showNum]);
+
+  console.log("data", data);
   const columns2 = useMemo(() => {
     return [
-      {
-        id: "id",
-        header: "Branch ID",
-        accessorKey: "id",
-        cell: (info) => info.getValue(),
-        meta: {
-          align: "center",
-        },
-        enableSorting: true,
-        size: 60,
-      },
       {
         id: "line",
         header: "Line",
@@ -50,8 +73,20 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
           align: "center",
         },
         enableSorting: true,
-        size: 60,
+        size: 40,
       },
+      // {
+      //   id: "ids",
+      //   header: "Branch ID",
+      //   accessorKey: "ids",
+      //   cell: (info) => info.getValue(),
+      //   meta: {
+      //     align: "center",
+      //   },
+      //   enableSorting: true,
+      //   size: 60,
+      // },
+
       {
         id: "group1",
         header: currSelectedGroup?.name,
@@ -65,21 +100,23 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
       },
       {
         id: "diff",
-        header: "Diff",
+        header: "Difference",
         accessorKey: "diff",
         cell: (info) => {
           return (
-            <SpeedometerGauge
-              group1Value={info.row.original.group1}
-              group2Value={info.row.original.group2}
-            />
+            <Box width="100%">
+              <BidirectionalChart
+                leftValue={info.row.original.group1}
+                rightValue={info.row.original.group2}
+                height={20}
+              />
+            </Box>
           );
         },
         meta: {
           align: "center",
         },
         enableSorting: true,
-        size: 60,
       },
 
       {
@@ -93,29 +130,18 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
         enableSorting: true,
         size: 60,
       },
-      // {
-      //   id: "priority",
-      //   header: "Priority",
-      //   accessorKey: "priority",
-      //   cell: (info) => info.getValue(),
-      //   meta: {
-      //     align: "center",
-      //   },
-      //   enableSorting: true,
-      //   size: 60,
-      // },
     ];
   }, [currSelectedGroup, currSelectedGroup2]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "group1",
+      id: "diff",
       desc: true,
     },
   ]);
 
   const table2 = useReactTable({
-    data: item,
+    data: data,
     columns: columns2,
     state: {
       sorting,
@@ -232,7 +258,7 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
                   cursor: "pointer",
                 }}
                 onClick={() => {
-                  setSelectBranchId(row.original.id as string);
+                  setSelectBranchId(row.original.ids[0] as string);
                 }}
               >
                 {row.getVisibleCells().map((cell) => {
@@ -244,13 +270,11 @@ const CodeFileExtended = ({ item }: CodeFileExtendedProps) => {
                         width: column.getSize(),
                         // @ts-ignore
                         textAlign: cell.column.columnDef.meta.align,
-                        // padding: "0 8px",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        fontWeight:
-                          selectedBranchId === row.original.id
-                            ? "bold"
-                            : "normal",
+                        fontWeight: row.original.ids.includes(selectedBranchId)
+                          ? "bold"
+                          : "normal",
                         fontSize: "12px",
                       }}
                     >

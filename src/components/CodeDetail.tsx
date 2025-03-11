@@ -15,10 +15,8 @@ import { useConstDataStore } from "./store/constDataStore";
 import { BranchInfo } from "../model/experiment";
 
 import CodeFileTable from "./CodeFileTable";
-import OverlappedCharts from "./OverlappedCharts";
-import { formatting } from "../model/utils";
-import SpeedometerGauge from "./SpeedMeterGauge";
 import SelectIcon from "./SelectIcon";
+import BidirectionalChart from "./BidirectionalChart";
 
 function sliceAroundLine(
   content: string,
@@ -40,7 +38,7 @@ function sliceAroundLine(
 
 function CodeDetail() {
   const [fileContent, setFileContent] = useState<string>("");
-  const [numLine, setNumLine] = useState<number>(15);
+  const [numLine, setNumLine] = useState<number>(25);
   const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
   const setSelectBranchId = useCustomStore(
     (state) => state.setSelectedBranchId
@@ -50,6 +48,10 @@ function CodeDetail() {
   const [branchInfo, setBranchInfo] = useState<BranchInfo | undefined>(
     undefined
   );
+
+  useEffect(() => {
+    setSelectBranchId(experiment.branchInfo[0].branch);
+  }, [experiment, setSelectBranchId]);
 
   useEffect(() => {
     if (selectedBranchId) {
@@ -106,6 +108,15 @@ function CodeDetail() {
   );
 
   const data = useMemo(() => {
+    const branchCount = {};
+    experiment.branchInfo.forEach((branch) => {
+      if (branchCount[branch.filePath]) {
+        branchCount[branch.filePath]++;
+      } else {
+        branchCount[branch.filePath] = 1;
+      }
+    });
+
     if (!currentSelectedGroup || !currentSelectedGroup2) {
       return [];
     }
@@ -113,27 +124,64 @@ function CodeDetail() {
       experiment.branchInfo
     );
 
+    const length1 = currentSelectedGroup.getLength();
     const group2 = currentSelectedGroup2?.getOrignalBranches(
       experiment.branchInfo
     );
+    const length2 = currentSelectedGroup2.getLength();
 
-    return {
-      group1: group1,
-      group2: group2,
-    };
+    const temp = Object.keys(branchCount).map((filePath, i) => {
+      const children = experiment.branchInfo
+        .filter((b) => b.filePath === filePath)
+        .map((b) => {
+          const g1 = group1[b.branch] ? group1[b.branch] : 0;
+          const g2 = group2[b.branch] ? group2[b.branch] : 0;
+          return {
+            id: b.branch,
+            line: b.line,
+            group1: (g1 / length1) * 100,
+            group2: (g2 / length2) * 100,
+          };
+        });
+      return children;
+    });
+
+    const groupByLine = {};
+    const item = temp.flat();
+
+    item.forEach((child) => {
+      if (!groupByLine[child.line]) {
+        groupByLine[child.line] = {
+          line: child.line,
+          ids: [child.id],
+          group1: child.group1,
+          group2: child.group2,
+        };
+      } else if (!groupByLine[child.line].ids.includes(child.id)) {
+        groupByLine[child.line].ids.push(child.id);
+        groupByLine[child.line].group1 += child.group1;
+        groupByLine[child.line].group2 += child.group2;
+      }
+    });
+
+    const value = Object.values(groupByLine).map((group: any) => ({
+      ...group,
+      group1: group.group1 / group.ids.length,
+      group2: group.group2 / group.ids.length,
+    }));
+
+    return value;
   }, [currentSelectedGroup, currentSelectedGroup2, experiment.branchInfo]);
 
-  const containerRef = useRef(null);
+  const currentLine = useMemo(() => {
+    if (branchInfo?.line) {
+      return data.filter((d) => d.line === branchInfo.line);
+    }
+    return [];
+  }, [branchInfo, data]);
+  console.log("currentLine", currentLine);
 
-  // Position the yellow rectangle to align with the highlighted line
-  const calculateYPosition = () => {
-    if (!branchInfo) return 0;
-    if (!containerRef.current) return 0;
-    const lineHeight = 18; // 24px
-    const lineOffset =
-      (branchInfo.line - displayContent.startLine) * lineHeight + 15;
-    return lineOffset;
-  };
+  const containerRef = useRef(null);
 
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
@@ -161,7 +209,7 @@ function CodeDetail() {
       <Box w={"100%"} p={1} height={`calc(100% - 35px)`}>
         <CodeFileTable />
 
-        <Box w={"100%"} h={"50px"}>
+        <Box w={"100%"} h={"35px"}>
           <Box display={"flex"} justifyContent={"space-between"} pl={2} pr={2}>
             {/* <Text fontSize={"sm"}>{branchInfo.fileName}</Text> */}
             <FormControl
@@ -186,6 +234,22 @@ function CodeDetail() {
                 placeholder={"Branch ID"}
               />
             </FormControl>
+            <Box width={"33%"}>
+              {selectedBranchId && branchInfo && (
+                <>
+                  <BidirectionalChart
+                    leftValue={
+                      currentLine.length > 0 ? currentLine[0].group1 : 0
+                    }
+                    rightValue={
+                      currentLine && currentLine.length > 0
+                        ? currentLine[0].group2
+                        : 0
+                    }
+                  />
+                </>
+              )}
+            </Box>
 
             <FormControl
               display="flex"
@@ -211,7 +275,7 @@ function CodeDetail() {
                 }}
                 value={numLine}
               >
-                {["10", "15", "20", "All"].map((num) => (
+                {["15", "25", "50", "All"].map((num) => (
                   <option key={num} value={num}>
                     {num}
                   </option>
@@ -219,60 +283,11 @@ function CodeDetail() {
               </Select>
             </FormControl>
           </Box>
-          <Box
-            pl={2}
-            pr={2}
-            display={"flex"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-          >
-            {selectedBranchId && branchInfo && (
-              <>
-                <Text fontSize={"xs"}>
-                  {currentSelectedGroup?.name} (
-                  {Array.isArray(data)
-                    ? "N/A"
-                    : formatting(data.group1[selectedBranchId], "int")}
-                  {", "}
-                  {Array.isArray(data)
-                    ? "N/A"
-                    : formatting(
-                        data.group1[selectedBranchId] /
-                          currentSelectedGroup.getLength(),
-                        "float",
-                        2
-                      )}
-                  %)
-                </Text>
-                <SpeedometerGauge
-                  group1Value={data.group1[selectedBranchId]}
-                  group2Value={data.group2[selectedBranchId]}
-                  size="25px"
-                />
-                <Text fontSize={"xs"}>
-                  {currentSelectedGroup2?.name} (
-                  {Array.isArray(data)
-                    ? "N/A"
-                    : formatting(data.group2[selectedBranchId], "int")}
-                  {", "}
-                  {Array.isArray(data)
-                    ? "N/A"
-                    : formatting(
-                        data.group2[selectedBranchId] /
-                          currentSelectedGroup2.getLength(),
-                        "float",
-                        2
-                      )}
-                  %)
-                </Text>
-              </>
-            )}
-          </Box>
         </Box>
 
         <Box
           w={"100%"}
-          height={`calc(78% - 80px)`}
+          height={`calc(78% - 65px)`}
           position={"relative"}
           ref={containerRef}
         >
