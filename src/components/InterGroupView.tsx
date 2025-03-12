@@ -412,6 +412,36 @@ const InterGroupView = () => {
           <SelectIcon type="g1" />
           {currentSelectedGroup?.name} {" )"}
         </Heading>
+        <Box
+          display={"flex"}
+          justifyContent={"space-between"}
+          alignItems={"center"}
+        >
+          <Text fontSize="xs" color="gray.600">
+            Effect Size
+          </Text>
+
+          <Box
+            display={"flex"}
+            justifyContent={"space-between"}
+            alignItems={"center"}
+            padding={"0 4px"}
+          >
+            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
+              similar
+            </Text>
+            <Box display={"flex"} alignItems={"center"} p={"0 4px"}>
+              {[0, 1, 2, 3].map((value) => (
+                <Box display={"flex"} alignItems={"center"} pr={2}>
+                  {starRender(value)}
+                </Box>
+              ))}
+            </Box>
+            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
+              different
+            </Text>
+          </Box>
+        </Box>
       </Box>
       <div style={{ width: "100%", height: `calc(100% - 35px)` }}>
         <div

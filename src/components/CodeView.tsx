@@ -1,13 +1,4 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Icon,
-  IconButton,
-  Select,
-  Text,
-} from "@chakra-ui/react";
+import { Box, FormControl, FormLabel, Select, Text } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { useCustomStore } from "../store";
 import { useConstDataStore } from "./store/constDataStore";
@@ -32,21 +23,17 @@ function sliceAroundLine(
   };
 }
 interface CodeViewProps {
-  item: {
-    line: number;
-    ids: string[];
-    group1: number;
-    group2: number;
-    diff: number;
-  };
-  type: string;
+  item: any;
 }
-const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
+const CodeView: React.FC<CodeViewProps> = ({ item }) => {
   console.log("CodeView item:", item);
 
   const [branchInfo, setBranchInfo] = useState<BranchInfo | undefined>(
     undefined
   );
+
+  const viewType = useCustomStore((state) => state.viewType);
+
   const [fileContent, setFileContent] = useState<string>("");
   const [numLine, setNumLine] = useState<number>(20);
 
@@ -63,6 +50,14 @@ const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
       setBranchInfo(branch);
     }
   }, [selectedBranchId, experiment.branchInfo]);
+
+  useEffect(() => {
+    if (viewType === "file") {
+      setNumLine(-1);
+    } else {
+      setNumLine(20);
+    }
+  }, [viewType]);
 
   useEffect(() => {
     async function loadFile() {
@@ -97,8 +92,16 @@ const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
         content: "// There is no branch information.",
         startLine: 1,
       };
-    return sliceAroundLine(fileContent, branchInfo.line, numLine);
-  }, [fileContent, branchInfo, numLine]);
+    if (viewType === "file") return { content: fileContent, startLine: 1 };
+    return sliceAroundLine(fileContent, branchInfo?.line, numLine);
+  }, [fileContent, branchInfo?.line, viewType, numLine]);
+
+  const lines = useMemo(() => {
+    if (viewType === "line") return [branchInfo?.line];
+    if (!item || item?.children.length === 0) return [];
+    if (viewType === "file" && item && item.children)
+      return item.children.map((c) => c.line);
+  }, [branchInfo?.line, item, viewType]);
 
   if (item === undefined) {
     return (
@@ -134,8 +137,6 @@ const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
         >
           <Box backgroundColor={"white"} p={1} display={"flex"}>
             <Text fontSize={"xs"}>{branchInfo?.filePath}</Text>
-            {/* <Text>{currentLine[0]?.group1}</Text>
-            <Text fontSize={"xs"}>{currentLine[0]?.group2}</Text> */}
           </Box>
           <FormControl
             display="flex"
@@ -163,7 +164,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
               value={numLine}
             >
               {["20", "25", "50", "All"].map((num) => (
-                <option key={num} value={num}>
+                <option key={num} value={num === "All" ? -1 : parseInt(num)}>
                   {num}
                 </option>
               ))}
@@ -190,13 +191,18 @@ const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
                 boxSizing: "border-box",
               };
 
-              if (lineNumber === branchInfo?.line) {
+              console.log("items:", item);
+
+              if (lines.includes(lineNumber)) {
+                const lineItem = item.children.find(
+                  (c) => c.line === lineNumber
+                );
                 style.backgroundColor =
-                  item.group1 > item.group2
+                  lineItem.group1 > lineItem.group2
                     ? "rgba(0, 0, 255, 0.2)"
                     : "rgba(255, 0, 0, 0.2)";
                 style.borderLeft =
-                  item.group1 > item.group2
+                  lineItem.group1 > lineItem.group2
                     ? "3px solid rgba(0, 0, 255, 0.8)"
                     : "3px solid rgba(255, 0, 0, 0.8)";
                 style.width = "150%";

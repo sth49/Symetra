@@ -9,7 +9,7 @@ import { formatting, getTextColor } from "../model/utils";
 import * as d3 from "d3";
 import { useMemo } from "react";
 import { useCustomStore } from "../store";
-import { Box } from "@chakra-ui/react";
+import { Box, Tooltip, Text } from "@chakra-ui/react";
 import { performStatisticalTest } from "../model/statistic";
 
 import { useConstDataStore } from "./store/constDataStore";
@@ -230,33 +230,45 @@ const TrialGroupTable = () => {
             }
 
             return (
-              <Box
-                width={"20px"}
-                height={"20px"}
-                display={"flex"}
-                justifyContent={"center"}
-                backgroundColor={colorScale(info.getValue()) as string}
-                borderRadius={"20px"}
-                color={getTextColor(colorScale(info.getValue()))}
-                style={{
-                  cursor: "pointer",
-                }}
-                border={
-                  currentSelectedGroup &&
-                  info.row.original.id === currentSelectedGroup.id &&
-                  currentSelectedGroup2 &&
-                  group.id === currentSelectedGroup2.id
-                    ? "1px solid #000"
-                    : "1px solid #fff"
+              <Tooltip
+                label={
+                  <Box>
+                    <Text>{`${info.row.original.name} vs ${group.name}`}</Text>
+                    <Text>
+                      # of tatistically different parameters: {info.getValue()}
+                    </Text>
+                  </Box>
                 }
-                className="heatmap-cell"
-                onClick={() => {
-                  setCurrnetSelectedGroup(
-                    groups.getGroup(info.row.original.id)
-                  );
-                  setCurrnetSelectedGroup2(groups.getGroup(group.id));
-                }}
-              ></Box>
+                aria-label="A tooltip"
+              >
+                <Box
+                  width={"20px"}
+                  height={"20px"}
+                  display={"flex"}
+                  justifyContent={"center"}
+                  backgroundColor={colorScale(info.getValue()) as string}
+                  borderRadius={"20px"}
+                  color={getTextColor(colorScale(info.getValue()))}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                  border={
+                    currentSelectedGroup &&
+                    info.row.original.id === currentSelectedGroup.id &&
+                    currentSelectedGroup2 &&
+                    group.id === currentSelectedGroup2.id
+                      ? "1px solid #000"
+                      : "1px solid #fff"
+                  }
+                  className="heatmap-cell"
+                  onClick={() => {
+                    setCurrnetSelectedGroup(
+                      groups.getGroup(info.row.original.id)
+                    );
+                    setCurrnetSelectedGroup2(groups.getGroup(group.id));
+                  }}
+                ></Box>
+              </Tooltip>
             );
           },
           meta: { align: "right" },
@@ -279,6 +291,7 @@ const TrialGroupTable = () => {
     currentSelectedGroup,
     setCurrnetSelectedGroup,
     colorScale,
+    currentSelectedGroup2,
     setCurrnetSelectedGroup2,
   ]);
 

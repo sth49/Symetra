@@ -25,12 +25,16 @@ import CodeFileExtended from "./CodeFileExtended";
 import { FaAngleUp, FaAngleDown } from "react-icons/fa";
 import BidirectionalChart from "./BidirectionalChart";
 import CodeView from "./CodeView";
+import { FaAnglesUp } from "react-icons/fa6";
 const CodeFileTable = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
 
   const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
+  const setSelectedBranchId = useCustomStore(
+    (state) => state.setSelectedBranchId
+  );
 
   const currentSelectedGroup2 = useCustomStore(
     (state) => state.currentSelectedGroup2
@@ -39,6 +43,8 @@ const CodeFileTable = () => {
   const setCurrentSelectedGroup2 = useCustomStore(
     (state) => state.setCurrentSelectedGroup2
   );
+
+  const setViewType = useCustomStore((state) => state.setViewType);
 
   const groups = useCustomStore((state) => state.groups);
 
@@ -286,7 +292,8 @@ const CodeFileTable = () => {
                   <Icon as={FaAngleDown} color={"gray.500"} />
                 )
               }
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 row.toggleExpanded();
                 setShowNum(5);
               }}
@@ -302,7 +309,7 @@ const CodeFileTable = () => {
       },
     ];
   }, [
-    currentSelectedGroup.id,
+    currentSelectedGroup?.id,
     currentSelectedGroup?.name,
     currentSelectedGroup2,
     groups,
@@ -448,6 +455,11 @@ const CodeFileTable = () => {
                           padding: "0 10px",
                           cursor: "pointer",
                         }}
+                        onClick={() => {
+                          const branchId = row.original.children[0].ids[0];
+                          setSelectedBranchId(branchId);
+                          setViewType("file");
+                        }}
                       >
                         {row.getVisibleCells().map((cell) => {
                           const { column } = cell;
@@ -487,17 +499,38 @@ const CodeFileTable = () => {
                               showNum={showNum}
                             />
 
-                            <Button
-                              size={"xs"}
-                              m={1}
-                              width={"100%"}
-                              onClick={() => {
-                                setShowNum(showNum + 5);
-                              }}
-                            >
-                              <Icon as={FaAngleDown} mr={2} />
-                              {"Show More"}
-                            </Button>
+                            <Box display={"flex"} justifyContent={"center"}>
+                              <Button
+                                size={"xs"}
+                                m={1}
+                                width={"50%"}
+                                disabled={
+                                  showNum >= row.original.children.length
+                                }
+                                onClick={() => {
+                                  setShowNum(
+                                    showNum + 5 > row.original.children.length
+                                      ? row.original.children.length
+                                      : showNum + 5
+                                  );
+                                }}
+                              >
+                                <Icon as={FaAngleDown} mr={2} />
+                                {"Show More"}
+                              </Button>
+                              <Button
+                                size={"xs"}
+                                m={1}
+                                width={"50%"}
+                                disabled={showNum <= 5}
+                                onClick={() => {
+                                  setShowNum(showNum - 5 < 5 ? 5 : showNum - 5);
+                                }}
+                              >
+                                <Icon as={FaAngleUp} mr={2} />
+                                {"Show Less"}
+                              </Button>
+                            </Box>
                           </td>
                         </tr>
                       )}
@@ -510,11 +543,9 @@ const CodeFileTable = () => {
         </div>
       </div>
       <CodeView
-        item={data
-          .map((d) => d.children)
-          .flat()
-          .find((d) => d.ids.includes(selectedBranchId))}
-        type={"line"}
+        item={data.find((d) =>
+          d.children.find((c) => c.ids.includes(selectedBranchId))
+        )}
       />
     </Box>
   );

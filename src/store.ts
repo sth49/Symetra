@@ -49,6 +49,9 @@ interface CustomStore {
 
   selectedBranchId: string | null;
   setSelectedBranchId: (branchId: string | null) => void;
+
+  viewType: string;
+  setViewType: (viewType: string) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -109,4 +112,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   selectedBranchId: null,
   setSelectedBranchId: (branchId) => set({ selectedBranchId: branchId }),
+
+  viewType: "line",
+  setViewType: (viewType) => set({ viewType }),
 }));

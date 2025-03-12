@@ -43,6 +43,9 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
     (state) => state.setSelectedBranchId
   );
 
+  const setViewType = useCustomStore((state) => state.setViewType);
+  const viewType = useCustomStore((state) => state.viewType);
+
   const data = useMemo(() => {
     return item.slice(0, showNum);
   }, [item, showNum]);
@@ -55,8 +58,13 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
         header: "",
         accessorKey: "line",
         cell: (info) => {
-          if (info.row.original.ids.includes(selectedBranchId)) {
+          if (
+            info.row.original.ids.includes(selectedBranchId) &&
+            viewType === "line"
+          ) {
             return <Icon as={FaEye} />;
+          } else {
+            return "";
           }
         },
         meta: {
@@ -280,6 +288,7 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
                 }}
                 onClick={() => {
                   setSelectBranchId(row.original.ids[0] as string);
+                  setViewType("line");
                 }}
               >
                 {row.getVisibleCells().map((cell) => {
@@ -294,11 +303,12 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
                         padding: "0 8px",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        fontWeight: (row.original.ids as string[]).includes(
-                          selectedBranchId
-                        )
-                          ? "bold"
-                          : "normal",
+                        fontWeight:
+                          (row.original.ids as string[]).includes(
+                            selectedBranchId
+                          ) && viewType === "line"
+                            ? "bold"
+                            : "normal",
                         fontSize: "12px",
                       }}
                     >

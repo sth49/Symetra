@@ -206,7 +206,6 @@ const TrialGroupView = () => {
           alignItems={"center"}
           style={{
             width: `calc(100% - 160px)`,
-            padding: "0 10px",
           }}
         >
           <Text fontSize="10px" color="gray.600">
@@ -217,17 +216,12 @@ const TrialGroupView = () => {
             display={"flex"}
             justifyContent={"space-between"}
             alignItems={"center"}
+            padding={"0 4px"}
           >
-            <Text fontSize="10px" color={"gray.600"}>
+            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
               similar ({formatting(minValue, "int")})
             </Text>
-            <svg
-              width="100"
-              height="16"
-              style={{
-                padding: "0 5px",
-              }}
-            >
+            <svg width="90" height="16">
               <defs>
                 <linearGradient
                   id="gradient2"
@@ -241,10 +235,10 @@ const TrialGroupView = () => {
                   ))}
                 </linearGradient>
               </defs>
-              <rect width="90" height="16" fill="url(#gradient2)" />
+              <rect x="5" width="80" height="16" fill="url(#gradient2)" />
             </svg>
 
-            <Text fontSize="10px" color={"gray.600"}>
+            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
               dissimilar ({formatting(maxValue, "int")})
             </Text>
           </Box>
