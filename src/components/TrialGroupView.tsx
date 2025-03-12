@@ -190,8 +190,6 @@ const TrialGroupView = () => {
     });
   }, [minValue, maxValue]);
 
-  console.log(heatmapData);
-
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Box
@@ -207,12 +205,12 @@ const TrialGroupView = () => {
           justifyContent={"space-between"}
           alignItems={"center"}
           style={{
-            width: `calc(100% - 170px)`,
+            width: `calc(100% - 160px)`,
             padding: "0 10px",
           }}
         >
-          <Text fontSize="xs" color="gray.600">
-            # of different parameters
+          <Text fontSize="10px" color="gray.600">
+            # of statistically different parameters
           </Text>
 
           <Box
@@ -247,12 +245,10 @@ const TrialGroupView = () => {
             </svg>
 
             <Text fontSize="10px" color={"gray.600"}>
-              dissimilar({formatting(maxValue, "int")})
+              dissimilar ({formatting(maxValue, "int")})
             </Text>
           </Box>
         </Box>
-
-        {/* <Box>legned!</Box> */}
       </Box>
       <Box
         height={`calc(100% - 35px - 65px - 5px)`}

@@ -8,10 +8,18 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 
-import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { FaSort, FaSortUp, FaSortDown, FaEye } from "react-icons/fa";
 import { useConstDataStore } from "./store/constDataStore";
 import { useCustomStore } from "../store";
-import { Box, Button, Icon, IconButton, Text, Tooltip } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Icon,
+  IconButton,
+  Select,
+  Text,
+  Tooltip,
+} from "@chakra-ui/react";
 import { formatting } from "../model/utils";
 import CodeFileExtended from "./CodeFileExtended";
 import { FaAngleUp, FaAngleDown } from "react-icons/fa";
@@ -27,6 +35,12 @@ const CodeFileTable = () => {
   const currentSelectedGroup2 = useCustomStore(
     (state) => state.currentSelectedGroup2
   );
+
+  const setCurrentSelectedGroup2 = useCustomStore(
+    (state) => state.setCurrentSelectedGroup2
+  );
+
+  const groups = useCustomStore((state) => state.groups);
 
   const experiment = useConstDataStore((state) => state.exp);
   const [showNum, setShowNum] = useState(5);
@@ -128,8 +142,27 @@ const CodeFileTable = () => {
   const columns = useMemo(() => {
     return [
       {
+        id: "fc",
+        header: () => null,
+        accessorKey: "line",
+        cell: (info) => {
+          if (
+            info.row.original.children.find((d) =>
+              d.ids.includes(selectedBranchId)
+            ) !== undefined
+          ) {
+            return <Icon as={FaEye} />;
+          }
+        },
+        meta: {
+          align: "center",
+        },
+        enableSorting: true,
+        size: 20,
+      },
+      {
         id: "filePath",
-        header: "File Path",
+        header: () => "File Path",
         accessorKey: "filePath",
         // cell: (info) => info.getValue(),
         cell: (info) => {
@@ -153,11 +186,11 @@ const CodeFileTable = () => {
           align: "left",
         },
         enableSorting: true,
-        size: 50,
+        size: 40,
       },
       {
         id: "count",
-        header: (
+        header: () => (
           <div style={{ lineHeight: "1.2" }}>
             <Text fontSize="xs" wordBreak="break-all">
               # of
@@ -177,18 +210,18 @@ const CodeFileTable = () => {
       },
       {
         id: "group1Count",
-        header: currentSelectedGroup?.name,
+        header: () => currentSelectedGroup?.name,
         accessorKey: "group1Count",
         cell: (info) => formatting(info.getValue(), "int") + " %",
         meta: {
           align: "right",
         },
-        enableSorting: true,
+        enableSorting: false,
         size: 40,
       },
       {
         id: "diff",
-        header: "Difference",
+        header: () => "Difference",
         accessorKey: "diff",
         cell: (info) => (
           <Box>
@@ -200,20 +233,42 @@ const CodeFileTable = () => {
           </Box>
         ),
         meta: {
-          align: "right",
+          align: "center",
         },
         enableSorting: true,
       },
       {
         id: "group2Count",
-        header: currentSelectedGroup2?.name,
+        header: () => (
+          <Select
+            cursor={"pointer"}
+            w={"100%"}
+            value={
+              currentSelectedGroup2 ? currentSelectedGroup2.id.toString() : ""
+            }
+            size={"xs"}
+            onChange={(e) => {
+              const newGroup = groups.getGroup(parseInt(e.target.value));
+              setCurrentSelectedGroup2(newGroup);
+              // setGroup2(newGroup);
+            }}
+          >
+            {groups.groups
+              .filter((g) => g.id !== currentSelectedGroup.id)
+              .map((group) => (
+                <option key={group.id} value={group.id.toString()}>
+                  {group.name} ({formatting(group.getLength(), "int")})
+                </option>
+              ))}
+          </Select>
+        ),
         accessorKey: "group2Count",
         cell: (info) => formatting(info.getValue(), "int") + " %",
         meta: {
           align: "right",
         },
-        enableSorting: true,
-        size: 40,
+        enableSorting: false,
+        size: 50,
       },
       {
         id: "expander",
@@ -240,13 +295,20 @@ const CodeFileTable = () => {
           );
         },
         meta: {
-          align: "right",
+          align: "left",
         },
         enableSorting: false,
-        size: 30,
+        size: 20,
       },
     ];
-  }, [currentSelectedGroup, currentSelectedGroup2]);
+  }, [
+    currentSelectedGroup.id,
+    currentSelectedGroup?.name,
+    currentSelectedGroup2,
+    groups,
+    selectedBranchId,
+    setCurrentSelectedGroup2,
+  ]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -315,7 +377,6 @@ const CodeFileTable = () => {
                       return (
                         <th
                           key={header.id}
-                          colSpan={header.colSpan}
                           style={{
                             width: `${header.getSize()}px`,
                             position: "sticky",
@@ -323,7 +384,7 @@ const CodeFileTable = () => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
-                            padding: "8px 4px",
+                            padding: "8px 0",
                           }}
                         >
                           {header.isPlaceholder ? null : (
@@ -416,7 +477,7 @@ const CodeFileTable = () => {
                       {row.getIsExpanded() && (
                         <tr>
                           <td
-                            colSpan={6}
+                            colSpan={7}
                             style={{
                               backgroundColor: "#f9f9f9",
                             }}

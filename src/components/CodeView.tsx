@@ -133,7 +133,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item, type }) => {
           padding={2}
         >
           <Box backgroundColor={"white"} p={1} display={"flex"}>
-            <Text fontSize={"xs"}>{branchInfo.filePath}</Text>
+            <Text fontSize={"xs"}>{branchInfo?.filePath}</Text>
             {/* <Text>{currentLine[0]?.group1}</Text>
             <Text fontSize={"xs"}>{currentLine[0]?.group2}</Text> */}
           </Box>

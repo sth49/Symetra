@@ -7,7 +7,14 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 
-import { FaSort, FaSortUp, FaSortDown, FaPlus, FaMinus } from "react-icons/fa";
+import {
+  FaSort,
+  FaSortUp,
+  FaSortDown,
+  FaPlus,
+  FaMinus,
+  FaEye,
+} from "react-icons/fa";
 import { useCustomStore } from "../store";
 import { Box, Icon, Text } from "@chakra-ui/react";
 import { formatting } from "../model/utils";
@@ -44,6 +51,21 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
   const columns2 = useMemo(() => {
     return [
       {
+        id: "fc",
+        header: "",
+        accessorKey: "line",
+        cell: (info) => {
+          if (info.row.original.ids.includes(selectedBranchId)) {
+            return <Icon as={FaEye} />;
+          }
+        },
+        meta: {
+          align: "center",
+        },
+        enableSorting: true,
+        size: 20,
+      },
+      {
         id: "line",
         header: "Line",
         accessorKey: "line",
@@ -69,10 +91,10 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
         accessorKey: "ids",
         cell: (info) => info.getValue().length,
         meta: {
-          align: "center",
+          align: "right",
         },
         enableSorting: true,
-        size: 60,
+        size: 40,
       },
 
       {
@@ -81,10 +103,10 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
         accessorKey: "group1",
         cell: (info) => formatting(info.getValue(), "float") + "%",
         meta: {
-          align: "center",
+          align: "right",
         },
         enableSorting: true,
-        size: 60,
+        size: 40,
       },
       {
         id: "diff",
@@ -113,13 +135,24 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
         accessorKey: "group2",
         cell: (info) => formatting(info.getValue(), "float") + "%",
         meta: {
-          align: "center",
+          align: "right",
         },
         enableSorting: true,
-        size: 60,
+        size: 50,
+      },
+      {
+        id: "dummy",
+        header: "",
+        accessorKey: "group2",
+        cell: "",
+        meta: {
+          align: "right",
+        },
+        enableSorting: true,
+        size: 20,
       },
     ];
-  }, [currSelectedGroup, currSelectedGroup2]);
+  }, [currSelectedGroup?.name, currSelectedGroup2?.name, selectedBranchId]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -258,6 +291,7 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
                         width: column.getSize(),
                         // @ts-ignore
                         textAlign: cell.column.columnDef.meta.align,
+                        padding: "0 8px",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         fontWeight: (row.original.ids as string[]).includes(
