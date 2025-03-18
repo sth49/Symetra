@@ -20,7 +20,6 @@ import theme from "./theme";
 import { useConstDataStore } from "./components/store/constDataStore";
 import TrialView from "./components/TrialView";
 import InterGroupView from "./components/InterGroupView";
-import IntraGroupView from "./components/IntraGroupView";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { formatting } from "./model/utils";
 import CodeDetail from "./components/CodeDetail";
@@ -110,7 +109,7 @@ function App() {
           paramList,
           branchInfo.default
         );
-        console.log("experiment", experiment.branchInfo);
+        // console.log("experiment", experiment.branchInfo);
         setExp(experiment);
 
         const hyperparams = experiment.hyperparams;
@@ -135,8 +134,8 @@ function App() {
         const branchInfo = await import(
           `./data/branch_info_${currentTarget.split("_")[0]}.json`
         );
-        console.log(`./data/branch_info_${currentTarget.split("_")[0]}.json`);
-        console.log("branchInfo", branchInfo.default);
+        // console.log(`./data/branch_info_${currentTarget.split("_")[0]}.json`);
+        // console.log("branchInfo", branchInfo.default);
 
         const trialJson = module.default;
 
@@ -167,56 +166,56 @@ function App() {
   }, [currentTarget, setExp, setHyperparams, exp]);
   return (
     <ChakraProvider theme={theme}>
-      <Box bg="gray.100" h={"100vh"} w={"100vw"}>
-        <Box display={"flex"} justifyContent={"space-between"}>
-          <Box
-            color="gray.600"
-            height="calc(44px - 6px)" // 양쪽 margin을 고려하여 높이 조정
-            width="100%"
-            bg="white"
-            boxSizing="border-box"
-            m={1}
-            mb={0.5} // px 대신 rem 사용
-            alignItems={"center"}
-            display={"flex"}
-            justifyContent={"space-between"}
-          >
-            {exp && (
-              <Box m={1} width={"98%"}>
-                <Overview />
-              </Box>
-            )}
-            {target && (
-              <Menu>
-                <MenuButton
-                  mr={1}
-                  size={"xs"}
-                  as={IconButton}
-                  aria-label="Options"
-                  value={currentTarget}
-                  icon={<SettingsIcon />}
-                  colorScheme={"blue"}
-                  variant="outline"
-                />
-                <MenuList>
-                  {target.map((t) => (
-                    <MenuItem
-                      key={t.name}
-                      value={t.name}
-                      onClick={() => setCurrentTarget(t.name)}
-                    >
-                      {t.name} (mse: {formatting(t.mse, "float", 2)}, r2:{" "}
-                      {formatting(t.r2, "float", 2)})
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </Menu>
-            )}
+      {exp ? (
+        <Box bg="gray.100" h={"100vh"} w={"100vw"}>
+          <Box display={"flex"} justifyContent={"space-between"}>
+            <Box
+              color="gray.600"
+              height="calc(44px - 6px)" // 양쪽 margin을 고려하여 높이 조정
+              width="100%"
+              bg="white"
+              boxSizing="border-box"
+              m={1}
+              mb={0.5} // px 대신 rem 사용
+              alignItems={"center"}
+              display={"flex"}
+              justifyContent={"space-between"}
+            >
+              {exp && (
+                <Box m={1} width={"98%"}>
+                  <Overview />
+                </Box>
+              )}
+              {target && (
+                <Menu>
+                  <MenuButton
+                    mr={1}
+                    size={"xs"}
+                    as={IconButton}
+                    aria-label="Options"
+                    value={currentTarget}
+                    icon={<SettingsIcon />}
+                    colorScheme={"blue"}
+                    variant="outline"
+                  />
+                  <MenuList zIndex={10000}>
+                    {target.map((t) => (
+                      <MenuItem
+                        key={t.name}
+                        value={t.name}
+                        onClick={() => setCurrentTarget(t.name)}
+                      >
+                        {t.name} (mse: {formatting(t.mse, "float", 2)}, r2:{" "}
+                        {formatting(t.r2, "float", 2)})
+                      </MenuItem>
+                    ))}
+                  </MenuList>
+                </Menu>
+              )}
+            </Box>
           </Box>
-        </Box>
 
-        <Box display={"flex"}>
-          {exp ? (
+          <Box display={"flex"}>
             <>
               <Box width="330px" height="calc(100vh - 44px)">
                 <Box height="99%" bg="white" m={1} mr={0.5} mt={0.5}>
@@ -262,13 +261,6 @@ function App() {
                     display="flex"
                     flexDirection="column"
                   >
-                    {/* <Box height={"30%"} m={0.5} bg="white" mr={1} mb={0.5}>
-                      <TrialGroupView />
-                    </Box> */}
-
-                    {/* <Box height={"calc(40% - 8px)"} m={0.5} bg="white" mr={1}>
-                      <InterGroupView />
-                    </Box> */}
                     <Box height={"99%"} m={0.5} bg="white" mr={1} mb={2}>
                       <CodeDetail />
                     </Box>
@@ -276,11 +268,11 @@ function App() {
                 </Box>
               </Box>
             </>
-          ) : (
-            <div>Loading...</div>
-          )}
+          </Box>
         </Box>
-      </Box>
+      ) : (
+        <div>Loading ...</div>
+      )}
     </ChakraProvider>
   );
 }

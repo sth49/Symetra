@@ -60,8 +60,6 @@ const TrialGroupTable = () => {
       }
     );
 
-    console.log("Empty data", emptyData);
-
     return groups.groups
       .map((group) => {
         const groupData = groups.groups.map((g) => {
@@ -81,7 +79,7 @@ const TrialGroupTable = () => {
           });
 
           const diffCount = differences.filter(
-            (d) => d.interpretationLevel > 1
+            (d) => d.interpretationLevel > 1 && d.pValue < 0.05
           ).length;
           return {
             id: g.id.toString(),
@@ -235,7 +233,7 @@ const TrialGroupTable = () => {
                   <Box>
                     <Text>{`${info.row.original.name} vs ${group.name}`}</Text>
                     <Text>
-                      # of tatistically different parameters: {info.getValue()}
+                      # of statistically different parameters: {info.getValue()}
                     </Text>
                   </Box>
                 }
@@ -294,8 +292,6 @@ const TrialGroupTable = () => {
     currentSelectedGroup2,
     setCurrnetSelectedGroup2,
   ]);
-
-  console.log("columns", columns);
 
   const table = useReactTable({
     data,

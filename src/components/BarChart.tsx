@@ -9,7 +9,7 @@ import {
   OrdinalHyperparam,
 } from "../model/hyperparam";
 
-import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 import { PatternLines } from "@visx/pattern";
 import { formatting } from "../model/utils";
 import { useConstDataStore } from "./store/constDataStore";
@@ -19,6 +19,15 @@ type TooltipData = {
   key: string; // hparam name
   value: string | number; // hparam value
   count: number; // trial count
+};
+
+const tooltipStyles = {
+  ...defaultStyles,
+  background: "rgba(0, 0, 0, 0.8)",
+  color: "white",
+  padding: "8px",
+  borderRadius: "4px",
+  zIndex: 1000,
 };
 
 interface BarChartProps {
@@ -34,8 +43,6 @@ const BarChart = ({
   dist,
   trialIds,
   viewType,
-  width,
-  height,
   opacity,
   isGroup = false,
 }: BarChartProps) => {
@@ -47,7 +54,7 @@ const BarChart = ({
     hideTooltip,
     showTooltip,
   } = useTooltip<TooltipData>();
-  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+  const { TooltipInPortal } = useTooltipInPortal({
     scroll: true,
   });
   const { exp } = useConstDataStore();
@@ -179,7 +186,8 @@ const BarChart = ({
                           0,
                           height - margin.bottom - yScale(Number(bin.count))
                         )}
-                        fill={hparam.getColorByValue(bin.x0)}
+                        // fill={hparam.getColorByValue(bin.x0)}
+                        fill="#C4CFDB"
                         // opacity={1}
                         opacity={opacity}
                       />
@@ -259,15 +267,22 @@ const BarChart = ({
                   />
                 </svg>
                 {tooltipOpen && tooltipData && (
-                  <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
-                    <Box zIndex={100}>
-                      <Text fontWeight={"bold"} align={"left"} mb={2}>
-                        {tooltipData.key} {tooltipData.value}
-                      </Text>
-                      <Text align={"left"} mb={"2px"}>
-                        {formatting(tooltipData.count, "int")} trials
-                      </Text>
-                    </Box>
+                  <TooltipInPortal
+                    top={tooltipTop}
+                    left={tooltipLeft}
+                    style={tooltipStyles}
+                  >
+                    <div
+                      style={{
+                        fontWeight: "bold",
+                        borderBottom: "1px solid white",
+                        paddingBottom: "4px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {tooltipData.key} {tooltipData.value}
+                    </div>
+                    <div>{formatting(tooltipData.count, "int")} trials</div>
                   </TooltipInPortal>
                 )}
               </Box>
@@ -275,7 +290,6 @@ const BarChart = ({
           } else if (hparam instanceof ContinuousHyperparam) {
             const binCount = 5;
             const isInteger = data.every(Number.isInteger);
-            const isSame = data.every((val, i, arr) => val === arr[0]);
 
             const groupData = currentSelectedGroup
               ? currentSelectedGroup.trials.map(
@@ -336,6 +350,23 @@ const BarChart = ({
             //   count: 0,
             // }));
 
+            // const bins = Array.from({ length: binCount }, (_, i) => ({
+            //   x0: isInteger
+            //     ? Math.floor(niceXMin + i * binSize).toString()
+            //     : (niceXMin + i * binSize).toFixed(2),
+            //   x1: isInteger
+            //     ? Math.floor(niceXMin + (i + 1) * binSize).toString()
+            //     : (niceXMin + (i + 1) * binSize).toFixed(2),
+            //   count: 0,
+            // }));
+
+            // data.forEach((d) => {
+            //   const binIndex = Math.floor((Number(d) - xMin) / binSize);
+            //   if (binIndex >= 0 && binIndex < binCount) {
+            //     bins[binIndex].count++;
+            //   } else if (d === xMax) bins[binCount - 1].count++;
+            // });
+
             const bins = Array.from({ length: binCount }, (_, i) => ({
               x0: isInteger
                 ? Math.floor(niceXMin + i * binSize).toString()
@@ -346,27 +377,14 @@ const BarChart = ({
               count: 0,
             }));
 
-            if (dist === "seed-time") {
-              console.log("groupData", groupData);
-              console.log("groupData2", groupData2);
-              console.log("allData", allData);
-              console.log("xMin", xMin);
-              console.log("allMin", Math.min(...(allData as number[])));
-              console.log("xMax", xMax);
-              console.log("allMax", Math.max(...(allData as number[])));
-              console.log("xScale", xScale);
-              console.log("niceXMin", niceXMin);
-              console.log("niceXMax", niceXMax);
-              console.log("xRange", xRange);
-              console.log("binSize", binSize);
-              console.log("bins", bins);
-            }
-
+            // 데이터 할당 시, niceXMin 기준으로 계산
             data.forEach((d) => {
-              const binIndex = Math.floor((Number(d) - xMin) / binSize);
+              const binIndex = Math.floor((Number(d) - niceXMin) / binSize);
               if (binIndex >= 0 && binIndex < binCount) {
                 bins[binIndex].count++;
-              } else if (d === xMax) bins[binCount - 1].count++;
+              } else if (Number(d) === xMax) {
+                bins[binCount - 1].count++;
+              }
             });
 
             const yScale = scaleLinear({
@@ -374,15 +392,21 @@ const BarChart = ({
               range: [height - margin.bottom, margin.top],
             });
 
+            // Overlay bins 계산
             const calculateOverlayBins = () => {
               if (!clickedHparamValue) return [];
 
-              return bins.map((bin) => {
-                const relevantTrials = exp?.trials.filter(
-                  (trial) =>
-                    Number(trial.params[dist]) >= Number(bin.x0) &&
-                    Number(trial.params[dist]) < Number(bin.x1)
-                );
+              return bins.map((bin, i) => {
+                // experiment.trials를 사용하여 해당 bin에 해당하는 trial 필터링
+                const relevantTrials = exp?.trials.filter((trial) => {
+                  const val = Number(trial.params[dist]);
+                  if (i < binCount - 1) {
+                    return val >= Number(bin.x0) && val < Number(bin.x1);
+                  } else {
+                    // 마지막 bin은 x1 값을 포함
+                    return val >= Number(bin.x0) && val <= Number(bin.x1);
+                  }
+                });
                 const overlayCount =
                   relevantTrials?.filter((trial) =>
                     clickedHparamValue.value.length === 1
@@ -400,7 +424,36 @@ const BarChart = ({
                 };
               });
             };
+
             const bins2 = calculateOverlayBins();
+            // const calculateOverlayBins = () => {
+            //   if (!clickedHparamValue) return [];
+
+            //   return bins.map((bin) => {
+            //     // experiment.trials로 수정 (원래 exp가 아닌 experiment 사용)
+            //     const relevantTrials = exp?.trials.filter(
+            //       (trial) =>
+            //         Number(trial.params[dist]) >= Number(bin.x0) &&
+            //         Number(trial.params[dist]) < Number(bin.x1)
+            //     );
+            //     const overlayCount =
+            //       relevantTrials?.filter((trial) =>
+            //         clickedHparamValue.value.length === 1
+            //           ? trial.params[clickedHparamValue.name].toString() ===
+            //             clickedHparamValue.value[0]
+            //           : clickedHparamValue.value[0] <=
+            //               trial.params[clickedHparamValue.name] &&
+            //             trial.params[clickedHparamValue.name] <
+            //               clickedHparamValue.value[1]
+            //       ).length || 0;
+            //     return {
+            //       x0: bin.x0,
+            //       x1: bin.x1,
+            //       count: overlayCount,
+            //     };
+            //   });
+            // };
+            // const bins2 = calculateOverlayBins();
 
             return (
               <Box display="flex" justifyContent="center" alignItems="center">
@@ -420,9 +473,10 @@ const BarChart = ({
                             0,
                             height - margin.bottom - yScale(Number(bin.count))
                           )}
-                          fill={hparam.getColorByValue(
-                            (Number(bin.x1) + Number(bin.x0)) / 2
-                          )}
+                          // fill={hparam.getColorByValue(
+                          //   (Number(bin.x1) + Number(bin.x0)) / 2
+                          // )}
+                          fill="#C4CFDB"
                           opacity={opacity}
                         />
                         <Bar
@@ -513,15 +567,22 @@ const BarChart = ({
                     ))}
                 </svg>
                 {tooltipOpen && tooltipData && (
-                  <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
-                    <Box>
-                      <Text fontWeight={"bold"} align={"left"} mb={2}>
-                        {tooltipData.key} {tooltipData.value}
-                      </Text>
-                      <Text align={"left"} mb={"2px"}>
-                        {formatting(tooltipData.count, "int")} trials
-                      </Text>
-                    </Box>
+                  <TooltipInPortal
+                    top={tooltipTop}
+                    left={tooltipLeft}
+                    style={tooltipStyles}
+                  >
+                    <div
+                      style={{
+                        fontWeight: "bold",
+                        borderBottom: "1px solid white",
+                        paddingBottom: "4px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {tooltipData.key} {tooltipData.value}
+                    </div>
+                    <div>{formatting(tooltipData.count, "int")} trials</div>
                   </TooltipInPortal>
                 )}
               </Box>

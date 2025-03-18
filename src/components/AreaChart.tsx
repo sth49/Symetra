@@ -50,11 +50,11 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
       y: b[1],
       branch: b[0],
     }));
-  }, [currentSelectedGroup]);
+  }, [currentSelectedGroup, exp.branchInfo]);
 
   const data = useMemo(() => {
     const branches = trialGroup.getBranches(exp.branchInfo);
-    console.log("Branches:", branches);
+    // console.log("Branches:", branches);
     return selectedData.map((d) => {
       if (branches.find((b) => b[0] === d.branch) === undefined) {
         return {
@@ -70,7 +70,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
         };
       }
     });
-  }, [trialGroup, selectedData]);
+  }, [trialGroup, exp.branchInfo, selectedData]);
 
   const xAccessor = (d: { x: number }) => d.x;
   const yAccessor = (d: { y: number }) => d.y;
@@ -81,7 +81,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
         range: [margin.left, width - margin.right],
         domain: [0, data.length - 1],
       }),
-    [data, width]
+    [data.length, margin.left, margin.right, width]
   );
 
   const yScale = useMemo(
@@ -91,7 +91,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
         domain: [0, Math.max(...data.map(yAccessor))],
         nice: true,
       }),
-    [data, height]
+    [data, height, margin.bottom, margin.top]
   );
 
   // 마우스 이벤트 핸들러
@@ -116,7 +116,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
   };
   const handleTooltipClick = useCallback(() => {
     if (tooltipData) {
-      console.log("Selected Branch ID:", tooltipData.branch);
+      // console.log("Selected Branch ID:", tooltipData.branch);
       setSelectedBranchId(tooltipData.branch);
       // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
       // 예: 상태 업데이트, 콜백 함수 호출 등

@@ -12,7 +12,7 @@ const MetricLegend = () => {
     [exp]
   );
 
-  const minValue = Math.min(...metricValues.filter((v) => v !== 0));
+  const minValue = 1;
   const maxValue = Math.max(...metricValues);
 
   // Create gradient stops for the legend

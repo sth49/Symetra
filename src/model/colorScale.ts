@@ -26,7 +26,7 @@ export const useMetricScale = () => {
     if (value === 0) return "#98171A";
     const color = d3
       .scaleSequential(d3.interpolateGreens)
-      .domain([Math.min(...metricValues), Math.max(...metricValues)]);
+      .domain([1, Math.max(...metricValues)]);
     return color(value);
   };
 

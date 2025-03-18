@@ -18,7 +18,6 @@ function getStandardizedInterpretation(
   value: number,
   type: string
 ): { interpretation: string; level: number } {
-  // 모든 효과 크기에 대해 4단계로 표준화
   if (type === "Cohen's d") {
     if (value < 0.2) {
       return { interpretation: "매우 작은 차이", level: 0 };
@@ -94,52 +93,6 @@ export function performStatisticalTest(
   }
 }
 
-function performTTest2(
-  group1: number[],
-  group2: number[],
-  param: any
-): StatTestResult {
-  const mean1 = jstat.mean(group1);
-  const mean2 = jstat.mean(group2);
-  const var1 = jstat.variance(group1, true); // 표본 분산 사용
-  const var2 = jstat.variance(group2, true); // 표본 분산 사용
-  const n1 = group1.length;
-  const n2 = group2.length;
-
-  // Welch's t-test 사용 (분산이 다를 때 더 적합)
-  const pooledSE = Math.sqrt(var1 / n1 + var2 / n2); // 표준 오차 계산
-  const tStatistic = (mean1 - mean2) / pooledSE; // t-통계량 계산
-
-  // Welch's t-test에 맞는 자유도 계산
-  const df =
-    Math.pow(var1 / n1 + var2 / n2, 2) /
-    (Math.pow(var1 / n1, 2) / (n1 - 1) + Math.pow(var2 / n2, 2) / (n2 - 1));
-
-  // p-값 계산 (양측 검정)
-  const pValue = 2 * (1 - jstat.studentt.cdf(Math.abs(tStatistic), df));
-
-  // Cohen's d 효과 크기 계산
-  const pooledSD = Math.sqrt(
-    ((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2)
-  );
-  const cohensD = Math.abs(mean1 - mean2) / pooledSD;
-
-  // 효과 크기 해석
-  const effectSizeResult = getStandardizedInterpretation(cohensD, "Cohen's d");
-
-  return {
-    testType: "Welch's T-Test",
-    statistic: tStatistic,
-    pValue: pValue,
-    effectSize: cohensD,
-    effectSizeType: "Cohen's d",
-    effectSizeInterpretation: effectSizeResult.interpretation,
-    interpretationLevel: effectSizeResult.level,
-    significant: pValue < 0.05,
-    param: param,
-  };
-}
-
 function performTTest(
   group1: number[],
   group2: number[],
@@ -198,14 +151,6 @@ function performChiSquareTest(
     group1.filter((x) => x === cat).length,
     group2.filter((x) => x === cat).length,
   ]);
-
-  // if (param.name === "smtlib-display-constants") {
-  //   console.log("Group1: ", group1);
-  //   console.log("Group2: ", group2);
-
-  //   console.log("Categories: ", categories);
-  //   console.log("Observed: ", observed);
-  // }
 
   const rowSums = observed.map((row) => row[0] + row[1]);
   const colSums = [
@@ -272,12 +217,6 @@ function performChiSquareTest(
     cramersV,
     "Cramer's V"
   );
-
-  if (param.name === "smtlib-display-constants") {
-    console.log("Chi-Square: ", chiSquare);
-    console.log("P-Value: ", pValue);
-    console.log("Cramer's V: ", cramersV);
-  }
 
   return {
     testType: "Chi-Square Test",

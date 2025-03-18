@@ -168,7 +168,6 @@ const InterGroupView = () => {
       [];
 
     return exp?.hyperparams.map((hp, index) => {
-      console.log(currentSelectedGroup2.name);
       return {
         id: index,
         name: hp.displayName,
@@ -213,7 +212,7 @@ const InterGroupView = () => {
     return [
       {
         id: "name",
-        header: "Name",
+        header: () => "Name",
         accessorKey: "name",
         cell: (info) => {
           const hparamIcon = info.row.original.icon;
@@ -250,7 +249,7 @@ const InterGroupView = () => {
       },
       {
         id: "effect",
-        header: (
+        header: () => (
           <div style={{ lineHeight: "1.2" }}>
             <Text fontSize="xs" wordBreak="break-all">
               Effect
@@ -271,11 +270,14 @@ const InterGroupView = () => {
       {
         id: "pValue",
         header: () => (
-          <Box display={"flex"}>
-            <Text fontStyle={"italic"} fontSize={"xs"}>
-              p{" "}
+          <Box
+            display={"flex"}
+            justifyContent={"space-between"}
+            alignItems={"center"}
+          >
+            <Text fontStyle="italic" fontSize="xs">
+              p &lt; 0.05
             </Text>
-            <Text>&lt;0.05</Text>
           </Box>
         ),
         accessorKey: "pValue",
@@ -408,37 +410,35 @@ const InterGroupView = () => {
           display={"flex"}
           alignItems={"center"}
         >
-          Comparison View {"("}
-          <SelectIcon type="g1" />
-          {currentSelectedGroup?.name} {" )"}
+          Comparison View
         </Heading>
         <Box
           display={"flex"}
           justifyContent={"space-between"}
           alignItems={"center"}
         >
-          <Text fontSize="xs" color="gray.600">
-            Effect Size
+          <Text fontSize="10px" color="gray.600">
+            Effect Size of parameter difference:
           </Text>
 
           <Box
             display={"flex"}
             justifyContent={"space-between"}
             alignItems={"center"}
-            padding={"0 4px"}
+            padding={"0 8px"}
           >
-            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
-              similar
+            <Text fontSize="10px" color={"gray.600"}>
+              small
             </Text>
-            <Box display={"flex"} alignItems={"center"} p={"0 4px"}>
+            <Box display={"flex"} alignItems={"center"} pr={1} pl={1}>
               {[0, 1, 2, 3].map((value) => (
-                <Box display={"flex"} alignItems={"center"} pr={2}>
+                <Box display={"flex"} alignItems={"center"} pr={1} pl={1}>
                   {starRender(value)}
                 </Box>
               ))}
             </Box>
-            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
-              different
+            <Text fontSize="10px" color={"gray.600"}>
+              large
             </Text>
           </Box>
         </Box>
@@ -556,16 +556,16 @@ const InterGroupView = () => {
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                           alignItems: "center",
-                          height: "35px",
+                          height: "25px",
                         }}
                         colSpan={3}
                       >
-                        <Text fontSize={"sm"}>{key} Coverage Value</Text>
+                        <Text fontSize={"xs"}>{key} Coverage Value</Text>
                       </td>
                       <td
                         style={{
                           padding: "0 4px",
-                          height: "35px",
+                          height: "25px",
                         }}
                       >
                         <MetricBadge
@@ -576,7 +576,7 @@ const InterGroupView = () => {
                       <td
                         style={{
                           padding: "0 4px",
-                          height: "35px",
+                          height: "25px",
                         }}
                       >
                         <MetricBadge
@@ -603,18 +603,18 @@ const InterGroupView = () => {
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                           alignItems: "center",
-                          height: "35px",
+                          height: "25px",
                         }}
                         colSpan={3}
                       >
                         {/* {key} */}
-                        <Text fontSize={"sm"}>Union Coverage Value</Text>
+                        <Text fontSize={"xs"}>Union Coverage Value</Text>
                       </td>
                       <td
                         colSpan={2}
                         style={{
                           padding: "0 4px",
-                          height: "35px",
+                          height: "25px",
                         }}
                       >
                         <MetricBadge
@@ -643,11 +643,11 @@ const InterGroupView = () => {
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                           alignItems: "center",
-                          height: "35px",
+                          height: "25px",
                         }}
                         colSpan={3}
                       >
-                        <Text fontSize={"sm"}>Coverage Pattern</Text>
+                        <Text fontSize={"xs"}>Coverage Pattern</Text>
                       </td>
                       <td>
                         <Box height={"25px"} pr={1} pl={1}>
@@ -675,11 +675,11 @@ const InterGroupView = () => {
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                           alignItems: "center",
-                          height: "35px",
+                          height: "25px",
                         }}
                         colSpan={3}
                       >
-                        <Text fontSize={"sm"}>Coverage Pattern (overlaid)</Text>
+                        <Text fontSize={"xs"}>Coverage Pattern (overlaid)</Text>
                       </td>
                       <td colSpan={2}>
                         <Box height={"25px"} pr={1} pl={1}>

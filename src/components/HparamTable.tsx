@@ -99,8 +99,6 @@ const HparamTable = () => {
 
   const toggleRowSelection = useCallback(
     (index, shiftKey) => {
-      console.log("index", index);
-
       if (shiftKey && lastSelectedIndex !== null) {
         const start = Math.min(lastSelectedIndex, index);
         const end = Math.max(lastSelectedIndex, index);

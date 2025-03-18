@@ -15,6 +15,13 @@ body {
 .css-1hifvo0 {
   font-family: "Open Sans", sans-serif !important;
 }
+.file-path {
+  cursor: pointer;
+}
+
+.file-path:hover {
+  background-color: #f0f0f0;
+}
 
 /* hyperparameter view */
 .hparam-table {

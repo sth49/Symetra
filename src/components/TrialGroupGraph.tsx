@@ -98,9 +98,7 @@ const TrialGroupGraph = () => {
   }, [isInitialRender]);
 
   const { nodes, links } = useMemo(() => {
-    console.log("GroupView rendering, boxHeight:", boxHeight);
     if (boxHeight === 0) return { nodes: [], links: [] };
-    console.log("GroupView rendering");
 
     const nodes = groups.groups.map((group, i) => {
       const nodesPerRow = 4; // 한 줄에 4개씩

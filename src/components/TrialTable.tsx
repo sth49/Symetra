@@ -9,7 +9,7 @@ import {
 import { useConstDataStore } from "./store/constDataStore";
 import { formatting, getTextColor } from "../model/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Box, Button, Icon, IconButton, Text } from "@chakra-ui/react";
+import { Box, Button, Icon, IconButton, Text, Tooltip } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa6";
 import { HyperparamTypes } from "../model/hyperparam";
@@ -146,10 +146,28 @@ const TrialTable = () => {
         .map((param) => ({
           id: param.name,
           header: () => (
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <Icon as={param.icon} mr={1} color="gray.600" />
-              {param.displayName}
-            </div>
+            <Tooltip
+              label={
+                <div>
+                  <Text fontSize="xs" borderBottom={"1px solid white"}>
+                    {param.name} (default: {param.defaultString})
+                  </Text>
+                  <Text fontSize="xs">{param.description}</Text>
+                </div>
+              }
+              // isOpen={row.original.fullName === "seed-time"}
+            >
+              <Text userSelect={"none"} display={"flex"} alignItems={"center"}>
+                <Icon as={param.icon} mr={1} color={"gray.600"} />
+                {param.displayName}
+                {/* {info.getValue()} */}
+              </Text>
+            </Tooltip>
+
+            // <div style={{ display: "flex", alignItems: "center" }}>
+            //   <Icon as={param.icon} mr={1} color="gray.600" />
+            //   {param.displayName}
+            // </div>
           ),
           type:
             param.type === HyperparamTypes.Binary
@@ -743,6 +761,22 @@ const TrialTable = () => {
             isDisabled={selectedTrials.length < 3}
             onClick={() => {
               const updatedGroups = groups.clone();
+
+              // txt 파일로 저장 ********************
+              const selectedIds = selectedTrials.map((id) => id);
+              const blob = new Blob([JSON.stringify(selectedIds)], {
+                type: "text/plain",
+              });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "selected_points.txt";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+              // **********************************
+
               updatedGroups.addGroup(
                 exp?.trials.filter((trial) =>
                   selectedTrials.includes(trial.id)

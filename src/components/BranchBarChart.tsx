@@ -55,8 +55,6 @@ const BranchBarChart = ({
         )
       : [];
 
-  console.log("selectedData:", selectedData);
-
   const binCount = 10;
   const isInteger = data.every(Number.isInteger);
   const isSame = data.every((val, i, arr) => val === arr[0]);

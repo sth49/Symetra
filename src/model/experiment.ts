@@ -72,6 +72,12 @@ export class BranchInfo {
 
       const { filePath, line } = parseBranchInfo(branchInfoString);
 
+      // if (filePath.includes("reg")) {
+      //   console.log("reg", branchInfoString);
+      //   console.log("reg", filePath);
+      //   console.log("reg", line);
+      // }
+
       return new BranchInfo(index, filePath, line);
     } catch (e) {
       // console.log("error", e);
@@ -117,7 +123,7 @@ export class Experiment {
     // branchInfo.map((branchInfoString, index) => {
     //   console.log("branchInfoString", branchInfoString);
     // });
-    console.log("branchInfo", branchInfo);
+    // console.log("branchInfo", branchInfo);
     Object.keys(branchInfo).map((key) => {
       branchInfoList.push(BranchInfo.fromJson(key, branchInfo[key]));
     });

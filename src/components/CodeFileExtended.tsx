@@ -5,18 +5,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-
-import {
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-  FaPlus,
-  FaMinus,
-  FaEye,
-} from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
 import { useCustomStore } from "../store";
-import { Box, Icon, Text } from "@chakra-ui/react";
+import { Box, Text } from "@chakra-ui/react";
 import { formatting } from "../model/utils";
 import BidirectionalChart from "./BidirectionalChart";
 interface CodeFileExtendedProps {
@@ -28,9 +19,10 @@ interface CodeFileExtendedProps {
     diff: number;
   }[];
   showNum: number;
+  sortBy: any;
 }
 
-const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
+const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
   const currSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
@@ -50,43 +42,47 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
     return item.slice(0, showNum);
   }, [item, showNum]);
 
-  console.log("data", data);
   const columns2 = useMemo(() => {
     return [
       {
-        id: "fc",
+        id: "dummy",
         header: "",
-        accessorKey: "line",
-        cell: (info) => {
-          if (
-            info.row.original.ids.includes(selectedBranchId) &&
-            viewType === "line"
-          ) {
-            return <Icon as={FaEye} />;
-          } else {
-            return "";
-          }
-        },
+        accessorKey: "group2",
+        cell: () => (
+          <Box w={"100%"} h={"100%"}>
+            <svg width="15" height="20" viewBox="0 0 15 24">
+              <line
+                x1="7.5"
+                y1="0"
+                x2="7.5"
+                y2="24"
+                stroke="black"
+                strokeWidth="1"
+              />
+            </svg>
+          </Box>
+        ),
         meta: {
           align: "center",
         },
         enableSorting: true,
-        size: 20,
+        size: 15,
       },
+
       {
         id: "line",
         header: "Line",
         accessorKey: "line",
-        cell: (info) => info.getValue(),
+        cell: (info) => <Box pl={2}>{"Line: " + info.getValue()}</Box>,
         meta: {
-          align: "center",
+          align: "left",
         },
         enableSorting: true,
-        size: 40,
+        size: 60,
       },
       {
         id: "ids",
-        header: (
+        header: () => (
           <div style={{ lineHeight: "1.2" }}>
             <Text fontSize="xs" wordBreak="break-all">
               # of
@@ -126,7 +122,7 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
               <BidirectionalChart
                 leftValue={info.row.original.group1}
                 rightValue={info.row.original.group2}
-                height={20}
+                height={10}
               />
             </Box>
           );
@@ -148,19 +144,8 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
         enableSorting: true,
         size: 50,
       },
-      {
-        id: "dummy",
-        header: "",
-        accessorKey: "group2",
-        cell: "",
-        meta: {
-          align: "right",
-        },
-        enableSorting: true,
-        size: 20,
-      },
     ];
-  }, [currSelectedGroup?.name, currSelectedGroup2?.name, selectedBranchId]);
+  }, [currSelectedGroup?.name, currSelectedGroup2?.name]);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -168,6 +153,10 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
       desc: true,
     },
   ]);
+
+  useEffect(() => {
+    setSorting(sortBy);
+  }, [sortBy]);
 
   const table2 = useReactTable({
     data: data,
@@ -191,7 +180,6 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
       className="container"
       style={{
         height: "99%",
-        // padding: "0 4px",
         display: "flex",
       }}
     >
@@ -202,80 +190,6 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
           width: "100%",
         }}
       >
-        <thead>
-          {table2.getHeaderGroups().map((headerGroup) => (
-            <tr
-              key={headerGroup.id}
-              className="hparam-table-sticky-header"
-              style={{
-                zIndex: 1,
-                backgroundColor: "#f9f9f9",
-              }}
-            >
-              {headerGroup.headers.map((header) => {
-                return (
-                  <th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    style={{
-                      width: `${header.getSize()}px`,
-                      position: "sticky",
-                      top: 0,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      //   padding: "10px 0px",
-                      height: "35px",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {header.isPlaceholder ? null : (
-                      <div
-                        {...{
-                          className: header.column.getCanSort()
-                            ? "cursor-pointer select-none"
-                            : "",
-                          onClick: header.column.getToggleSortingHandler(),
-                        }}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          width: "100%",
-                          height: "100%",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {header.column.getCanSort() &&
-                          header.column.getIsSorted() !== false && (
-                            <Icon
-                              color="gray.600"
-                              onClick={header.column.getToggleSortingHandler()}
-                              as={
-                                (header.column.getIsSorted() as string) ===
-                                "asc"
-                                  ? FaSortUp
-                                  : (header.column.getIsSorted() as string) ===
-                                    "desc"
-                                  ? FaSortDown
-                                  : FaSort
-                              }
-                            />
-                          )}
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </div>
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          ))}
-        </thead>
         <tbody key={"tbody"}>
           {table2.getRowModel().rows.map((row) => {
             return (
@@ -285,6 +199,11 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
                 style={{
                   padding: "0 10px",
                   cursor: "pointer",
+                  backgroundColor:
+                    (row.original.ids as string[]).includes(selectedBranchId) &&
+                    viewType === "line"
+                      ? "#d0e0fc"
+                      : "",
                 }}
                 onClick={() => {
                   setSelectBranchId(row.original.ids[0] as string);
@@ -298,17 +217,13 @@ const CodeFileExtended = ({ item, showNum }: CodeFileExtendedProps) => {
                       key={cell.id}
                       style={{
                         width: column.getSize(),
-                        // @ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         textAlign: cell.column.columnDef.meta.align,
-                        padding: "0 8px",
+                        padding: "0 4px",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        fontWeight:
-                          (row.original.ids as string[]).includes(
-                            selectedBranchId
-                          ) && viewType === "line"
-                            ? "bold"
-                            : "normal",
+
                         fontSize: "12px",
                       }}
                     >

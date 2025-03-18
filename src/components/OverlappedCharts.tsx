@@ -155,7 +155,6 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
   // 툴팁 클릭 핸들러 추가
   const handleTooltipClick = useCallback(() => {
     if (tooltipData) {
-      console.log("Selected Branch ID:", tooltipData.branch);
       setSelectedBranchId(tooltipData.branch);
       // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
       // 예: 상태 업데이트, 콜백 함수 호출 등

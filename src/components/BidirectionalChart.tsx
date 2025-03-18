@@ -5,7 +5,7 @@ import { Bar } from "@visx/shape";
 import { Text } from "@visx/text";
 import { ParentSize } from "@visx/responsive";
 import { formatting } from "../model/utils";
-
+import * as d3 from "d3";
 interface BidirectionalChartProps {
   leftValue: number; // Value for left side
   rightValue: number; // Value for right side (positive)
@@ -41,7 +41,7 @@ const BaseBidirectionalChart: React.FC<
     range: [
       0,
       isHalf
-        ? width / 2 - (width < 200 ? 40 : 60)
+        ? width / 2 - (width < 200 ? 10 : 40)
         : width - (width < 200 ? 40 : 60),
     ],
   });
@@ -60,6 +60,16 @@ const BaseBidirectionalChart: React.FC<
   const rightBarWidth = barScale(dir === "right" ? Math.abs(diff) : 0);
 
   const centerX = isHalf ? width / 2 : dir === "left" ? width : 0;
+
+  const colorIntensityBlue = d3.scaleSequential(
+    [0, 100],
+    d3.interpolateRgb("rgba(0, 0, 255, 0.2)", "rgba(0, 0, 255, 0.8)")
+  );
+  const colorIntensityRed = d3.scaleSequential(
+    [0, 100],
+    d3.interpolateRgb("rgba(255, 0, 0, 0.2)", "rgba(255, 0, 0, 0.8)")
+  );
+  // const colorIntensity = Math.abs(diff) / 100;
 
   return (
     <svg width={width} height={height}>
@@ -80,8 +90,11 @@ const BaseBidirectionalChart: React.FC<
           y={barY}
           width={leftBarWidth}
           height={barHeight}
-          fill="rgba(0, 0, 255, 0.2)"
+          fill={colorIntensityBlue(Math.abs(diff))}
+          // fill={"rgba(0, 0, 255," + colorIntensity(Math.abs(diff)) + ")"}
+          // opacity={colorIntensity}
           rx={0}
+          // stroke="black"
         />
 
         {/* Right bar */}
@@ -90,31 +103,39 @@ const BaseBidirectionalChart: React.FC<
           y={barY}
           width={rightBarWidth}
           height={barHeight}
-          fill="rgba(255, 0, 0, 0.5)"
+          fill={colorIntensityRed(Math.abs(diff))}
+          // fill={"rgba(255, 0, 0," + colorIntensity(Math.abs(diff)) + ")"}
+          // fill="rgba(255, 0, 0)"
+          // opacity={colorIntensity}
           rx={0}
+          // stroke="black"
         />
 
         {dir === "left" && (
           <Text
-            x={centerX - leftBarWidth - 5}
+            // x={centerX - leftBarWidth - 5}
+            x={centerX + rightBarWidth + 5}
             y={barY + barHeight / 2}
             verticalAnchor="middle"
-            textAnchor="end"
+            // textAnchor="end"
+            textAnchor="start"
             fontSize={fontSize}
           >
-            {formatting(Math.abs(diff), "int") + " %p"}
+            {formatting(Math.abs(diff), "float") + " %p"}
           </Text>
         )}
 
         {dir === "right" && (
           <Text
-            x={centerX + rightBarWidth + 5}
+            x={centerX - leftBarWidth - 5}
+            // x={centerX + rightBarWidth + 5}
             y={barY + barHeight / 2}
             verticalAnchor="middle"
-            textAnchor="start"
+            // textAnchor="start"
+            textAnchor="end"
             fontSize={fontSize}
           >
-            {formatting(Math.abs(diff), "int") + " %p"}
+            {formatting(Math.abs(diff), "float") + " %p"}
           </Text>
         )}
       </Group>

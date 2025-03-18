@@ -127,51 +127,117 @@ const CoverageView: React.FC = () => {
 
   const { metricScale, colorScale } = useMetricScale();
 
-  const thresholdRanges = useMemo(() => {
-    // // const scale = metricScale.copy().range(metricScale.domain());
-    // // const ticks = scale.ticks(numThresholds);
-    // // return ticks
-    // //   .map((tick, i) => [
-    // //     tick,
-    // //     i < ticks.length - 1 ? ticks[i + 1] : scale.domain()[1],
-    // //   ])
-    // //   .reverse();
-    // // const rangeStart = metricScale.domain()[0];
+  // const densityData = useMemo(() => {
+  //   const validData = data.filter(d => d.x !== undefined && d.y !== undefined);
 
-    return Array.from({ length: numThresholds }, (_, i) => {
-      const minValue = metricScale.domain()[0];
-      const maxValue = metricScale.domain()[1];
+  //   const densityGenerator = d3.contourDensity()
+  //     .x(d => xScale(d.x)) // x좌표 변환
+  //     .y(d => yScale(d.y)) // y좌표 변환
+  //     .weight(d => metricScale(d.metric)) // 가중치 설정
+  //     .size([containerSize.width, containerSize.height]) // 컨테이너 크기
+  //     .bandwidth(12)
+  //     .thresholds(numThresholds);
 
-      return [
-        minValue + (i * (maxValue - minValue)) / numThresholds,
-        minValue + ((i + 1) * (maxValue - minValue)) / numThresholds,
-      ];
-    });
-  }, [metricScale]);
-
+  //   return densityGenerator(validData); // 필터링된 데이터 사용
+  // }, [data, xScale, yScale, metricScale, containerSize]);
   const densityData = useMemo(() => {
+    const validData = data.filter(
+      (d) => d.x !== undefined && d.y !== undefined
+    );
+
     const densityGenerator = d3
-      .contourDensity() // @ts-ignore
-      .x((d) => xScale(d.x)) // @ts-ignore
-      .y((d) => yScale(d.y)) // @ts-ignore
-      .weight((d) => metricScale(d.metric))
-      .size([
-        containerSize.width - margin.left,
-        containerSize.height - margin.top,
-      ])
+      .contourDensity()
+      .x((d) => xScale(d.x)) // x좌표 변환
+      .y((d) => yScale(d.y)) // y좌표 변환
+      .weight((d) => d.metric) // **metric 값을 가중치로 사용**
+      .size([containerSize.width, containerSize.height]) // 컨테이너 크기
       .bandwidth(12)
       .thresholds(numThresholds);
-    // @ts-ignore
-    return densityGenerator(data);
-  }, [
-    data,
-    xScale,
-    yScale,
-    metricScale,
-    containerSize,
-    margin.left,
-    margin.top,
-  ]);
+
+    return densityGenerator(
+      validData.map((d) => [d.x, d.y] as [number, number])
+    );
+  }, [data, xScale, yScale, containerSize]);
+
+  const maxMetricValue = useMemo(() => {
+    return d3.max(data, (d) => d.metric) || 1;
+  }, [data]);
+
+  const densityColorScale = useMemo(() => {
+    return d3.scaleSequential(d3.interpolateGreens).domain([0, maxMetricValue]); // Metric 값이 0이면 흰색, 최대면 초록색
+  }, [maxMetricValue]);
+
+  const gridResolution = 25; // 격자 해상도 조정
+
+  // 데이터의 최소-최대 범위를 전역적으로 설정
+  const marginFactor = 0; // 🔥 컨투어가 더 넓게 퍼지도록 10% 여유 공간 추가
+  const xExtent = useMemo(() => {
+    const extent = d3.extent(data, (d) => d.x);
+    const margin = (extent[1] - extent[0]) * marginFactor;
+    return [extent[0] - margin, extent[1] + margin]; // 좌우 10% 여유 공간 추가
+  }, [data]);
+
+  const yExtent = useMemo(() => {
+    const extent = d3.extent(data, (d) => d.y);
+    const margin = (extent[1] - extent[0]) * marginFactor;
+    return [extent[0] - margin, extent[1] + margin]; // 상하 10% 여유 공간 추가
+  }, [data]);
+  const metricGrid = useMemo(() => {
+    const validData = data.filter(
+      (d) => d.x !== undefined && d.y !== undefined
+    );
+
+    // UMAP 공간의 실제 좌표 범위 계산
+    const xExtent = d3.extent(validData, (d) => d.x);
+    const yExtent = d3.extent(validData, (d) => d.y);
+
+    // Grid 크기 설정
+    const xGrid = d3.scaleLinear().domain(xExtent).range([0, gridResolution]);
+    const yGrid = d3.scaleLinear().domain(yExtent).range([0, gridResolution]);
+
+    // 그리드 초기화 - 행(y)이 먼저, 열(x)이 나중에 오도록 수정
+    const grid = Array.from({ length: gridResolution }, () =>
+      Array(gridResolution).fill([])
+    );
+
+    // 데이터를 그리드에 할당 - 여기서 y, x 순서로 인덱싱
+    validData.forEach((d) => {
+      const xIdx = Math.floor(xGrid(d.x));
+      const yIdx = Math.floor(yGrid(d.y));
+      if (
+        xIdx >= 0 &&
+        xIdx < gridResolution &&
+        yIdx >= 0 &&
+        yIdx < gridResolution
+      ) {
+        // y, x 순서로 변경 (행, 열 순서)
+        grid[yIdx][xIdx] = [...grid[yIdx][xIdx], d.metric];
+      }
+    });
+
+    // 각 그리드 셀에서 Metric 값 평균 계산
+    return grid.map((row) =>
+      row.map((cell) => (cell.length > 0 ? d3.mean(cell) : 0))
+    );
+  }, [data, gridResolution]);
+
+  const metricContours = useMemo(() => {
+    const maxMetric = d3.max(metricGrid.flat()) || 1;
+
+    // Contour 데이터 생성 (Grid Size와 일치)
+    const contourGenerator = d3
+      .contours()
+      .size([gridResolution, gridResolution]) // Grid 해상도 기반
+      .thresholds(d3.range(0, maxMetric, maxMetric / numThresholds)); // Metric 값 기반 Threshold 설정
+
+    return contourGenerator(metricGrid.flat());
+  }, [metricGrid]);
+
+  const metricColorScale = useMemo(() => {
+    return d3
+      .scaleSequential(d3.interpolateGreens)
+      .domain([0, d3.max(metricGrid.flat())]); // Metric 값이 0이면 흰색, 최대면 초록색
+  }, [metricGrid]);
 
   const handleMouseDown = useCallback(
     (event) => {
@@ -232,21 +298,22 @@ const CoverageView: React.FC = () => {
 
   const confirmLasso = useCallback(() => {
     const updatedGroups = groups.clone();
-    // console.log("new group:", selectedPoints);
-    // const selectedIds = Array.from(selectedPoints);
 
-    // // 배열을 문자열로 변환하여 파일로 저장
-    // const blob = new Blob([JSON.stringify(selectedIds)], {
-    //   type: "text/plain",
-    // });
-    // const url = window.URL.createObjectURL(blob);
-    // const link = document.createElement("a");
-    // link.href = url;
-    // link.download = "selected_points.txt";
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
-    // window.URL.revokeObjectURL(url);
+    // txt 파일로 저장 ********************
+    const selectedIds = Array.from(selectedPoints);
+
+    const blob = new Blob([JSON.stringify(selectedIds)], {
+      type: "text/plain",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "selected_points.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    // **********************************
 
     updatedGroups.addGroup(
       exp.trials.filter((trial) => selectedPoints.has(trial.id))
@@ -256,7 +323,7 @@ const CoverageView: React.FC = () => {
     setIsDrawing(false);
     setSelectedPoints(new Set());
     setTempLassoPoints([]);
-  }, [tempLassoPoints]);
+  }, [exp.trials, groups, selectedPoints, setGroups]);
 
   const cancelLasso = useCallback(() => {
     setTempLassoPoints([]);
@@ -385,7 +452,26 @@ const CoverageView: React.FC = () => {
           </>
         );
       });
-  }, [selectedTrials, selectedRowPositions, data, xScale, yScale, margin.left]);
+  }, [selectedTrials, selectedRowPositions, data, xScale, yScale]);
+
+  const metricValues = useMemo(
+    () => exp.trials.map((trial) => trial.metric),
+    [exp]
+  );
+
+  const minValue = 1;
+  const maxValue = Math.max(...metricValues);
+
+  const gradientStops = useMemo(() => {
+    return d3.range(0, 1.01, 0.1).map((t) => {
+      const value = minValue + t * (maxValue - minValue);
+      const color = d3
+        .scaleSequential(d3.interpolateGreens)
+        .domain([minValue, maxValue])(value);
+      return { offset: `${t * 100}%`, color };
+    });
+  }, [minValue, maxValue]);
+
   return (
     <Box height={"100%"} position={"relative"} ref={containerRef}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -493,12 +579,49 @@ const CoverageView: React.FC = () => {
           <Box
             display={"flex"}
             width={"100%"}
-            justifyContent={"right"}
+            // justifyContent={"space-between"}
+            pl={2}
+            pr={2}
             alignItems={"center"}
           >
+            <Select size={"xs"} width={"100px"}>
+              <option>UMAP</option>
+            </Select>
+
             <FormControl
               display="flex"
-              justifyContent="right"
+              justifyContent="center"
+              alignItems="center"
+              width={"200px"}
+            >
+              <FormLabel mb={0} mr={1}>
+                <Text fontSize="xs" color="gray.600">
+                  Metric
+                </Text>
+              </FormLabel>
+              <Select size={"xs"} width={"55%"}>
+                <option>jaccard</option>
+                {/* {[
+                  ...new Set(
+                    // @ts-ignore
+                    exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
+                  ),
+                ]
+                  .sort((a, b) => (a as number) - (b as number))
+                  .map((n_neighbor) => (
+                    <option
+                      key={n_neighbor as number}
+                      value={n_neighbor as number}
+                    >
+                      {n_neighbor as number}
+                    </option>
+                  ))} */}
+              </Select>
+            </FormControl>
+
+            <FormControl
+              display="flex"
+              justifyContent="center"
               alignItems="center"
               width={"200px"}
             >
@@ -531,11 +654,10 @@ const CoverageView: React.FC = () => {
               </Select>
             </FormControl>
             <FormControl
-              pr={2}
               display="flex"
               justifyContent="right"
               alignItems="center"
-              width={"200px"}
+              width={"180px"}
             >
               <FormLabel mb={0} mr={1}>
                 <Text fontSize="xs" color="gray.600">
@@ -578,13 +700,27 @@ const CoverageView: React.FC = () => {
           >
             {visible && (
               <g>
-                {densityData.map((density, i) => (
+                {metricContours.map((contour, i) => (
                   <path
                     key={`contour-${i}`}
-                    d={d3.geoPath()(density)}
-                    fill={colorScale(i)}
-                    opacity={0.2}
-                    stroke="black"
+                    d={d3.geoPath().projection(
+                      d3.geoTransform({
+                        point: function (x, y) {
+                          // 그리드 좌표를 실제 데이터 좌표로 변환
+                          const xMapped =
+                            xExtent[0] +
+                            (x / gridResolution) * (xExtent[1] - xExtent[0]);
+                          const yMapped =
+                            yExtent[0] +
+                            (y / gridResolution) * (yExtent[1] - yExtent[0]);
+
+                          // x와 y를 원래대로 사용 (교차하지 않음)
+                          this.stream.point(xScale(xMapped), yScale(yMapped));
+                        },
+                      })
+                    )(contour)}
+                    fill={metricColorScale(contour.value)} // Metric 값 기반 색상 적용
+                    opacity={0.4}
                   />
                 ))}
               </g>
@@ -643,52 +779,61 @@ const CoverageView: React.FC = () => {
             )}
             {selected === "metric" && (
               <g transform={`translate(${10}, ${legendMargin.top})`}>
-                {thresholdRanges.map((range, i) => {
-                  const row = Math.floor(i / 5); // 몇 번째 줄인지
-                  const col = i % 5; // 줄 안에서 몇 번째인지
-                  const itemWidth = 110; // 각 아이템의 너비 (조정 가능)
-                  const itemHeight = 30; // 각 아이템의 높이 (조정 가능)
-
-                  return (
-                    <React.Fragment key={`legend-${i}`}>
-                      <rect
-                        // x={0}
-                        // y={
-                        //   i * (legendHeight / numThresholds) + legendMargin.top
-                        // }
-                        x={col * itemWidth} // x 좌표 계산
-                        y={row * itemHeight + legendMargin.top} // y 좌표 계산
-                        width={20}
-                        height={15}
-                        fill={colorScale((range[0] + range[1]) / 2)}
+                <defs>
+                  <linearGradient
+                    id="gradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    {gradientStops.map((stop, i) => (
+                      <stop
+                        key={i}
+                        offset={stop.offset}
+                        stopColor={stop.color}
                       />
-                      <text
-                        // x={25}
-                        // y={
-                        //   (i + 0.6) * (legendHeight / numThresholds) +
-                        //   legendMargin.top
-                        // }
-                        x={col * itemWidth + 25} // x 좌표 계산 + 텍스트 오프셋
-                        y={row * itemHeight + legendMargin.top + 9} // y 좌표 계산
-                        style={{
-                          userSelect: "none",
-                        }}
-                        fontSize="12"
-                        textAnchor="start"
-                        dominantBaseline="middle"
-                        fill="#4A5568"
-                      >
-                        {`${formatting(range[0], "int")} - ${formatting(
-                          range[1],
-                          "int"
-                        )}`}
-                      </text>
-                    </React.Fragment>
-                  );
-                })}
+                    ))}
+                  </linearGradient>
+                </defs>
+                <rect x={130} y={-5} width="16" height="16" fill="#98171A" />
+                <text
+                  x={134}
+                  y={7}
+                  fontSize="12"
+                  textAnchor="start"
+                  fill="white"
+                >
+                  {0}
+                </text>
+                <text
+                  x={170}
+                  y={7}
+                  fontSize="12"
+                  textAnchor="start"
+                  fill="#4A5568"
+                >
+                  {formatting(minValue, "int")}
+                </text>
+                <rect
+                  x={190}
+                  y={-5}
+                  width="200"
+                  height="16"
+                  fill="url(#gradient)"
+                />
+                <text
+                  x={395}
+                  y={7}
+                  fontSize="12"
+                  textAnchor="start"
+                  fill="#4A5568"
+                >
+                  {formatting(maxValue, "int")}
+                </text>
                 <text
                   x={0}
-                  y={5}
+                  y={7}
                   fontSize="14"
                   textAnchor="start"
                   fontWeight="bold"
@@ -697,7 +842,7 @@ const CoverageView: React.FC = () => {
                     userSelect: "none",
                   }}
                 >
-                  Coverage
+                  Coverage value
                 </text>
               </g>
             )}

@@ -55,7 +55,7 @@ const GroupDetailView = () => {
         exp.hyperparams[2]
       );
     }
-  }, [currentSelectedGroup, exp.hyperparams]);
+  }, [currentSelectedGroup]);
 
   return (
     <Box p={2} pt={1} height={"65px"}>

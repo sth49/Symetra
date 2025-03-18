@@ -52,6 +52,9 @@ interface CustomStore {
 
   viewType: string;
   setViewType: (viewType: string) => void;
+
+  totalLines: number;
+  setTotalLines: (totalLines: number) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -115,4 +118,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   viewType: "line",
   setViewType: (viewType) => set({ viewType }),
+
+  totalLines: 0,
+  setTotalLines: (totalLines) => set({ totalLines }),
 }));
