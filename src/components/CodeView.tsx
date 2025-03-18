@@ -5,6 +5,7 @@ import { useConstDataStore } from "./store/constDataStore";
 import { BranchInfo } from "../model/experiment";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import * as d3 from "d3";
+import { AiFillStar } from "react-icons/ai";
 interface CodeViewProps {
   item: any;
 }
@@ -28,9 +29,16 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
       const branch = experiment.branchInfo.find(
         (b) => b.branch === selectedBranchId
       );
+      console.log("branch", branch);
       setBranchInfo(branch);
+
+      if (viewType === "line") {
+        handleScrollToLine(branch?.line);
+      } else if (viewType === "file") {
+        handleScrollToLine(1);
+      }
     }
-  }, [selectedBranchId, experiment.branchInfo]);
+  }, [selectedBranchId, experiment.branchInfo, viewType]);
 
   useEffect(() => {
     async function loadFile() {
@@ -57,11 +65,13 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     loadFile();
   }, [branchInfo?.filePath, setTotalLines]);
 
-  useEffect(() => {
-    if (viewType === "line") {
-      handleScrollToLine(branchInfo?.line);
-    }
-  }, [branchInfo?.line, viewType]);
+  // useEffect(() => {
+  //   if (viewType === "line") {
+  //     handleScrollToLine(branchInfo?.line);
+  //   } else if (viewType === "file") {
+  //     handleScrollToLine(1);
+  //   }
+  // }, [branchInfo?.line, viewType, selectedBranchId]);
 
   const displayContent = useMemo(() => {
     return { content: fileContent, startLine: 1 };
@@ -70,6 +80,17 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
   const linesRefs = useRef<any>({}); // 각 라인에 대한 ref 저장
 
   const handleScrollToLine = (lineNumber: number) => {
+    if (!lineNumber) return;
+
+    console.log("Attempting to scroll to line:", lineNumber);
+
+    // DOM에 요소가 없으면 약간 기다린 후 다시 시도
+    if (!linesRefs.current[lineNumber]) {
+      console.log("Line ref not found, retrying in 100ms...");
+      setTimeout(() => handleScrollToLine(lineNumber), 100);
+      return;
+    }
+
     if (linesRefs.current[lineNumber]) {
       linesRefs.current[lineNumber].scrollIntoView({
         behavior: "smooth",
@@ -83,7 +104,15 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     if (!item || item?.children.length === 0) return [];
     if (item && item.children) return item.children.map((c) => c.line);
   }, [item]);
+  const containerRef = useRef(null);
 
+  const calculateYPosition = () => {
+    if (!branchInfo?.line) return 0;
+    // Get line height by approximation (you can measure it more precisely if needed)
+    const lineHeight = 18; // Estimated line height in pixels
+    // Calculate position based on line number (0-indexed within the component)
+    return (branchInfo.line - displayContent.startLine) * lineHeight;
+  };
   if (item === undefined) {
     return (
       <Box
@@ -96,70 +125,126 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
         <Text fontSize="md">Please select a branch</Text>
       </Box>
     );
+    // eslint-disable-next-line react-hooks/rules-of-hooks
   }
 
   return (
-    <Box w={"100%"} height={`calc(100% - 45px)`} overflow={"hidden"}>
-      <SyntaxHighlighter
-        customStyle={{
-          fontSize: "12px",
-          width: "100%",
-          height: "100%",
-          backgroundColor: "white",
-          overflow: "auto",
-          margin: 0,
-          padding: 0,
-        }}
-        startingLineNumber={displayContent.startLine}
-        language="c"
-        wrapLines={true}
-        showLineNumbers={true}
-        lineProps={(lineNumber) => {
-          const style: React.CSSProperties = {
-            display: "block",
-            width: "100%",
-            minWidth: "100%",
-            boxSizing: "border-box",
-          };
-          // Line highlight logic
-          if (lines.includes(lineNumber)) {
-            const lineItem = item.children.find((c) => c.line === lineNumber);
-            const diff = lineItem.group1 - lineItem.group2;
-            // const colorIntensity = Math.abs(diff) / 100;
-            const colorIntensityBlue = d3.scaleSequential(
-              [0, 100],
-              d3.interpolateRgb("rgba(0, 0, 255, 0.2)", "rgba(0, 0, 255, 0.8)")
-            );
-            const colorIntensityRed = d3.scaleSequential(
-              [0, 100],
-              d3.interpolateRgb("rgba(255, 0, 0, 0.2)", "rgba(255, 0, 0, 0.8)")
-            );
-            style.backgroundColor =
-              lineItem.group1 > lineItem.group2
-                ? colorIntensityBlue(Math.abs(diff))
-                : colorIntensityRed(Math.abs(diff));
-            style.borderLeft =
-              lineItem.group1 > lineItem.group2
-                ? "3px solid rgba(0, 0, 255, 0.8)"
-                : "3px solid rgba(255, 0, 0, 0.8)";
-            style.width = "150%";
-            style.position = "relative";
-            style.left = 0;
-            style.right = 0;
-            style.color = Math.abs(diff) / 100 > 0.5 ? "white" : "black";
-            style.border =
-              viewType === "line" && branchInfo?.line === lineNumber
-                ? "1px solid rgba(0, 0, 0, 1)"
-                : "none";
-          }
-          return {
-            style,
-            ref: (el: any) => (linesRefs.current[lineNumber] = el),
-          }; // Save ref for each line
-        }}
-      >
-        {displayContent.content}
-      </SyntaxHighlighter>
+    <Box
+      w={"100%"}
+      height={`calc(100% - 45px)`}
+      overflow={"hidden"}
+      // position = "relative"
+      ref={containerRef}
+    >
+      <Box position="relative" width="100%" height="100%" overflow="auto">
+        {/* Container for both SVG and code */}
+        <div style={{ position: "relative", width: "100%", minHeight: "100%" }}>
+          {/* SVG overlay positioned at the same scroll position */}
+          {viewType === "line" && (
+            <Box
+              width="18px"
+              height="20px" // Set to line height
+              style={{
+                position: "absolute",
+                zIndex: 1000,
+                top: calculateYPosition(),
+                left: 0,
+                backgroundColor: "white",
+                // borderRight: "1px solid rgba(0, 0, 0)",
+                border: "1px solid rgba(0, 0, 0)",
+              }}
+            >
+              <Icon
+                as={AiFillStar}
+                color={"yellow.300"}
+                stroke={"yellow.300"}
+              />
+            </Box>
+          )}
+
+          {/* <svg
+            width="10%"
+            height="18px" // Set to line height
+            style={{
+              position: "absolute",
+              zIndex: 1000,
+              top: calculateYPosition(),
+              left: 0,
+            }}
+          >
+            <rect x="0" y="0" width="100" height="100%" fill="yellow"></rect> */}
+
+          <SyntaxHighlighter
+            customStyle={{
+              fontSize: "12px",
+              width: "100%",
+              height: "100%",
+              backgroundColor: "white",
+              overflow: "auto",
+              margin: 0,
+              padding: 0,
+              paddingLeft: "10px",
+            }}
+            startingLineNumber={displayContent.startLine}
+            language="c"
+            wrapLines={true}
+            showLineNumbers={true}
+            lineProps={(lineNumber) => {
+              const style: React.CSSProperties = {
+                display: "block",
+                width: "100%",
+                minWidth: "100%",
+                boxSizing: "border-box",
+              };
+              // Line highlight logic
+              if (lines.includes(lineNumber)) {
+                const lineItem = item.children.find(
+                  (c) => c.line === lineNumber
+                );
+                const diff = lineItem.group1 - lineItem.group2;
+                // const colorIntensity = Math.abs(diff) / 100;
+                const colorIntensityBlue = d3.scaleSequential(
+                  [0, 100],
+                  d3.interpolateRgb(
+                    "rgba(0, 0, 255, 0.2)",
+                    "rgba(0, 0, 255, 0.8)"
+                  )
+                );
+                const colorIntensityRed = d3.scaleSequential(
+                  [0, 100],
+                  d3.interpolateRgb(
+                    "rgba(255, 0, 0, 0.2)",
+                    "rgba(255, 0, 0, 0.8)"
+                  )
+                );
+                style.backgroundColor =
+                  lineItem.group1 > lineItem.group2
+                    ? colorIntensityBlue(Math.abs(diff))
+                    : colorIntensityRed(Math.abs(diff));
+                style.borderLeft =
+                  lineItem.group1 > lineItem.group2
+                    ? "3px solid rgba(0, 0, 255, 0.8)"
+                    : "3px solid rgba(255, 0, 0, 0.8)";
+                style.width = "150%";
+                style.position = "relative";
+                style.left = 0;
+                style.right = 0;
+                style.color = Math.abs(diff) / 100 > 0.5 ? "white" : "black";
+                style.border =
+                  viewType === "line" && branchInfo?.line === lineNumber
+                    ? "1px solid rgba(0, 0, 0, 1)"
+                    : "none";
+              }
+              return {
+                style,
+                ref: (el: any) => (linesRefs.current[lineNumber] = el),
+              }; // Save ref for each line
+            }}
+          >
+            {displayContent.content}
+          </SyntaxHighlighter>
+        </div>
+      </Box>
     </Box>
   );
 };

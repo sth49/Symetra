@@ -55,6 +55,9 @@ interface CustomStore {
 
   totalLines: number;
   setTotalLines: (totalLines: number) => void;
+
+  isBranchClicked: boolean;
+  setIsBranchClicked: (isBranchClicked: boolean) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -121,4 +124,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   totalLines: 0,
   setTotalLines: (totalLines) => set({ totalLines }),
+
+  isBranchClicked: false,
+  setIsBranchClicked: (isBranchClicked) => set({ isBranchClicked }),
 }));

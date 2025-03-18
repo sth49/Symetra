@@ -45,30 +45,29 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
 
   const selectedData = useMemo(() => {
     const branches = currentSelectedGroup.getBranches(exp.branchInfo);
-    return branches.map((b, i) => ({
-      x: i,
-      y: b[1],
-      branch: b[0],
-    }));
+    return branches
+      .sort((a, b) => Number(b[1]) - Number(a[1]))
+      .map((b, i) => ({
+        x: i,
+        y: b[1], // value
+        branch: b[0], // branch ID
+      }));
   }, [currentSelectedGroup, exp.branchInfo]);
 
   const data = useMemo(() => {
     const branches = trialGroup.getBranches(exp.branchInfo);
     // console.log("Branches:", branches);
+
     return selectedData.map((d) => {
-      if (branches.find((b) => b[0] === d.branch) === undefined) {
-        return {
-          x: d.x,
-          y: 0,
-          branch: d.branch,
-        };
-      } else {
-        return {
-          x: d.x,
-          y: branches.find((b) => b[0] === d.branch)[1],
-          branch: d.branch,
-        };
-      }
+      const branchData = branches.find((b) => b[0] === d.branch);
+      const branchData2 = exp.branchInfo.find((b) => b.branch === d.branch);
+
+      return {
+        x: d.x,
+        y: branchData ? branchData[1] : 0,
+        branch: d.branch,
+        temp: branchData2,
+      };
     });
   }, [trialGroup, exp.branchInfo, selectedData]);
 
@@ -79,9 +78,9 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
     () =>
       scaleLinear({
         range: [margin.left, width - margin.right],
-        domain: [0, data.length - 1],
+        domain: [0, Math.max(...data.map(xAccessor))],
       }),
-    [data.length, margin.left, margin.right, width]
+    [data, margin.left, margin.right, width]
   );
 
   const yScale = useMemo(
@@ -95,6 +94,21 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
   );
 
   // 마우스 이벤트 핸들러
+  // const handleMouseMove = useCallback(
+  //   (event: React.MouseEvent) => {
+  //     const { x } = localPoint(event) || { x: 0 };
+  //     const x0 = xScale.invert(x);
+  //     const index = Math.round(x0);
+
+  //     if (index >= 0 && index < data.length) {
+  //       const d = data[index];
+  //       setTooltipData(d);
+  //       setTooltipLeft(xScale(d.x));
+  //     }
+  //   },
+  //   [data, xScale]
+  // );
+
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
       const { x } = localPoint(event) || { x: 0 };
@@ -102,7 +116,8 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
       const index = Math.round(x0);
 
       if (index >= 0 && index < data.length) {
-        const d = data[index];
+        const d = data.find((d) => d.x === index);
+        // 값이 0인 경우(해당 branch가 실제로 없는 경우) 툴팁 표시하지 않음
         setTooltipData(d);
         setTooltipLeft(xScale(d.x));
       }
@@ -114,14 +129,27 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
     setTooltipData(null);
     setTooltipLeft(null);
   };
+  const setViewType = useCustomStore((state) => state.setViewType);
+  // const handleTooltipClick = useCallback(() => {
+  //   if (tooltipData) {
+  //     // console.log("Selected Branch ID:", tooltipData.branch);
+  //     setSelectedBranchId(tooltipData.branch);
+  //     setViewType("line");
+
+  //     // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
+  //     // 예: 상태 업데이트, 콜백 함수 호출 등
+  //   }
+  // }, [setSelectedBranchId, setViewType, tooltipData]);
+
   const handleTooltipClick = useCallback(() => {
     if (tooltipData) {
-      // console.log("Selected Branch ID:", tooltipData.branch);
+      // 값이 유효한 경우에만 브랜치 선택
+      console.log("Selected Branch ID:", tooltipData);
+
       setSelectedBranchId(tooltipData.branch);
-      // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
-      // 예: 상태 업데이트, 콜백 함수 호출 등
+      setViewType("line");
     }
-  }, [tooltipData]);
+  }, [setSelectedBranchId, setViewType, tooltipData]);
 
   return (
     <>
@@ -141,7 +169,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
           fill={currentSelectedGroup.id === trialGroup.id ? "blue" : "red"}
           opacity={currentSelectedGroup.id === trialGroup.id ? 0.2 : 0.5}
         />
-        {selectedBranchId && (
+        {/* {selectedBranchId && (
           <Line
             x1={xScale(
               xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
@@ -155,12 +183,44 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
             strokeWidth={1}
           />
         )}
+         */}
+        {selectedBranchId && (
+          <>
+            <Line
+              x1={xScale(
+                xAccessor(
+                  data.find((d) => d.branch === selectedBranchId) || { x: 0 }
+                )
+              )}
+              x2={xScale(
+                xAccessor(
+                  data.find((d) => d.branch === selectedBranchId) || { x: 0 }
+                )
+              )}
+              y1={margin.top}
+              y2={height - margin.bottom}
+              stroke="black"
+              strokeWidth={1}
+              // 해당 branch가 이 차트에 존재하는 경우에만 표시
+              opacity={data.find((d) => d.branch === selectedBranchId) ? 1 : 0}
+            />
+            {/* <text
+              x={xScale(xAccessor(data[0]))}
+              y={margin.top + 10}
+              fill="black"
+            >
+              {selectedBranchId},{" "}
+              {data.find((d) => d.branch === selectedBranchId)?.x}
+              {data.find((d) => d.branch === selectedBranchId)?.y}
+            </text> */}
+          </>
+        )}
         {tooltipLeft && (
           <Line
             from={{ x: tooltipLeft, y: 0 }}
             to={{ x: tooltipLeft, y: height }}
             stroke="rgba(0, 0, 0, 0.3)"
-            strokeWidth={1}
+            strokeWidth={0.5}
             strokeDasharray="3,3"
             pointerEvents="none"
           />

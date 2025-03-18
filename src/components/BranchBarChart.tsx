@@ -1,7 +1,7 @@
 import { Box, Text } from "@chakra-ui/react";
 import { scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
-import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
 import { formatting } from "../model/utils";
 import { useConstDataStore } from "./store/constDataStore";
 import { useMetricScale } from "../model/colorScale";
@@ -11,6 +11,15 @@ type TooltipData = {
   key: string; // hparam name
   value: string; // hparam value
   count: number; // trial count
+};
+
+const tooltipStyles = {
+  ...defaultStyles,
+  background: "rgba(0, 0, 0, 0.8)",
+  color: "white",
+  padding: "8px",
+  borderRadius: "4px",
+  zIndex: 1000,
 };
 
 interface BranchBarChartProps {
@@ -144,18 +153,26 @@ const BranchBarChart = ({
             ))}
           </svg>
           {tooltipOpen && tooltipData && (
-            <TooltipInPortal top={tooltipTop} left={tooltipLeft}>
-              <Box>
-                <Text fontWeight={"bold"} align={"left"} mb={2}>
-                  {tooltipData.key} = {tooltipData.value}
-                </Text>
-                <Text fontWeight={"bold"} align={"left"} mb={2}>
-                  {hparamKey} = {hparamValue}
-                </Text>
-                <Text align={"left"} mb={"2px"}>
-                  {formatting(tooltipData.count, "int")} trials
-                </Text>
+            <TooltipInPortal
+              top={tooltipTop}
+              left={tooltipLeft}
+              style={tooltipStyles}
+            >
+              <Box
+                style={{
+                  fontWeight: "bold",
+                  borderBottom: "1px solid white",
+                  paddingBottom: "4px",
+                  marginBottom: "4px",
+                }}
+              >
+                {tooltipData.key} = {tooltipData.value} {" & "} {hparamKey} ={" "}
+                {hparamValue}
               </Box>
+
+              <Text align={"left"} mb={"2px"}>
+                {formatting(tooltipData.count, "int")} trials
+              </Text>
             </TooltipInPortal>
           )}
         </Box>

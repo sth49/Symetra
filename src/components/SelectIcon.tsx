@@ -22,13 +22,15 @@ const SelectIcon = ({ type }: SelectIconProps) => {
     <Box position="relative" width="20px" height="20px">
       <Icon
         as={TbCircleFilled}
-        color={colorScale(
-          type === "g1" && currentSelectedGroup
-            ? currentSelectedGroup.getStats().avg
-            : currentSelectedGroup2
-            ? currentSelectedGroup2.getStats().avg
-            : 0
-        )}
+        // color={colorScale(
+        //   type === "g1" && currentSelectedGroup
+        //     ? currentSelectedGroup.getStats().avg
+        //     : currentSelectedGroup2
+        //     ? currentSelectedGroup2.getStats().avg
+        //     : 0
+        // )}
+
+        color={type === "g1" ? `rgba(0,0,255,0.2)` : `rgba(255,0,0,0.5)`}
         position="absolute"
         left="50%"
         top="50%"

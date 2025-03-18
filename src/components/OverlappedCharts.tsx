@@ -47,6 +47,10 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
 
+  const setIsBranchClicked = useCustomStore(
+    (state) => state.setIsBranchClicked
+  );
+
   const selectedData = useMemo(() => {
     if (!currentSelectedGroup) {
       return [];
@@ -57,7 +61,7 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
       y: b[1],
       branch: b[0],
     }));
-  }, [currentSelectedGroup, exp.name, target]);
+  }, [currentSelectedGroup, exp.branchInfo]);
 
   const data1 = useMemo(() => {
     if (!trialGroup1) {
@@ -79,7 +83,7 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         };
       }
     });
-  }, [trialGroup1, target, selectedData, exp.name]);
+  }, [trialGroup1, exp.branchInfo, selectedData]);
 
   const data2 = useMemo(() => {
     if (!trialGroup2) {
@@ -101,7 +105,7 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         };
       }
     });
-  }, [trialGroup2, target, selectedData, exp.name]);
+  }, [trialGroup2, exp.branchInfo, selectedData]);
 
   const xAccessor = (d: { x: number }) => d.x;
   const yAccessor = (d: { y: number }) => d.y;
@@ -112,7 +116,7 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         range: [margin.left, width - margin.right],
         domain: [0, data1.length - 1],
       }),
-    [data1, width]
+    [data1.length, margin.left, margin.right, width]
   );
 
   const yScale = useMemo(
@@ -122,7 +126,7 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         domain: [0, Math.max(...data1.map(yAccessor), ...data2.map(yAccessor))],
         nice: true,
       }),
-    [data1, data2, height]
+    [data1, data2, height, margin.bottom, margin.top]
   );
 
   // 마우스 이벤트 핸들러
@@ -152,14 +156,19 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
     setTooltipLeft(null);
   };
 
+  const setViewType = useCustomStore((state) => state.setViewType);
+
   // 툴팁 클릭 핸들러 추가
   const handleTooltipClick = useCallback(() => {
     if (tooltipData) {
       setSelectedBranchId(tooltipData.branch);
+      setViewType("line");
+      setIsBranchClicked(true);
+
       // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
       // 예: 상태 업데이트, 콜백 함수 호출 등
     }
-  }, [tooltipData]);
+  }, [setIsBranchClicked, setSelectedBranchId, setViewType, tooltipData]);
 
   return (
     <>
@@ -190,18 +199,34 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
         />
 
         {selectedBranchId && (
-          <Line
-            x1={xScale(
-              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
-            )}
-            x2={xScale(
-              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
-            )}
-            y1={margin.top}
-            y2={height - margin.bottom}
-            stroke="black"
-            strokeWidth={1}
-          />
+          <>
+            <Line
+              x1={xScale(
+                xAccessor(
+                  selectedData.find((d) => d.branch === selectedBranchId)
+                )
+              )}
+              x2={xScale(
+                xAccessor(
+                  selectedData.find((d) => d.branch === selectedBranchId)
+                )
+              )}
+              y1={margin.top}
+              y2={height - margin.bottom}
+              stroke="black"
+              strokeWidth={1}
+            />
+            {/* <text
+              x={xScale(xAccessor(data1[0]))}
+              y={margin.top + 10}
+              fill="black"
+            >
+              {selectedBranchId},{" "}
+              {data1.find((d) => d.branch === selectedBranchId)?.x}
+              {data1.find((d) => d.branch === selectedBranchId)?.y}
+              {data2.find((d) => d.branch === selectedBranchId)?.y}
+            </text> */}
+          </>
         )}
         {tooltipLeft !== null && (
           <Line

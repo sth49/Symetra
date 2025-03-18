@@ -55,10 +55,10 @@ const GroupDetailView = () => {
         exp.hyperparams[2]
       );
     }
-  }, [currentSelectedGroup]);
+  }, [currentSelectedGroup, exp.hyperparams]);
 
   return (
-    <Box p={2} pt={1} height={"65px"}>
+    <Box p={2} pt={1} height={"35px"}>
       {currentSelectedGroup ? (
         <Box
           width={"100%"}
@@ -69,9 +69,9 @@ const GroupDetailView = () => {
         >
           <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             {mode === "view" ? (
-              <Box display={"flex"} alignItems={"center"} width={"50%"}>
+              <Box display={"flex"} alignItems={"center"} width={"120px"}>
                 <Text
-                  fontSize="sm"
+                  fontSize="xs"
                   align={"right"}
                   pr={2}
                   fontWeight={"bold"}
@@ -79,9 +79,9 @@ const GroupDetailView = () => {
                   display={"flex"}
                   alignItems={"center"}
                 >
-                  <SelectIcon type="g1" />
+                  {/* <SelectIcon type="g1" /> */}
                   {currentSelectedGroup.name}{" "}
-                  {`(${formatting(currentSelectedGroup.trials.length, "int")})`}
+                  {/* {`(${formatting(currentSelectedGroup.trials.length, "int")})`} */}
                 </Text>
                 <IconButton
                   variant={"outline"}
@@ -97,7 +97,7 @@ const GroupDetailView = () => {
                 display={"flex"}
                 justifyContent={"space-between"}
                 alignItems={"center"}
-                width={"50%"}
+                width={"120px"}
               >
                 <input
                   style={{
@@ -136,23 +136,7 @@ const GroupDetailView = () => {
                 </ButtonGroup>
               </Box>
             )}
-            <Box
-              display={"flex"}
-              justifyContent={"space-between"}
-              width={"50%"}
-              alignItems={"center"}
-              pl={2}
-            >
-              <Text fontSize="sm" fontWeight={"bold"} color="gray.600">
-                Mean Coverage Value
-              </Text>
-              <MetricBadge
-                metricValue={currentSelectedGroup.getStats().avg}
-                type={"float"}
-              />
-            </Box>
-          </Box>
-          <Box display={"flex"} justifyContent={"space-between"}>
+
             <Button
               size={"xs"}
               alignSelf={"center"}

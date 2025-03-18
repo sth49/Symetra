@@ -1,10 +1,16 @@
-import { Box, Heading, Text } from "@chakra-ui/react";
+import {
+  Box,
+  FormControl,
+  FormLabel,
+  Heading,
+  Switch,
+  Text,
+} from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 import { useCustomStore } from "../store";
 import GroupDetailView from "./GroupDetailView";
 import { Groups } from "../model/group";
-import Heatmap from "./Heatmap";
 import TrialGroupTable from "./TrialGroupTable";
 import { performStatisticalTest } from "../model/statistic";
 
@@ -111,6 +117,10 @@ const TrialGroupView = () => {
 
   const { hyperparams } = useConstDataStore();
 
+  const [heatmapType, setHeatmapType] = useState<"union" | "difference">(
+    "union"
+  );
+
   const heatmapData = useMemo(() => {
     return groups.groups
       .map((group) => {
@@ -127,15 +137,23 @@ const TrialGroupView = () => {
             };
           });
 
-          const diffCount = differences.filter(
-            (d) => d.interpretationLevel > 1
-          ).length;
+          const diffCount =
+            heatmapType === "difference"
+              ? differences.filter(
+                  (d) => d.interpretationLevel > 1 && d.pValue < 0.05
+                ).length
+              : new Set([...group.getUnion(), ...g.getUnion()]).size -
+                Math.max(
+                  new Set([...group.getUnion()]).size,
+                  new Set([...g.getUnion()]).size
+                );
+
           return diffCount;
         });
         return groupData;
       })
       .flat();
-  }, [groups, hyperparams]);
+  }, [groups.groups, heatmapType, hyperparams]);
 
   const minValue = Math.min(...heatmapData);
   const maxValue = Math.max(...heatmapData);
@@ -144,11 +162,13 @@ const TrialGroupView = () => {
     return d3.range(0, 1.01, 0.1).map((t) => {
       const value = minValue + t * (maxValue - minValue);
       const color = d3
-        .scaleSequential(d3.interpolateRdPu)
+        .scaleSequential(
+          heatmapType === "union" ? d3.interpolateGreens : d3.interpolateRdPu
+        )
         .domain([minValue, maxValue])(value);
       return { offset: `${t * 100}%`, color };
     });
-  }, [minValue, maxValue]);
+  }, [minValue, maxValue, heatmapType]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -160,48 +180,71 @@ const TrialGroupView = () => {
         <Heading as="h5" size="sm" color="gray.600" p={2}>
           Trial Group View
         </Heading>
+
+        <FormControl
+          display="flex"
+          justifyContent="right"
+          alignItems="center"
+          width="300px"
+          pr={2}
+        >
+          <FormLabel htmlFor="heatmapType-switch" mb={0} mr={1}>
+            <Text fontSize="xs" color="gray.600">
+              Show union coverage
+            </Text>
+          </FormLabel>
+          <Switch
+            id="heatmapType-switch"
+            onChange={() =>
+              setHeatmapType((prev) =>
+                prev === "union" ? "difference" : "union"
+              )
+            }
+            isChecked={heatmapType === "union"}
+            // onChange={() => setIsPreference(!isPreference)}
+            // isChecked={isPreference}
+            size={"sm"}
+          />
+        </FormControl>
+      </Box>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+        w={"100%"}
+        height={"25px"}
+        padding={"0 8px"}
+      >
+        <Text fontSize="xs" color="gray.600">
+          {heatmapType === "union"
+            ? "Increase in accumulated CVRG when merged:"
+            : "# of statistically different parameters:"}
+        </Text>
+
         <Box
           display={"flex"}
           justifyContent={"space-between"}
           alignItems={"center"}
-          // style={{
-          //   width: `calc(100% - 160px)`,
-          // }}
         >
-          <Text fontSize="10px" color="gray.600">
-            # of statistically different parameters:
+          <Text fontSize="xs" color={"gray.600"} textAlign={"center"}>
+            {heatmapType === "union" ? "min" : "similar"} (
+            {formatting(minValue, "int")})
           </Text>
+          <svg width="180" height="16">
+            <defs>
+              <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                {gradientStops.map((stop, i) => (
+                  <stop key={i} offset={stop.offset} stopColor={stop.color} />
+                ))}
+              </linearGradient>
+            </defs>
+            <rect x="5" width="170" height="16" fill="url(#gradient2)" />
+          </svg>
 
-          <Box
-            display={"flex"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            padding={"0 4px"}
-          >
-            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
-              similar ({formatting(minValue, "int")})
-            </Text>
-            <svg width="90" height="16">
-              <defs>
-                <linearGradient
-                  id="gradient2"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="0%"
-                >
-                  {gradientStops.map((stop, i) => (
-                    <stop key={i} offset={stop.offset} stopColor={stop.color} />
-                  ))}
-                </linearGradient>
-              </defs>
-              <rect x="5" width="80" height="16" fill="url(#gradient2)" />
-            </svg>
-
-            <Text fontSize="10px" color={"gray.600"} textAlign={"center"}>
-              dissimilar ({formatting(maxValue, "int")})
-            </Text>
-          </Box>
+          <Text fontSize="xs" color={"gray.600"} textAlign={"center"}>
+            {heatmapType === "union" ? "max" : "dissimilar"} (
+            {formatting(maxValue, "int")})
+          </Text>
         </Box>
       </Box>
       <Box
@@ -212,7 +255,7 @@ const TrialGroupView = () => {
         }}
       >
         <Box style={{ position: "relative", zIndex: 0 }}>
-          <TrialGroupTable />
+          <TrialGroupTable heatmapType={heatmapType} />
         </Box>
         <Box
           flex={1}

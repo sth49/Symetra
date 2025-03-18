@@ -56,6 +56,11 @@ const CodeFileTable = () => {
   );
   const totalLines = useCustomStore((state) => state.totalLines);
 
+  const isBranchClicked = useCustomStore((state) => state.isBranchClicked);
+  const setIsBranchClicked = useCustomStore(
+    (state) => state.setIsBranchClicked
+  );
+
   const filePath = useMemo(() => {
     if (!experiment?.branchInfo || experiment.branchInfo.length === 0) {
       return {};
@@ -294,6 +299,9 @@ const CodeFileTable = () => {
   ]);
 
   const [expanded, setExpanded] = useState<ExpandedState>({});
+
+  // useEffect (() => {
+  //   setExpanded({})
   const [open, setOpen] = useState([]);
 
   useEffect(() => {
@@ -327,6 +335,93 @@ const CodeFileTable = () => {
     debugTable: true,
     enableRowSelection: true,
   });
+
+  const rows = table.getRowModel().rows;
+
+  // useEffect(() => {
+  //   if (isBranchClicked) {
+  //     rows.map((row) => {
+  //       if (
+  //         row.original.children.find((c) => c.ids.includes(selectedBranchId))
+  //       ) {
+  //         console.log("row", row);
+  //         row.toggleExpanded();
+  //       }
+  //     });
+  //   }
+  // }, [isBranchClicked, rows, selectedBranchId, setIsBranchClicked]);
+
+  // CodeFileTable 컴포넌트의 useEffect 수정
+  useEffect(() => {
+    if (isBranchClicked) {
+      console.log("Branch clicked:", selectedBranchId);
+
+      // 해당 브랜치가 포함된 파일 행 찾기
+      const rowToExpand = rows.find((row) =>
+        row.original.children.some((child) =>
+          child.ids.includes(selectedBranchId)
+        )
+      );
+
+      if (rowToExpand) {
+        console.log("Found row to expand:", rowToExpand.id);
+
+        // 행이 이미 확장되지 않은 경우에만 확장
+        if (!rowToExpand.getIsExpanded()) {
+          // 기본 표시 수 설정
+          setShowNum({
+            ...showNum,
+            [`${rowToExpand.original.filePath}`]:
+              rowToExpand.original.children.length,
+          });
+
+          rowToExpand.toggleExpanded();
+        }
+        setTimeout(() => {
+          // 선택된 브랜치 ID가 포함된 행을 찾음
+          const lineElement = document.querySelector(
+            `[data-selected-branch="true"]`
+          );
+
+          if (lineElement) {
+            lineElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            console.log("Scrolling to element:", lineElement);
+          } else {
+            console.log(
+              "Element with selected branch not found, trying alternate methods"
+            );
+
+            // 대체 방법: 브랜치 ID가 포함된 모든 요소 중에서 찾기
+            const allBranchElements =
+              document.querySelectorAll(`tr[data-branch-ids]`);
+
+            for (const element of allBranchElements) {
+              const branchIds =
+                element.getAttribute("data-branch-ids")?.split(",") || [];
+              if (branchIds.includes(selectedBranchId)) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+                console.log(
+                  "Found element with branch ID through alternate method"
+                );
+                break;
+              }
+            }
+          }
+        }, 300); // 더 긴 지연 시간을 설정 (DOM이 완전히 업데이트될 시간)
+      }
+
+      // 플래그 초기화
+      setIsBranchClicked(false);
+    }
+  }, [
+    isBranchClicked,
+    selectedBranchId,
+    rows,
+    setExpanded,
+    showNum,
+    setShowNum,
+    setIsBranchClicked,
+  ]);
 
   return (
     <Box w={"100%"} p={1} height={`calc(100% - 35px)`}>
@@ -426,7 +521,7 @@ const CodeFileTable = () => {
                 ))}
               </thead>
               <tbody key={"tbody"}>
-                {table.getRowModel().rows.map((row) => {
+                {rows.map((row) => {
                   return (
                     <>
                       <tr
@@ -697,7 +792,8 @@ const CodeFileTable = () => {
                     <PopoverContent>
                       {filePath[branchInfo?.filePath.split("/").slice(-2)[0]]
                         .find((f) => f.file === branchInfo?.fileName)
-                        ?.line.map((l) => {
+                        ?.line.sort((a, b) => a - b)
+                        .map((l) => {
                           return (
                             <Box
                               className="file-path"

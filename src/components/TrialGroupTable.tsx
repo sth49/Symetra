@@ -9,12 +9,12 @@ import { formatting, getTextColor } from "../model/utils";
 import * as d3 from "d3";
 import { useMemo } from "react";
 import { useCustomStore } from "../store";
-import { Box, Tooltip, Text } from "@chakra-ui/react";
+import { Box, Tooltip, Text, Icon } from "@chakra-ui/react";
 import { performStatisticalTest } from "../model/statistic";
 
 import { useConstDataStore } from "./store/constDataStore";
 import MetricBadge from "./MetricBadge";
-
+import { AiFillStar } from "react-icons/ai";
 const EmptyBox = () => {
   return (
     <Box
@@ -30,7 +30,11 @@ const EmptyBox = () => {
   );
 };
 
-const TrialGroupTable = () => {
+interface TrialGroupTableProps {
+  heatmapType: "difference" | "union";
+}
+
+const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
@@ -55,7 +59,7 @@ const TrialGroupTable = () => {
           name: "",
           size: -1,
           mean: -1,
-          max: -1,
+          acc: -1,
         };
       }
     );
@@ -78,9 +82,17 @@ const TrialGroupTable = () => {
             };
           });
 
-          const diffCount = differences.filter(
-            (d) => d.interpretationLevel > 1 && d.pValue < 0.05
-          ).length;
+          const diffCount =
+            heatmapType === "difference"
+              ? differences.filter(
+                  (d) => d.interpretationLevel > 1 && d.pValue < 0.05
+                ).length
+              : new Set([...group.getUnion(), ...g.getUnion()]).size -
+                Math.max(
+                  new Set([...group.getUnion()]).size,
+                  new Set([...g.getUnion()]).size
+                );
+
           return {
             id: g.id.toString(),
             difference: diffCount,
@@ -92,7 +104,7 @@ const TrialGroupTable = () => {
           name: group.name,
           size: group.trials.length,
           mean: group.getStats().avg,
-          max: group.getStats().max,
+          acc: new Set([...group.getUnion()]).size,
           ...Object.assign(
             {},
             ...groupData.map((d) => ({ [d.id]: d.difference }))
@@ -100,7 +112,7 @@ const TrialGroupTable = () => {
         };
       })
       .concat(emptyData);
-  }, [groups.groups, hyperparams]);
+  }, [groups.groups, heatmapType, hyperparams]);
 
   const heatmap = useMemo(() => {
     return data.map((d) =>
@@ -113,8 +125,12 @@ const TrialGroupTable = () => {
     );
   }, [data, groups.groups]);
 
+  console.log("heatmap", heatmap);
+
   const colorScale = d3
-    .scaleSequential(d3.interpolateRdPu)
+    .scaleSequential(
+      heatmapType === "difference" ? d3.interpolateRdPu : d3.interpolateGreens
+    )
     .domain([0, Math.max(...heatmap.flat())]);
 
   const columns = useMemo(() => {
@@ -183,9 +199,9 @@ const TrialGroupTable = () => {
         size: 55,
       },
       {
-        id: "max",
-        header: "Max",
-        accessorKey: "max",
+        id: "acc",
+        header: "Accum",
+        accessorKey: "acc",
         type: "number",
 
         cell: (info) => {
@@ -233,7 +249,10 @@ const TrialGroupTable = () => {
                   <Box>
                     <Text>{`${info.row.original.name} vs ${group.name}`}</Text>
                     <Text>
-                      # of statistically different parameters: {info.getValue()}
+                      {heatmapType === "difference"
+                        ? "# of statistically different parameters: "
+                        : "Increase in accumulated CVRG when merged: "}{" "}
+                      {info.getValue()}
                     </Text>
                   </Box>
                 }
@@ -243,6 +262,7 @@ const TrialGroupTable = () => {
                   width={"20px"}
                   height={"20px"}
                   display={"flex"}
+                  alignItems={"center"}
                   justifyContent={"center"}
                   backgroundColor={colorScale(info.getValue()) as string}
                   borderRadius={"20px"}
@@ -250,14 +270,7 @@ const TrialGroupTable = () => {
                   style={{
                     cursor: "pointer",
                   }}
-                  border={
-                    currentSelectedGroup &&
-                    info.row.original.id === currentSelectedGroup.id &&
-                    currentSelectedGroup2 &&
-                    group.id === currentSelectedGroup2.id
-                      ? "1px solid #000"
-                      : "1px solid #fff"
-                  }
+                  border={"1px solid #CFCFCF"}
                   className="heatmap-cell"
                   onClick={() => {
                     setCurrnetSelectedGroup(
@@ -265,7 +278,19 @@ const TrialGroupTable = () => {
                     );
                     setCurrnetSelectedGroup2(groups.getGroup(group.id));
                   }}
-                ></Box>
+                >
+                  {currentSelectedGroup &&
+                    info.row.original.id === currentSelectedGroup.id &&
+                    currentSelectedGroup2 &&
+                    group.id === currentSelectedGroup2.id && (
+                      <Icon
+                        as={AiFillStar}
+                        color={"yellow.400"}
+                        width={4}
+                        height={4}
+                      />
+                    )}
+                </Box>
               </Tooltip>
             );
           },
@@ -288,6 +313,7 @@ const TrialGroupTable = () => {
     groups,
     currentSelectedGroup,
     setCurrnetSelectedGroup,
+    heatmapType,
     colorScale,
     currentSelectedGroup2,
     setCurrnetSelectedGroup2,
