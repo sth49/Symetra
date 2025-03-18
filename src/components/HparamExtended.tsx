@@ -173,7 +173,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                   width="100%"
                   justifyContent="center"
                 >
-                  {item.hp.valueType === "string" ? (
+                  {/* {item.hp.valueType === "string" ? (
                     <div
                       style={{
                         width: "3px",
@@ -193,7 +193,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                     ></div>
                   ) : (
                     <></>
-                  )}
+                  )} */}
                   <Text
                     whiteSpace="pre-wrap"
                     textAlign="center"
