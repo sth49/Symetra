@@ -352,6 +352,80 @@ const CodeFileTable = () => {
   // }, [isBranchClicked, rows, selectedBranchId, setIsBranchClicked]);
 
   // CodeFileTable 컴포넌트의 useEffect 수정
+
+  const lineNumberClicked = useCustomStore((state) => state.lineNumberClicked);
+  const setLineNumberClicked = useCustomStore(
+    (state) => state.setLineNumberClicked
+  );
+
+  useEffect(() => {
+    if (
+      lineNumberClicked &&
+      lineNumberClicked.filePath !== "" &&
+      lineNumberClicked.line !== -1
+    ) {
+      const filePath =
+        lineNumberClicked.filePath.split("/").slice(-2)[0] +
+        "/" +
+        lineNumberClicked.filePath.split("/").slice(-1)[0];
+
+      // filePath.split("/").slice(-2)[0] +
+      //     "/" +
+      //     filePath.split("/").slice(-1)[0],
+      const line = lineNumberClicked.lineNumber;
+
+      console.log("Attempting to scroll to line:", line, filePath);
+      const rowToExpand = rows.find(
+        (row) => row.original.filePath === filePath
+      );
+
+      if (rowToExpand) {
+        console.log("Found row to expand:", rowToExpand.id);
+        if (!rowToExpand.getIsExpanded()) {
+          setShowNum({
+            ...showNum,
+            [`${rowToExpand.original.filePath}`]:
+              rowToExpand.original.children.length,
+          });
+          rowToExpand.toggleExpanded();
+        }
+        setTimeout(() => {
+          const lineElement = document.querySelector(
+            `[data-line-number="${line}"]`
+          );
+
+          if (lineElement) {
+            lineElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            console.log("Scrolling to element:", lineElement);
+          } else {
+            console.log(
+              "Element with line number not found, trying alternate methods"
+            );
+            const allLineElements =
+              document.querySelectorAll(`tr[data-line-number]`);
+            console.log("All line elements:", allLineElements);
+            for (const element of allLineElements) {
+              const lineNumber = Number(
+                element.getAttribute("data-line-number")
+              );
+              if (lineNumber === line) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+                console.log(
+                  "Found element with line number through alternate method"
+                );
+                break;
+              }
+            }
+          }
+        }, 100);
+      }
+      setLineNumberClicked({
+        filePath: "",
+        lineNumber: -1,
+      });
+    }
+  }, [lineNumberClicked, rows, setLineNumberClicked, showNum]);
+
   useEffect(() => {
     if (isBranchClicked) {
       console.log("Branch clicked:", selectedBranchId);
@@ -407,7 +481,7 @@ const CodeFileTable = () => {
               }
             }
           }
-        }, 300); // 더 긴 지연 시간을 설정 (DOM이 완전히 업데이트될 시간)
+        }, 100); // 더 긴 지연 시간을 설정 (DOM이 완전히 업데이트될 시간)
       }
 
       // 플래그 초기화

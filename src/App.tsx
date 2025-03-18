@@ -88,7 +88,7 @@ function App() {
         // 초기 타겟 설정
         // const initialTarget = targets[0].name;
         // const initialTarget = "gcal_2200";
-        const initialTarget = "grep_2200_250302";
+        const initialTarget = "gcal_2200_250302";
         setCurrentTarget(initialTarget);
 
         // 초기 데이터 로드

@@ -118,7 +118,7 @@ const TrialGroupView = () => {
   const { hyperparams } = useConstDataStore();
 
   const [heatmapType, setHeatmapType] = useState<"union" | "difference">(
-    "union"
+    "difference"
   );
 
   const heatmapData = useMemo(() => {

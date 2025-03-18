@@ -6,6 +6,7 @@ import { BranchInfo } from "../model/experiment";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import * as d3 from "d3";
 import { AiFillStar } from "react-icons/ai";
+import { getTextColor } from "../model/utils";
 interface CodeViewProps {
   item: any;
 }
@@ -113,6 +114,12 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     // Calculate position based on line number (0-indexed within the component)
     return (branchInfo.line - displayContent.startLine) * lineHeight;
   };
+  const setLineNumberClicked = useCustomStore(
+    (state) => state.setLineNumberClicked
+  );
+  const setSelectBranchId = useCustomStore(
+    (state) => state.setSelectedBranchId
+  );
   if (item === undefined) {
     return (
       <Box
@@ -128,6 +135,17 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
   }
 
+  const colorIntensityBlue = d3.scaleSequential(
+    [0, 100],
+    d3.interpolateRgb("rgba(0, 0, 255, 0.2)", "rgba(0, 0, 255, 0.8)")
+  );
+  const colorIntensityRed = d3.scaleSequential(
+    [0, 100],
+    d3.interpolateRgb("rgba(255, 0, 0, 0.2)", "rgba(255, 0, 0, 0.8)")
+  );
+
+  const bInfo = item.children.find((c) => c.line === branchInfo?.line);
+
   return (
     <Box
       w={"100%"}
@@ -140,7 +158,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
         {/* Container for both SVG and code */}
         <div style={{ position: "relative", width: "100%", minHeight: "100%" }}>
           {/* SVG overlay positioned at the same scroll position */}
-          {viewType === "line" && (
+          {viewType === "line" && bInfo && (
             <Box
               width="18px"
               height="20px" // Set to line height
@@ -149,15 +167,17 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                 zIndex: 1000,
                 top: calculateYPosition(),
                 left: 0,
-                backgroundColor: "white",
-                // borderRight: "1px solid rgba(0, 0, 0)",
-                border: "1px solid rgba(0, 0, 0)",
               }}
             >
               <Icon
                 as={AiFillStar}
-                color={"yellow.300"}
-                stroke={"yellow.300"}
+                color={getTextColor(
+                  bInfo?.group1 - bInfo?.group2 > 0
+                    ? colorIntensityBlue(
+                        Math.abs(bInfo?.group1 - bInfo?.group2)
+                      )
+                    : colorIntensityRed(Math.abs(bInfo?.group1 - bInfo?.group2))
+                )}
               />
             </Box>
           )}
@@ -183,7 +203,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
               overflow: "auto",
               margin: 0,
               padding: 0,
-              paddingLeft: "10px",
+              // paddingLeft: "10px",
             }}
             startingLineNumber={displayContent.startLine}
             language="c"
@@ -203,23 +223,12 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                 );
                 const diff = lineItem.group1 - lineItem.group2;
                 // const colorIntensity = Math.abs(diff) / 100;
-                const colorIntensityBlue = d3.scaleSequential(
-                  [0, 100],
-                  d3.interpolateRgb(
-                    "rgba(0, 0, 255, 0.2)",
-                    "rgba(0, 0, 255, 0.8)"
-                  )
-                );
-                const colorIntensityRed = d3.scaleSequential(
-                  [0, 100],
-                  d3.interpolateRgb(
-                    "rgba(255, 0, 0, 0.2)",
-                    "rgba(255, 0, 0, 0.8)"
-                  )
-                );
+
                 style.backgroundColor =
                   lineItem.group1 > lineItem.group2
                     ? colorIntensityBlue(Math.abs(diff))
+                    : lineItem.group1 === lineItem.group2
+                    ? "rgba(0, 255, 0, 0.5)"
                     : colorIntensityRed(Math.abs(diff));
                 style.borderLeft =
                   lineItem.group1 > lineItem.group2
@@ -234,10 +243,29 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                   viewType === "line" && branchInfo?.line === lineNumber
                     ? "1px solid rgba(0, 0, 0, 1)"
                     : "none";
+
+                style.cursor = "pointer";
               }
               return {
                 style,
                 ref: (el: any) => (linesRefs.current[lineNumber] = el),
+                onClick: () => {
+                  if (lines.includes(lineNumber)) {
+                    console.log("Clicked line:", lineNumber);
+                    setLineNumberClicked({
+                      filePath: branchInfo?.filePath,
+                      lineNumber: lineNumber,
+                    });
+                    setSelectBranchId(
+                      experiment.branchInfo.find(
+                        (b) =>
+                          b.filePath === branchInfo?.filePath &&
+                          b.line === lineNumber
+                      )?.branch
+                    );
+                  }
+                  // console.log("Clicked line:", lineNumber);
+                },
               }; // Save ref for each line
             }}
           >

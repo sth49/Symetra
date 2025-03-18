@@ -285,7 +285,9 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                     group.id === currentSelectedGroup2.id && (
                       <Icon
                         as={AiFillStar}
-                        color={"yellow.400"}
+                        color={
+                          getTextColor(colorScale(info.getValue())) as string
+                        }
                         width={4}
                         height={4}
                       />

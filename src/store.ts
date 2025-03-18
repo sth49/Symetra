@@ -58,6 +58,9 @@ interface CustomStore {
 
   isBranchClicked: boolean;
   setIsBranchClicked: (isBranchClicked: boolean) => void;
+
+  lineNumberClicked: any;
+  setLineNumberClicked: (lineNumber: any) => void;
 }
 
 export const useCustomStore = create<CustomStore>((set) => ({
@@ -127,4 +130,10 @@ export const useCustomStore = create<CustomStore>((set) => ({
 
   isBranchClicked: false,
   setIsBranchClicked: (isBranchClicked) => set({ isBranchClicked }),
+
+  lineNumberClicked: {
+    filePath: "",
+    lineNumber: -1,
+  },
+  setLineNumberClicked: (lineNumber) => set({ lineNumberClicked: lineNumber }),
 }));
