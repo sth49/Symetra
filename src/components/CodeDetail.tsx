@@ -1,10 +1,11 @@
-import { Box, Heading, Select } from "@chakra-ui/react";
+import { Box, Heading, Select, Text } from "@chakra-ui/react";
 import { useCustomStore } from "../store";
 import { useEffect } from "react";
 import { useConstDataStore } from "./store/constDataStore";
 
 import CodeFileTable from "./CodeFileTable";
 import SelectIcon from "./SelectIcon";
+import { formatting } from "../model/utils";
 
 function CodeDetail() {
   const setSelectBranchId = useCustomStore(
@@ -34,7 +35,7 @@ function CodeDetail() {
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
       <Box
         display={"flex"}
-        justifyContent={"space-between"}
+        // justifyContent={"space-between"}
         alignItems={"center"}
       >
         <Heading
@@ -46,16 +47,24 @@ function CodeDetail() {
           alignItems={"center"}
         >
           Code Detail View
+        </Heading>
+        <Text
+          // width={"80%"}
+          display={"flex"}
+          justifyContent={"flex-end"}
+          fontSize={"sm"}
+        >
           {" ("}
           <SelectIcon type="g1" />
-          {currentSelectedGroup?.name}
+          {currentSelectedGroup?.name} (
+          {formatting(currentSelectedGroup?.getLength(), "int")})
           <Box mr={3} ml={3}>
             {" vs "}
           </Box>
           <SelectIcon type="g2" />
           <Select
             cursor={"pointer"}
-            w={"100px"}
+            w={"130px"}
             value={
               currentSelectedGroup2 ? currentSelectedGroup2.id.toString() : ""
             }
@@ -70,12 +79,12 @@ function CodeDetail() {
               .filter((g) => g.id !== currentSelectedGroup.id)
               .map((group) => (
                 <option key={group.id} value={group.id.toString()}>
-                  {group.name}
+                  {group.name} ({formatting(group.getLength(), "int")})
                 </option>
               ))}
           </Select>
           {" )"}
-        </Heading>
+        </Text>
       </Box>
       <CodeFileTable />
     </div>
