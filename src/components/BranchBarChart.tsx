@@ -64,10 +64,17 @@ const BranchBarChart = ({
         )
       : [];
 
-  const binCount = 10;
+  const binCount = 9;
   const isInteger = data.every(Number.isInteger);
   const isSame = data.every((val, i, arr) => val === arr[0]);
-  const xMin = Math.min(...(data as number[]));
+  // const xMin = Math.min(...(data as number[]));
+  // const xMax =
+  //   isInteger && isSame
+  //     ? xMin + 10
+  //     : isSame
+  //     ? xMin + 0.5
+  //     : Math.max(...(data as number[]));
+  const xMin = 1; // ★ xMin을 0으로 강제 설정
   const xMax =
     isInteger && isSame
       ? xMin + 10
@@ -75,9 +82,11 @@ const BranchBarChart = ({
       ? xMin + 0.5
       : Math.max(...(data as number[]));
 
+  const barWidth = (width - margin.left - margin.right) / (binCount + 1) - 1;
+
   const xScale = scaleLinear({
     domain: [xMin, xMax],
-    range: [margin.left, width - margin.right],
+    range: [margin.left + barWidth, width - margin.right],
     nice: true,
   });
 
@@ -102,28 +111,68 @@ const BranchBarChart = ({
       bins[binIndex].count++;
     } else if (d === xMax) bins[binCount - 1].count++;
   });
-
+  const zeroBin = {
+    x0: 0,
+    x1: 0,
+    count: selectedData.length - bins.reduce((acc, bin) => acc + bin.count, 0),
+  };
   const yScale = scaleLinear({
-    domain: [0, Math.max(...bins.map((bin) => bin.count))],
+    domain: [0, Math.max(...bins.map((bin) => bin.count), zeroBin.count)],
     range: [height - margin.bottom, margin.top],
   });
+
+  // const zeroBins = bins.filter((bin) => bin.count === 0);
+  // 기존 bins 앞에 (0~0) bin 추가
+
+  // bins 리스트의 맨 앞에 zeroBin 삽입
 
   return (
     <ParentSize>
       {({ width: parentWidth, height: parentHeight }) => (
         <Box display="flex" justifyContent="center" alignItems="center">
           <svg width={parentWidth} height={parentHeight}>
+            <g>
+              <Bar
+                x={margin.left}
+                y={yScale(Number(zeroBin.count))}
+                width={barWidth}
+                // width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
+                height={Math.max(
+                  0,
+                  parentHeight - margin.bottom - yScale(Number(zeroBin.count))
+                )}
+                fill={colorScale(0)}
+              />
+              <Bar
+                x={margin.left}
+                width={barWidth}
+                height={parentHeight}
+                fill={"transparent"}
+                onMouseMove={(event) => {
+                  showTooltip({
+                    tooltipData: {
+                      key: "Coverage",
+                      value: `0`,
+                      count: zeroBin.count,
+                    },
+                    tooltipLeft: event.clientX,
+                    tooltipTop: event.clientY,
+                  });
+                }}
+                onMouseLeave={hideTooltip}
+              />
+            </g>
             {bins.map((bin, i) => (
               <g key={i}>
                 <Bar
                   x={xScale(Number(bin.x0))}
                   y={yScale(Number(bin.count))}
-                  width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
+                  width={barWidth}
                   height={Math.max(
                     0,
                     parentHeight - margin.bottom - yScale(Number(bin.count))
                   )}
-                  fill={colorScale(Number(bin.x0))}
+                  fill={colorScale((Number(bin.x1) + Number(bin.x0)) / 2)}
                 />
                 <Bar
                   x={xScale(Number(bin.x0))}

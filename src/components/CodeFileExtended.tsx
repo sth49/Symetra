@@ -14,8 +14,8 @@ interface CodeFileExtendedProps {
   item: {
     line: number;
     ids: string[];
-    group1: number;
-    group2: number;
+    group1Count: number;
+    group2Count: number;
     diff: number;
   }[];
   showNum: number;
@@ -102,9 +102,9 @@ const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
       },
 
       {
-        id: "group1",
+        id: "group1Count",
         header: currSelectedGroup?.name,
-        accessorKey: "group1",
+        accessorKey: "group1Count",
         cell: (info) => formatting(info.getValue(), "float") + "%",
         meta: {
           align: "right",
@@ -120,8 +120,8 @@ const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
           return (
             <Box width="100%">
               <BidirectionalChart
-                leftValue={info.row.original.group1}
-                rightValue={info.row.original.group2}
+                leftValue={info.row.original.group1Count}
+                rightValue={info.row.original.group2Count}
                 height={10}
               />
             </Box>
@@ -147,12 +147,7 @@ const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
     ];
   }, [currSelectedGroup?.name, currSelectedGroup2?.name]);
 
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "diff",
-      desc: true,
-    },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>(sortBy);
 
   useEffect(() => {
     setSorting(sortBy);

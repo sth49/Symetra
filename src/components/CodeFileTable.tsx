@@ -186,8 +186,8 @@ const CodeFileTable = () => {
         children: Object.values(groupByLine)
           .map((group: any) => ({
             ...group,
-            group1: group.group1 / group.ids.length,
-            group2: group.group2 / group.ids.length,
+            group1Count: group.group1 / group.ids.length,
+            group2Count: group.group2 / group.ids.length,
             diff: Math.abs(
               group.group1 / group.ids.length - group.group2 / group.ids.length
             ),
@@ -256,7 +256,7 @@ const CodeFileTable = () => {
         meta: {
           align: "right",
         },
-        enableSorting: false,
+        enableSorting: true,
         size: 40,
       },
       {
@@ -285,7 +285,7 @@ const CodeFileTable = () => {
         meta: {
           align: "right",
         },
-        enableSorting: false,
+        enableSorting: true,
         size: 50,
       },
     ];
