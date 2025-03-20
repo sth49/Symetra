@@ -83,7 +83,7 @@ const CoverageView: React.FC = () => {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({
     width: 1000,
-    height: 800,
+    height: 1000,
   });
 
   const [isLassoActive, setIsLassoActive] = useState(false);
@@ -96,7 +96,7 @@ const CoverageView: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState("");
 
-  const margin = { top: 80, right: 40, bottom: 100, left: 40 };
+  const margin = { top: 80, right: 0, bottom: 100, left: 0 };
 
   const legendWidth = 130;
   const legendHeight = 100;
@@ -125,43 +125,7 @@ const CoverageView: React.FC = () => {
 
   const numThresholds = 5;
 
-  const { metricScale, colorScale } = useMetricScale();
-
-  // const densityData = useMemo(() => {
-  //   const validData = data.filter(d => d.x !== undefined && d.y !== undefined);
-
-  //   const densityGenerator = d3.contourDensity()
-  //     .x(d => xScale(d.x)) // x좌표 변환
-  //     .y(d => yScale(d.y)) // y좌표 변환
-  //     .weight(d => metricScale(d.metric)) // 가중치 설정
-  //     .size([containerSize.width, containerSize.height]) // 컨테이너 크기
-  //     .bandwidth(12)
-  //     .thresholds(numThresholds);
-
-  //   return densityGenerator(validData); // 필터링된 데이터 사용
-  // }, [data, xScale, yScale, metricScale, containerSize]);
-  const densityData = useMemo(() => {
-    const validData = data.filter(
-      (d) => d.x !== undefined && d.y !== undefined
-    );
-
-    const densityGenerator = d3
-      .contourDensity()
-      .x((d) => xScale(d.x)) // x좌표 변환
-      .y((d) => yScale(d.y)) // y좌표 변환
-      .weight((d) => d.metric) // **metric 값을 가중치로 사용**
-      .size([containerSize.width, containerSize.height]) // 컨테이너 크기
-      .bandwidth(12)
-      .thresholds(numThresholds);
-
-    return densityGenerator(
-      validData.map((d) => [d.x, d.y] as [number, number])
-    );
-  }, [data, xScale, yScale, containerSize]);
-
-  const maxMetricValue = useMemo(() => {
-    return d3.max(data, (d) => d.metric) || 1;
-  }, [data]);
+  const { colorScale } = useMetricScale();
 
   const gridResolution = 25; // 격자 해상도 조정
 
@@ -388,11 +352,11 @@ const CoverageView: React.FC = () => {
 
         const top =
           selectedRowPosition.top > tableHeaderRect.bottom &&
-          selectedRowPosition.top < tableBottomRect.top + 5
+          selectedRowPosition.top < tableBottomRect.bottom + 5
             ? selectedRowPosition.top
             : selectedRowPosition.top < tableHeaderRect.bottom
             ? tableHeaderRect.bottom
-            : tableBottomRect.top + 5;
+            : tableBottomRect.bottom + 5;
 
         const svgStartY =
           (top - svgRect.top + tableContainer.scrollTop) * scaleY +
@@ -576,6 +540,8 @@ const CoverageView: React.FC = () => {
             display={"flex"}
             width={"100%"}
             // justifyContent={"space-between"}
+            pl={2}
+            pr={2}
             alignItems={"center"}
           >
             <Select size={"xs"} width={"100px"}>
@@ -593,16 +559,16 @@ const CoverageView: React.FC = () => {
                   Metric
                 </Text>
               </FormLabel>
-              <Select size={"xs"} width={"50%"}>
+              <Select size={"xs"} width={"55%"}>
                 <option>jaccard</option>
               </Select>
             </FormControl>
 
             <FormControl
               display="flex"
-              justifyContent="right"
+              justifyContent="center"
               alignItems="center"
-              width={"180px"}
+              width={"200px"}
             >
               <FormLabel mb={0} mr={1}>
                 <Text fontSize="xs" color="gray.600">
@@ -633,7 +599,6 @@ const CoverageView: React.FC = () => {
               </Select>
             </FormControl>
             <FormControl
-              pr={2}
               display="flex"
               justifyContent="right"
               alignItems="center"
@@ -667,7 +632,7 @@ const CoverageView: React.FC = () => {
           </Box>
         )}
 
-        <Box bg={"white"} width={"100%"} position={"relative"}>
+        <Box bg={"white"} width={"100%"} position={"relative"} height={"100%"}>
           <svg
             ref={svgRef}
             width="100%"
@@ -699,12 +664,7 @@ const CoverageView: React.FC = () => {
                         },
                       })
                     )(contour)}
-                    // stroke={contour.value < 100 ? "white" : "yellow"}
-                    fill={
-                      contour.value < 100
-                        ? "white"
-                        : metricColorScale(contour.value)
-                    } // Metric 값 기반 색상 적용
+                    fill={metricColorScale(contour.value)} // Metric 값 기반 색상 적용
                     opacity={0.4}
                   />
                 ))}
@@ -854,8 +814,6 @@ const CoverageView: React.FC = () => {
                         ) instanceof BinaryHyperparam ? (
                           <>
                             <rect
-                              // x={0}
-                              // y={i * 15 + legendMargin.top}
                               x={col * itemWidth} // x 좌표 계산
                               y={row * itemHeight + legendMargin.top} // y 좌표 계산
                               width={20}

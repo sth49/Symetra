@@ -41,6 +41,10 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
 
+  const setIsBranchClicked = useCustomStore(
+    (state) => state.setIsBranchClicked
+  );
+
   const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
 
   const selectedData = useMemo(() => {
@@ -148,8 +152,9 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
 
       setSelectedBranchId(tooltipData.branch);
       setViewType("line");
+      setIsBranchClicked(true);
     }
-  }, [setSelectedBranchId, setViewType, tooltipData]);
+  }, [setIsBranchClicked, setSelectedBranchId, setViewType, tooltipData]);
 
   return (
     <>

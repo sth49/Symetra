@@ -392,12 +392,12 @@ const CodeFileTable = () => {
 
       if (rowToExpand) {
         console.log("Found row to expand:", rowToExpand.id);
+        setShowNum({
+          ...showNum,
+          [`${rowToExpand.original.filePath}`]:
+            rowToExpand.original.children.length,
+        });
         if (!rowToExpand.getIsExpanded()) {
-          setShowNum({
-            ...showNum,
-            [`${rowToExpand.original.filePath}`]:
-              rowToExpand.original.children.length,
-          });
           rowToExpand.toggleExpanded();
         }
         setTimeout(() => {
@@ -451,15 +451,15 @@ const CodeFileTable = () => {
       if (rowToExpand) {
         console.log("Found row to expand:", rowToExpand.id);
 
+        setShowNum({
+          ...showNum,
+          [`${rowToExpand.original.filePath}`]:
+            rowToExpand.original.children.length,
+        });
+
         // 행이 이미 확장되지 않은 경우에만 확장
         if (!rowToExpand.getIsExpanded()) {
           // 기본 표시 수 설정
-          setShowNum({
-            ...showNum,
-            [`${rowToExpand.original.filePath}`]:
-              rowToExpand.original.children.length,
-          });
-
           rowToExpand.toggleExpanded();
         }
         setTimeout(() => {
