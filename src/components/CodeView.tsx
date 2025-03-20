@@ -30,7 +30,6 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
       const branch = experiment.branchInfo.find(
         (b) => b.branch === selectedBranchId
       );
-      console.log("branch", branch);
       setBranchInfo(branch);
 
       if (viewType === "line") {
@@ -254,7 +253,6 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                 ref: (el: any) => (linesRefs.current[lineNumber] = el),
                 onClick: () => {
                   if (lines.includes(lineNumber)) {
-                    console.log("Clicked line:", lineNumber);
                     setLineNumberClicked({
                       filePath: branchInfo?.filePath,
                       lineNumber: lineNumber,

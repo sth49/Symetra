@@ -54,10 +54,8 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
 
   const handleNodeHover = useCallback(
     (id) => {
-      console.log("id", id);
       if (id !== null) {
         const group = groups.getGroup(id);
-        console.log("group", group);
         const hovered = new Set(group.trials.map((trial) => trial.id));
         if (hoveredGroup !== hovered) setHoveredGroup(hovered);
       } else {
@@ -141,8 +139,6 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
         .flat()
     );
   }, [data, groups.groups]);
-
-  console.log("heatmap", heatmap);
 
   const colorScale = d3
     .scaleSequential(
@@ -432,7 +428,6 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
           </thead>
           <tbody key={"tbody"}>
             {table.getRowModel().rows.map((row) => {
-              console.log(row.original);
               return (
                 <>
                   <tr

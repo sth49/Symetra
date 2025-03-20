@@ -98,7 +98,7 @@ const CodeFileTable = () => {
       const branch = experiment.branchInfo.find(
         (b) => b.branch === selectedBranchId
       );
-      console.log("Setting branch info:", branch);
+      // console.log("Setting branch info:", branch);
       setBranchInfo(branch);
     }
   }, [selectedBranchId, experiment.branchInfo]);
@@ -172,9 +172,9 @@ const CodeFileTable = () => {
           groupByLine[child.line].group2.push(child.group2);
         }
       });
-      console.log("children", children);
+      // console.log("children", children);
 
-      console.log("groupByLine", groupByLine);
+      // console.log("groupByLine", groupByLine);
 
       return {
         id: i,
@@ -205,8 +205,6 @@ const CodeFileTable = () => {
       };
     });
   }, [currentSelectedGroup, currentSelectedGroup2, experiment.branchInfo]);
-
-  console.log("Data:", data);
 
   const columns = useMemo(() => {
     return [
@@ -391,7 +389,6 @@ const CodeFileTable = () => {
       );
 
       if (rowToExpand) {
-        console.log("Found row to expand:", rowToExpand.id);
         setShowNum({
           ...showNum,
           [`${rowToExpand.original.filePath}`]:

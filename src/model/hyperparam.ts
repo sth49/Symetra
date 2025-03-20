@@ -10,7 +10,7 @@ import { scaleLinear } from "@visx/scale";
 import { formatting } from "./utils";
 export enum HyperparamTypes {
   Continuous,
-  Ordinal,
+  // Ordinal,
   // Discrete,
   Binary,
   Nominal,
