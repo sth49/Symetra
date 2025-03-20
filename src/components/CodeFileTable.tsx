@@ -126,6 +126,7 @@ const CodeFileTable = () => {
     );
 
     const length2 = currentSelectedGroup2.getLength();
+
     return Object.keys(branchCount).map((filePath, i) => {
       const children = experiment.branchInfo
         .filter((b) => b.filePath === filePath)
@@ -140,6 +141,7 @@ const CodeFileTable = () => {
             group2: (g2 / length2) * 100,
           };
         });
+
       const g1Count =
           (children.reduce(
             (acc, child) => (child.group1 !== 0 ? acc + 1 : acc),
@@ -161,17 +163,18 @@ const CodeFileTable = () => {
           groupByLine[child.line] = {
             line: child.line,
             ids: [child.id],
-            group1: child.group1,
-            group2: child.group2,
+            group1: [child.group1],
+            group2: [child.group2],
           };
-        }
-        // Add this line to the lines array if it's not already there
-        else if (!groupByLine[child.line].ids.includes(child.id)) {
+        } else if (!groupByLine[child.line].ids.includes(child.id)) {
           groupByLine[child.line].ids.push(child.id);
-          groupByLine[child.line].group1 += child.group1;
-          groupByLine[child.line].group2 += child.group2;
+          groupByLine[child.line].group1.push(child.group1);
+          groupByLine[child.line].group2.push(child.group2);
         }
       });
+      console.log("children", children);
+
+      console.log("groupByLine", groupByLine);
 
       return {
         id: i,
@@ -184,18 +187,26 @@ const CodeFileTable = () => {
         diff: Math.abs(g1Count - g2Count),
         group2Count: g2Count,
         children: Object.values(groupByLine)
-          .map((group: any) => ({
-            ...group,
-            group1Count: group.group1 / group.ids.length,
-            group2Count: group.group2 / group.ids.length,
-            diff: Math.abs(
-              group.group1 / group.ids.length - group.group2 / group.ids.length
-            ),
-          }))
+          .map((group: any) => {
+            const idLength = group.ids.length;
+
+            const g1Count =
+              group.group1.reduce((acc, g) => acc + g, 0) / idLength;
+            const g2Count =
+              group.group2.reduce((acc, g) => acc + g, 0) / idLength;
+            return {
+              ...group,
+              group1Count: g1Count,
+              group2Count: g2Count,
+              diff: Math.abs(g1Count - g2Count),
+            };
+          })
           .sort((a, b) => b.diff - a.diff),
       };
     });
   }, [currentSelectedGroup, currentSelectedGroup2, experiment.branchInfo]);
+
+  console.log("Data:", data);
 
   const columns = useMemo(() => {
     return [
@@ -611,10 +622,6 @@ const CodeFileTable = () => {
                             ) !== undefined
                               ? "#d0e0fc"
                               : "white",
-                          // border:
-                          //   row.id === selectedRow
-                          //     ? "1px solid blue"
-                          //     : "1px solid transparent",
                         }}
                         onClick={() => {
                           if (!row.getIsExpanded()) {

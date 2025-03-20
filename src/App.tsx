@@ -88,7 +88,7 @@ function App() {
         // 초기 타겟 설정
         // const initialTarget = targets[0].name;
         // const initialTarget = "gcal_2200";
-        const initialTarget = "gcal_2200_250302";
+        const initialTarget = "gawk_2200_250302";
         setCurrentTarget(initialTarget);
 
         // 초기 데이터 로드
@@ -134,8 +134,6 @@ function App() {
         const branchInfo = await import(
           `./data/branch_info_${currentTarget.split("_")[0]}.json`
         );
-        // console.log(`./data/branch_info_${currentTarget.split("_")[0]}.json`);
-        // console.log("branchInfo", branchInfo.default);
 
         const trialJson = module.default;
 

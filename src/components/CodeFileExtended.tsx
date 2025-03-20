@@ -23,6 +23,7 @@ interface CodeFileExtendedProps {
 }
 
 const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
+  console.log("CodeFileExtended", item, showNum, sortBy);
   const currSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup
   );
@@ -134,9 +135,9 @@ const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
       },
 
       {
-        id: "group2",
+        id: "group2Count",
         header: currSelectedGroup2?.name,
-        accessorKey: "group2",
+        accessorKey: "group2Count",
         cell: (info) => formatting(info.getValue(), "float") + "%",
         meta: {
           align: "right",

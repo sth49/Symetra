@@ -7,7 +7,7 @@ import {
 import { formatting, getTextColor } from "../model/utils";
 
 import * as d3 from "d3";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useCustomStore } from "../store";
 import { Box, Tooltip, Text, Icon } from "@chakra-ui/react";
 import { performStatisticalTest } from "../model/statistic";
@@ -25,7 +25,6 @@ const EmptyBox = () => {
       display={"flex"}
       justifyContent={"center"}
       borderRadius={"5px"}
-      // border={"1px solid #CFCFCF"}
     ></Box>
   );
 };
@@ -49,6 +48,24 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
   );
   const { hyperparams } = useConstDataStore();
   const groups = useCustomStore((state) => state.groups);
+
+  const hoveredGroup = useCustomStore((state) => state.hoveredGroup);
+  const setHoveredGroup = useCustomStore((state) => state.setHoveredGroup);
+
+  const handleNodeHover = useCallback(
+    (id) => {
+      console.log("id", id);
+      if (id !== null) {
+        const group = groups.getGroup(id);
+        console.log("group", group);
+        const hovered = new Set(group.trials.map((trial) => trial.id));
+        if (hoveredGroup !== hovered) setHoveredGroup(hovered);
+      } else {
+        setHoveredGroup(new Set());
+      }
+    },
+    [groups, hoveredGroup, setHoveredGroup]
+  );
 
   const data = useMemo(() => {
     const emptyData = Array.from(
@@ -245,6 +262,7 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
 
             return (
               <Tooltip
+                zIndex={100}
                 label={
                   <Box>
                     <Text>{`${info.row.original.name} vs ${group.name}`}</Text>
@@ -414,6 +432,7 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
           </thead>
           <tbody key={"tbody"}>
             {table.getRowModel().rows.map((row) => {
+              console.log(row.original);
               return (
                 <>
                   <tr
@@ -432,6 +451,8 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                     onClick={() => {
                       setCurrnetSelectedGroup(groups.getGroup(row.original.id));
                     }}
+                    onMouseEnter={() => handleNodeHover(row.original.id)}
+                    onMouseLeave={() => handleNodeHover(null)}
                   >
                     {row.getVisibleCells().map((cell) => {
                       const { column } = cell;

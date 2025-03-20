@@ -172,11 +172,13 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
               <Icon
                 as={AiFillStar}
                 color={getTextColor(
-                  bInfo?.group1 - bInfo?.group2 > 0
+                  bInfo?.group1Count - bInfo?.group1Count > 0
                     ? colorIntensityBlue(
-                        Math.abs(bInfo?.group1 - bInfo?.group2)
+                        Math.abs(bInfo?.group1Count - bInfo?.group1Count)
                       )
-                    : colorIntensityRed(Math.abs(bInfo?.group1 - bInfo?.group2))
+                    : colorIntensityRed(
+                        Math.abs(bInfo?.group1Count - bInfo?.group1Count)
+                      )
                 )}
               />
             </Box>
@@ -221,17 +223,18 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                 const lineItem = item.children.find(
                   (c) => c.line === lineNumber
                 );
-                const diff = lineItem.group1 - lineItem.group2;
+                // console.log("lineItem", lineItem);
+                const diff = lineItem.group1Count - lineItem.group2Count;
                 // const colorIntensity = Math.abs(diff) / 100;
 
                 style.backgroundColor =
-                  lineItem.group1 > lineItem.group2
+                  lineItem.group1Count > lineItem.group2Count
                     ? colorIntensityBlue(Math.abs(diff))
-                    : lineItem.group1 === lineItem.group2
+                    : lineItem.group1Count === lineItem.group2Count
                     ? "rgba(0, 255, 0, 0.5)"
                     : colorIntensityRed(Math.abs(diff));
                 style.borderLeft =
-                  lineItem.group1 > lineItem.group2
+                  lineItem.group1Count > lineItem.group2Count
                     ? "3px solid rgba(0, 0, 255, 0.8)"
                     : "3px solid rgba(255, 0, 0, 0.8)";
                 style.width = "150%";
