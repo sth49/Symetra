@@ -30,6 +30,7 @@ import CodeView from "./CodeView";
 import { LiaAngleRightSolid, LiaAngleDownSolid } from "react-icons/lia";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { BranchInfo } from "../model/experiment";
+import { IoMdCheckboxOutline } from "react-icons/io";
 
 const CodeFileTable = () => {
   const currentSelectedGroup = useCustomStore(
@@ -59,6 +60,10 @@ const CodeFileTable = () => {
   const isBranchClicked = useCustomStore((state) => state.isBranchClicked);
   const setIsBranchClicked = useCustomStore(
     (state) => state.setIsBranchClicked
+  );
+
+  const setBranchInfoOfSelectedLine = useCustomStore(
+    (state) => state.setBranchInfoOfSelectedLine
   );
 
   const filePath = useMemo(() => {
@@ -725,11 +730,14 @@ const CodeFileTable = () => {
         {data && data.length > 0 && branchInfo && experiment && (
           <Box
             w={"100%"}
-            height={"40px"}
+            // height={"40px"}
+            p={1}
+            height={"60px"}
             borderTop={"1px solid #ddd"}
             borderBottom={"1px solid #ddd"}
             display={"flex"}
-            justifyContent={"center"}
+            flexDir={"column"}
+            justifyContent={"space-between"}
             alignItems={"center"}
           >
             <Breadcrumb
@@ -904,6 +912,27 @@ const CodeFileTable = () => {
                 </BreadcrumbItem>
               )}
             </Breadcrumb>
+            <Button
+              size={"xs"}
+              alignSelf={"center"}
+              colorScheme={"blue"}
+              variant={"outline"}
+              onClick={() => {
+                const branches =
+                  experiment.branchInfo.filter((b) =>
+                    branchInfo.fileName === b.fileName &&
+                    (viewType === "line" ? branchInfo.line === b.line : true)
+                      ? b
+                      : null
+                  ) || [];
+                const branchIds = branches.map((b) => b.branch);
+                setBranchInfoOfSelectedLine(branchIds);
+              }}
+            >
+              <Icon mr={2} as={IoMdCheckboxOutline} />
+              Select trials which covered {branchInfo?.fileName}
+              {viewType === "line" ? `:${branchInfo.line}` : " "} in Trial View
+            </Button>
           </Box>
         )}
         <CodeView

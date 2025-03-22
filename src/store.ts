@@ -44,6 +44,9 @@ interface CustomStore {
   selectFlag: boolean;
   setSelectFlag: (selectFlag: boolean) => void;
 
+  branchInfoOfSelectedLine: any[] | null;
+  setBranchInfoOfSelectedLine: (branchInfo: any) => void;
+
   selectOneTrial: number | null;
   setSelectOneTrial: (selectOneTrial: number | null) => void;
 
@@ -136,4 +139,8 @@ export const useCustomStore = create<CustomStore>((set) => ({
     lineNumber: -1,
   },
   setLineNumberClicked: (lineNumber) => set({ lineNumberClicked: lineNumber }),
+
+  branchInfoOfSelectedLine: null,
+  setBranchInfoOfSelectedLine: (branchInfo) =>
+    set({ branchInfoOfSelectedLine: branchInfo }),
 }));

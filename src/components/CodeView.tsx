@@ -148,7 +148,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
   return (
     <Box
       w={"100%"}
-      height={`calc(100% - 45px)`}
+      height={`calc(100% - 45px - 15px)`}
       overflow={"hidden"}
       // position = "relative"
       ref={containerRef}

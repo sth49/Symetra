@@ -258,6 +258,13 @@ const TrialTable = () => {
 
   const selectFlag = useCustomStore((state) => state.selectFlag);
   const setSelectFlag = useCustomStore((state) => state.setSelectFlag);
+
+  const branchInfoOfSelectedLine = useCustomStore(
+    (state) => state.branchInfoOfSelectedLine
+  );
+  const setBranchInfoOfSelectedLine = useCustomStore(
+    (state) => state.setBranchInfoOfSelectedLine
+  );
   const selectOneTrial = useCustomStore((state) => state.selectOneTrial);
   const setSelectOneTrial = useCustomStore((state) => state.setSelectOneTrial);
   const virtualItems = virtualizer.getVirtualItems();
@@ -452,6 +459,30 @@ const TrialTable = () => {
       setSelectFlag(false);
     }
   }, [selectFlag]);
+
+  useEffect(() => {
+    if (branchInfoOfSelectedLine !== null) {
+      const currentTrialIds = exp.trials
+        .filter((trial) => {
+          const branchList = Array.from(trial.branch);
+          return branchInfoOfSelectedLine.some((b) => {
+            return branchList.includes(Number(b));
+          });
+        })
+        .map((trial) => trial.id);
+      setRowSelection((prev) => {
+        const newSelection = { ...prev };
+        rows.forEach((row) => {
+          if (currentTrialIds.includes(Number(row.original.id))) {
+            newSelection[row.id] = true;
+          }
+        });
+        return newSelection;
+      });
+
+      setBranchInfoOfSelectedLine(null);
+    }
+  }, [branchInfoOfSelectedLine]);
 
   // useEffect(() => {
   //   if (selectOneTrial !== null) {

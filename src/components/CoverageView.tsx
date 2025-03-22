@@ -669,6 +669,56 @@ const CoverageView: React.FC = () => {
 
         <Box bg={"white"} width={"100%"} position={"relative"}>
           <svg
+            key={"connection-line"}
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              pointerEvents: "none",
+            }}
+          >
+            {selectedTrials && selectedRowPositions && drawConnectionLine()}
+            {selectedTrials &&
+              selectedTrials.map((trialId, i) => {
+                const selectedPoint = data.find((d) => d.id === trialId);
+                return (
+                  <circle
+                    key={`circle-${i}`}
+                    cx={xScale(selectedPoint.x)}
+                    cy={yScale(selectedPoint.y)}
+                    r={3}
+                    stroke={
+                      selectedPoints.has(trialId)
+                        ? "#E53E3E"
+                        : !isLassoActive && hoveredGroup.has(trialId)
+                        ? "#D69E2E"
+                        : !isLassoActive && hoveredGroup.size > 0
+                        ? "#718096"
+                        : "#718096"
+                    }
+                    fill={
+                      hoveredTrial === trialId
+                        ? "#FC8181"
+                        : !isLassoActive && hoveredGroup.has(trialId)
+                        ? "#F6E05E"
+                        : selectedPoints.has(trialId)
+                        ? "#FC8181"
+                        : !isLassoActive && hoveredGroup.size > 0
+                        ? "#CBD5E0"
+                        : selected !== "" && exp?.hyperparams
+                        ? exp?.hyperparams
+                            .find((hp) => hp.name === selected)
+                            ?.getColor(i)
+                        : "#2B6CB0"
+                    }
+                  />
+                );
+              })}
+          </svg>
+          <svg
             ref={svgRef}
             width="100%"
             height="100%"
@@ -720,10 +770,10 @@ const CoverageView: React.FC = () => {
                 fill={
                   hoveredTrial === d.id
                     ? "#FC8181"
-                    : selectedPoints.has(d.id)
-                    ? "#FC8181"
                     : !isLassoActive && hoveredGroup.has(d.id)
                     ? "#F6E05E"
+                    : selectedPoints.has(d.id)
+                    ? "#FC8181"
                     : !isLassoActive && hoveredGroup.size > 0
                     ? "#CBD5E0"
                     : selected === "metric"
@@ -989,33 +1039,6 @@ const CoverageView: React.FC = () => {
                 <g />
               </g>
             )}
-          </svg>
-          <svg
-            key={"connection-line"}
-            width="100%"
-            height="100%"
-            viewBox={`0 0 ${containerSize.width} ${containerSize.height}`}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              pointerEvents: "none",
-            }}
-          >
-            {selectedTrials && selectedRowPositions && drawConnectionLine()}
-            {selectedTrials &&
-              selectedTrials.map((trialId, i) => {
-                const selectedPoint = data.find((d) => d.id === trialId);
-                return (
-                  <circle
-                    key={`circle-${i}`}
-                    cx={xScale(selectedPoint.x)}
-                    cy={yScale(selectedPoint.y)}
-                    r={3}
-                    fill="#2B6CB0"
-                  />
-                );
-              })}
           </svg>
         </Box>
       </Box>
