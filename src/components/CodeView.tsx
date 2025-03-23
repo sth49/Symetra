@@ -24,6 +24,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
   const experiment = useConstDataStore((state) => state.exp);
 
   const setTotalLines = useCustomStore((state) => state.setTotalLines);
+  const setViewType = useCustomStore((state) => state.setViewType);
 
   useEffect(() => {
     if (selectedBranchId) {
@@ -257,6 +258,8 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                       filePath: branchInfo?.filePath,
                       lineNumber: lineNumber,
                     });
+                    setViewType("line");
+
                     setSelectBranchId(
                       experiment.branchInfo.find(
                         (b) =>
