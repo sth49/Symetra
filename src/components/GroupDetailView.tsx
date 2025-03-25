@@ -10,7 +10,6 @@ import {
 import { useCustomStore } from "../store";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
-import { formatting } from "../model/utils";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { useConstDataStore } from "./store/constDataStore";
 import { IoMdCheckboxOutline } from "react-icons/io";
@@ -24,8 +23,6 @@ import {
 } from "@chakra-ui/react";
 import { MdEdit } from "react-icons/md";
 import { calculateCorrelation } from "../model/correlation";
-import MetricBadge from "./MetricBadge";
-import SelectIcon from "./SelectIcon";
 const GroupDetailView = () => {
   const currentSelectedGroup = useCustomStore(
     (state) => state.currentSelectedGroup

@@ -293,7 +293,10 @@ const CodeFileTable = () => {
       },
       {
         id: "group2Count",
-        header: () => currentSelectedGroup2?.name,
+        header: () =>
+          currentSelectedGroup2?.name.length > 8
+            ? currentSelectedGroup2?.name.slice(0, 8) + "..."
+            : currentSelectedGroup2?.name,
         accessorKey: "group2Count",
         cell: (info) => formatting(info.getValue(), "int") + " %",
         meta: {
@@ -730,14 +733,15 @@ const CodeFileTable = () => {
         {data && data.length > 0 && branchInfo && experiment && (
           <Box
             w={"100%"}
-            // height={"40px"}
+            height={"40px"}
             p={1}
-            height={"60px"}
+            // height={"60px"}
             borderTop={"1px solid #ddd"}
             borderBottom={"1px solid #ddd"}
             display={"flex"}
             flexDir={"column"}
-            justifyContent={"space-between"}
+            // justifyContent={"space-between"}
+            justifyContent={"center"}
             alignItems={"center"}
           >
             <Breadcrumb
@@ -912,7 +916,7 @@ const CodeFileTable = () => {
                 </BreadcrumbItem>
               )}
             </Breadcrumb>
-            <Button
+            {/* <Button
               size={"xs"}
               alignSelf={"center"}
               colorScheme={"blue"}
@@ -932,7 +936,7 @@ const CodeFileTable = () => {
               <Icon mr={2} as={IoMdCheckboxOutline} />
               Select trials which covered {branchInfo?.fileName}
               {viewType === "line" ? `:${branchInfo.line}` : " "} in Trial View
-            </Button>
+            </Button> */}
           </Box>
         )}
         <CodeView

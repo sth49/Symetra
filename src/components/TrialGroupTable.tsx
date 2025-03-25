@@ -212,22 +212,6 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
         size: 55,
       },
       {
-        id: "acc",
-        header: "Accum",
-        accessorKey: "acc",
-        type: "number",
-
-        cell: (info) => {
-          const { cell } = info;
-          if (cell.getValue() === -1) {
-            return <EmptyBox />;
-          }
-          return <MetricBadge metricValue={cell.getValue()} type={"int"} />;
-        },
-        meta: { align: "right" },
-        size: 65,
-      },
-      {
         id: "mean",
         header: "Mean",
         accessorKey: "mean",
@@ -239,6 +223,22 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
             return <EmptyBox />;
           }
           return <MetricBadge metricValue={cell.getValue()} type={"float"} />;
+        },
+        meta: { align: "right" },
+        size: 65,
+      },
+      {
+        id: "acc",
+        header: "Accum",
+        accessorKey: "acc",
+        type: "number",
+
+        cell: (info) => {
+          const { cell } = info;
+          if (cell.getValue() === -1) {
+            return <EmptyBox />;
+          }
+          return <MetricBadge metricValue={cell.getValue()} type={"int"} />;
         },
         meta: { align: "right" },
         size: 65,
@@ -434,9 +434,8 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                     key={row.id}
                     className={`hparam-table-row ${
                       currentSelectedGroup &&
-                      row &&
-                      currentSelectedGroup.id === row.original.id
-                        ? "selected2"
+                      row.original.id === currentSelectedGroup.id
+                        ? "selected"
                         : ""
                     } `}
                     style={{
@@ -444,6 +443,7 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                       cursor: "pointer",
                     }}
                     onClick={() => {
+                      // if (se)
                       setCurrnetSelectedGroup(groups.getGroup(row.original.id));
                     }}
                     onMouseEnter={() => handleNodeHover(row.original.id)}

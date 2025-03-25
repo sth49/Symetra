@@ -24,7 +24,7 @@ interface TooltipData {
 
 const tooltipStyles = {
   ...defaultStyles,
-  background: "rgba(0, 0, 0, 0.8)",
+  background: "rgba(0, 0, 0, 1)",
   color: "white",
   padding: "8px",
   borderRadius: "4px",

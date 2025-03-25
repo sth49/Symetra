@@ -149,7 +149,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
   return (
     <Box
       w={"100%"}
-      height={`calc(100% - 45px - 15px)`}
+      height={`calc(100% - 45px)`}
       overflow={"hidden"}
       // position = "relative"
       ref={containerRef}
@@ -217,6 +217,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                 width: "100%",
                 minWidth: "100%",
                 boxSizing: "border-box",
+                textShadow: "none",
               };
               // Line highlight logic
               if (lines.includes(lineNumber)) {
@@ -233,11 +234,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                     : lineItem.group1Count === lineItem.group2Count
                     ? "rgba(0, 255, 0, 0.5)"
                     : colorIntensityRed(Math.abs(diff));
-                style.borderLeft =
-                  lineItem.group1Count > lineItem.group2Count
-                    ? "3px solid rgba(0, 0, 255, 0.8)"
-                    : "3px solid rgba(255, 0, 0, 0.8)";
-                style.width = "150%";
+                style.width = "180%";
                 style.position = "relative";
                 style.left = 0;
                 style.right = 0;
