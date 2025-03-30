@@ -11,7 +11,6 @@ import { Tooltip } from "@chakra-ui/react";
 
 import AreaChart from "./AreaChart";
 import MetricBadge from "./MetricBadge";
-import SelectIcon from "./SelectIcon";
 import OverlappedCharts from "./OverlappedCharts";
 import {
   flexRender,
@@ -113,15 +112,6 @@ const InterGroupView = () => {
   );
 
   const groups = useCustomStore((state) => state.groups);
-  // const [group2, setGroup2] = useState(
-  //   currentSelectedGroup !== currentSelectedGroup2
-  //     ? currentSelectedGroup2
-  //     : groups.groups.filter((group) => group.id !== currentSelectedGroup.id)[0]
-  // );
-
-  // useEffect(() => {
-  //   setCurrentSelectedGroup2(group2);
-  // }, [group2, setCurrentSelectedGroup2]);
 
   const stats = useMemo(() => {
     if (!currentSelectedGroup || !currentSelectedGroup2) {
@@ -323,7 +313,6 @@ const InterGroupView = () => {
         header: () => (
           <Select
             cursor={"pointer"}
-            // w={"85%"}
             value={
               currentSelectedGroup2 ? currentSelectedGroup2.id.toString() : ""
             }
@@ -331,7 +320,6 @@ const InterGroupView = () => {
             onChange={(e) => {
               const newGroup = groups.getGroup(parseInt(e.target.value));
               setCurrentSelectedGroup2(newGroup);
-              // setGroup2(newGroup);
             }}
           >
             {groups.groups
@@ -604,7 +592,6 @@ const InterGroupView = () => {
                         }}
                         colSpan={3}
                       >
-                        {/* {key} */}
                         <Text fontSize={"xs"}>Merged Coverage Value</Text>
                       </td>
                       <td

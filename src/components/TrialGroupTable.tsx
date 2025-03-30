@@ -445,7 +445,6 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                       cursor: "pointer",
                     }}
                     onClick={() => {
-                      // if (se)
                       setCurrnetSelectedGroup(groups.getGroup(row.original.id));
                     }}
                     onMouseEnter={() => handleNodeHover(row.original.id)}
@@ -466,7 +465,6 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                             alignItems: "center",
                             height: "30px",
                             padding: "0px 4px",
-                            // borderBottom: "1px solid #e0e0e0",
                           }}
                         >
                           {flexRender(

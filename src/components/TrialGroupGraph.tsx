@@ -101,7 +101,7 @@ const TrialGroupGraph = () => {
     if (boxHeight === 0) return { nodes: [], links: [] };
 
     const nodes = groups.groups.map((group, i) => {
-      const nodesPerRow = 4; // 한 줄에 4개씩
+      const nodesPerRow = 4;
       const rowIndex = Math.floor(i / nodesPerRow);
       const colIndex = i % nodesPerRow;
 
@@ -114,24 +114,6 @@ const TrialGroupGraph = () => {
         stats: group.getStats(),
       };
     });
-
-    // const nodes = groups.groups.map(
-    //   (group, i) => ({
-    //     id: group.id,
-    //     name: group.name,
-    //     x: (((i % 4) + 0.25) * boxRef.current?.clientWidth) / 7,
-    //     y: (Math.floor(i / 4) * boxHeight) / 4 + boxHeight / 6.5,
-    //     length: group.getLength(),
-    //     stats: group.getStats(),
-    //   }),
-    //   [
-    //     groups,
-    //     groups.getLength(),
-    //     hyperparams,
-    //     boxRef.current?.clientHeight,
-    //     boxRef.current?.clientWidth,
-    //   ]
-    // );
 
     const links = [];
     for (let i = 0; i < nodes.length; i++) {
@@ -351,13 +333,6 @@ const TrialGroupGraph = () => {
                       ? (totalRows * boxHeight) / 4 + boxHeight / 8 + 150
                       : height;
                   })()}
-                  // height={
-                  //   groups.getLength() > 6
-                  //     ? (Math.floor(groups.getLength() / 3) * boxHeight) / 4 +
-                  //       boxHeight / 8 +
-                  //       150
-                  //     : height
-                  // }
                   onMouseEnter={() => {
                     handleNodeHover(null);
                     hideTooltip();
@@ -403,18 +378,6 @@ const TrialGroupGraph = () => {
                 <div>Max: {formatting(tooltipData.stats.max, "int")}</div>
                 <div>Avg: {formatting(tooltipData.stats.avg, "float")}</div>
                 <div>Min: {formatting(tooltipData.stats.min, "int")}</div>
-                {/* <Text align={"left"} mb={1} fontSize={"12px"}>
-                  {formatting(tooltipData.count, "int")} trials
-                </Text>
-                <Text align={"left"} mb={1} fontSize={"12px"}>
-                  Max: {formatting(tooltipData.stats.max, "float")}
-                </Text>
-                <Text align={"left"} mb={1} fontSize={"12px"}>
-                  Avg: {formatting(tooltipData.stats.avg, "float")}
-                </Text>
-                <Text align={"left"} mb={1} fontSize={"12px"}>
-                  Min: {formatting(tooltipData.stats.min, "float")}
-                </Text> */}
               </>
             ) : (
               <>
@@ -423,18 +386,6 @@ const TrialGroupGraph = () => {
                   {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
                   {hyperparams.length}
                 </div>
-                {/* <Text
-                  align={"left"}
-                  mb={1}
-                  fontSize={"12px"}
-                  wordBreak="break-word"
-                  overflowWrap="break-word"
-                  whiteSpace="normal"
-                >
-                  # of statistically indifferent parameters:{" "}
-                  {formatting(hyperparams.length - tooltipData.count, "int")} /{" "}
-                  {hyperparams.length}
-                </Text> */}
               </>
             )}
           </div>

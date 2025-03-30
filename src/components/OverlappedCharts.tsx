@@ -34,7 +34,7 @@ const tooltipStyles = {
 
 const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
   const { currentSelectedGroup } = useCustomStore();
-  const { target, exp } = useConstDataStore();
+  const { exp } = useConstDataStore();
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
   const setSelectedBranchId = useCustomStore(
@@ -43,7 +43,6 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
 
   const selectedBranchId = useCustomStore((state) => state.selectedBranchId);
 
-  // 툴팁 상태 관리
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
 
@@ -129,7 +128,6 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
     [data1, data2, height, margin.bottom, margin.top]
   );
 
-  // 마우스 이벤트 핸들러
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
       const { x } = localPoint(event) || { x: 0 };
@@ -158,15 +156,11 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
 
   const setViewType = useCustomStore((state) => state.setViewType);
 
-  // 툴팁 클릭 핸들러 추가
   const handleTooltipClick = useCallback(() => {
     if (tooltipData) {
       setSelectedBranchId(tooltipData.branch);
       setViewType("line");
       setIsBranchClicked(true);
-
-      // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
-      // 예: 상태 업데이트, 콜백 함수 호출 등
     }
   }, [setIsBranchClicked, setSelectedBranchId, setViewType, tooltipData]);
 
@@ -216,16 +210,6 @@ const AreaChartBase = ({ trialGroup1, trialGroup2, width, height }) => {
               stroke="black"
               strokeWidth={1}
             />
-            {/* <text
-              x={xScale(xAccessor(data1[0]))}
-              y={margin.top + 10}
-              fill="black"
-            >
-              {selectedBranchId},{" "}
-              {data1.find((d) => d.branch === selectedBranchId)?.x}
-              {data1.find((d) => d.branch === selectedBranchId)?.y}
-              {data2.find((d) => d.branch === selectedBranchId)?.y}
-            </text> */}
           </>
         )}
         {tooltipLeft !== null && (

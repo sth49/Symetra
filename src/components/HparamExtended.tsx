@@ -1,10 +1,8 @@
 import { Box, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { formatting, generateBinnedData } from "../model/utils";
-import { FaSort } from "react-icons/fa6";
 import { FaSortUp } from "react-icons/fa6";
 import { FaSortDown } from "react-icons/fa6";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { HyperparamTypes } from "../model/hyperparam";
 import BranchBarChart from "./BranchBarChart";
 import React from "react";
 
@@ -16,7 +14,7 @@ interface HparamExtendedProps {
 const HparamExtended = ({ item }: HparamExtendedProps) => {
   const [sortConfig, setSortConfig] = useState({
     key: "effect",
-    direction: "descending", // ascending or descending
+    direction: "descending",
   });
   const [sortedData, setSortedData] = useState([]);
 
@@ -173,59 +171,12 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
                   width="100%"
                   justifyContent="center"
                 >
-                  {/* {item.hp.valueType === "string" ? (
-                    <div
-                      style={{
-                        width: "3px",
-                        height: "10px",
-                        backgroundColor: item.hp.getColorByValue(row["value"]),
-                        marginRight: "5px",
-                      }}
-                    ></div>
-                  ) : item.hp.valueType === "boolean" ? (
-                    <div
-                      style={{
-                        width: "3px",
-                        height: "10px",
-                        backgroundColor: item.hp.getColorByValue(row["value"]),
-                        marginRight: "5px",
-                      }}
-                    ></div>
-                  ) : (
-                    <></>
-                  )} */}
                   <Text
                     whiteSpace="pre-wrap"
                     textAlign="center"
                     textDecorationLine={row.isDefault ? "underline" : "none"}
                   >
                     {row[column.key]}
-                    {/* {item.hp.valueType === "string" &&
-                    row[column.key].includes(":")
-                      ? row[column.key].split(":").map((part, index, array) => (
-                          <React.Fragment key={index}>
-                            {part}
-                            {index < array.length - 1 && (
-                              <>
-                                :
-                                <br />
-                              </>
-                            )}
-                          </React.Fragment>
-                        ))
-                      : item.hp.valueType === "string" &&
-                        row[column.key].includes("-")
-                      ? row[column.key].split("-").map((part, index, array) => (
-                          <React.Fragment key={index}>
-                            {part}
-                            {index < array.length - 1 && (
-                              <>
-                                <br />-
-                              </>
-                            )}
-                          </React.Fragment>
-                        ))
-                      : row[column.key]} */}
                   </Text>
                   <Tooltip
                     label={"This is better than the default value on average"}

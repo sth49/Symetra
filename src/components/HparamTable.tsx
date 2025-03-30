@@ -201,7 +201,6 @@ const HparamTable = () => {
                     <Text fontSize="xs">{row.original.desc}</Text>
                   </div>
                 }
-                // isOpen={row.original.fullName === "seed-time"}
               >
                 <Text
                   userSelect={"none"}
@@ -257,7 +256,6 @@ const HparamTable = () => {
               }}
               opacity={visible ? 1 : 0.5}
             >
-              {/* {formatting(row.original.effect, "float")} */}
               {formatting(row.original.orgEffect, "float", 2)}
             </Box>
           );

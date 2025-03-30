@@ -39,18 +39,10 @@ export class Target {
 }
 function parseBranchInfo(info: string) {
   const originalPath = info.match(/File:(.*?)\s/)?.[1] || "";
-  // console.log("Original path:", originalPath); // gcal-4.1/src/gcal.c
 
   const line = parseInt(info.match(/Line:(\d+)/)?.[1] || "0");
 
-  // if (line === 0) {
-  //   console.log("Error: Could not find the line number");
-  //   console.log("Info:", info);
-  // }
-
-  // program 폴더는 이미 public에 있으므로 경로 앞에 추가
   const filePath = `program/${originalPath}`;
-  // console.log("Final file path:", filePath);
 
   return { filePath, line };
 }
@@ -66,21 +58,10 @@ export class BranchInfo {
   }
   static fromJson(index, branchInfoString) {
     try {
-      // const filePath = branchInfoString.split(" ")[0].split("File:")[1];
-      // const line = parseInt(branchInfoString.split(" ")[1].split("Line:")[1]);
-      // const condition = parseInt(branchInfoString.split(" ")[2].split(":")[1]);
-
       const { filePath, line } = parseBranchInfo(branchInfoString);
-
-      // if (filePath.includes("reg")) {
-      //   console.log("reg", branchInfoString);
-      //   console.log("reg", filePath);
-      //   console.log("reg", line);
-      // }
 
       return new BranchInfo(index, filePath, line);
     } catch (e) {
-      // console.log("error", e);
       return new BranchInfo(index, "Could not found the condition...", 0);
     }
   }
@@ -90,7 +71,7 @@ export class Experiment {
     public name: string,
     public hyperparams: Hyperparam[],
     public trials: Trial[],
-    public metric: Metric, // public featureOrder: string[],
+    public metric: Metric,
     public branchInfo: BranchInfo[]
   ) {}
 
@@ -115,15 +96,10 @@ export class Experiment {
     }
 
     const branchInfoList = [] as BranchInfo[];
-    // branchInfo.map((branchInfoString, index) => {
-    //   console.log("branchInfoString", branchInfoString);
-    // });
-    // console.log("branchInfo", branchInfo);
+
     Object.keys(branchInfo).map((key) => {
       branchInfoList.push(BranchInfo.fromJson(key, branchInfo[key]));
     });
-
-    // console.log("branchInfoString", branchInfo[index]);
 
     return new Experiment(
       configJson.name,

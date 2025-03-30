@@ -102,38 +102,9 @@ export class Group {
       });
     });
     return branchCount;
-
-    // const branchCount = {};
-    // for (let i = 1; i < maxBranch + 1; i++) {
-    //   branchCount[i] = 0;
-    // }
-    // this.trials.forEach((trial) => {
-    //   trial.branch.forEach((b) => {
-    //     if (branchCount[b] === undefined) {
-    //       branchCount[b] = 1;
-    //     } else {
-    //       branchCount[b]++;
-    //     }
-    //   });
-    // });
-    // return branchCount;
   }
 
   getBranches(branchInfo: BranchInfo[]) {
-    //format {3: 45, } means branch 3 has 45 trials
-    // const branchCount = {};
-    // for (let i = 1; i < maxBranch + 1; i++) {
-    //   branchCount[i] = 0;
-    // }
-    // this.trials.forEach((trial) => {
-    //   trial.branch.forEach((b) => {
-    //     if (branchCount[b] === undefined) {
-    //       branchCount[b] = 1;
-    //     } else {
-    //       branchCount[b]++;
-    //     }
-    //   });
-    // });
     const branchCount = this.getOrignalBranches(branchInfo);
 
     Object.keys(branchCount).forEach((key) => {
@@ -144,15 +115,6 @@ export class Group {
       ([, a], [, b]) => Number(b) - Number(a)
     );
   }
-
-  // getBranches() {
-  //   const branches = this.trials.map((trial) =>
-  //     Object.values(trial.branch).map((b, index) =>
-  //       b === 1 ? index + 1 : null
-  //     )
-  //   );
-  //   return branches.map((branch) => branch.filter((b) => b !== null)).flat();
-  // }
 
   getHyperparam(hyperparam: string) {
     return this.trials.map((trial) => trial.params[hyperparam]);

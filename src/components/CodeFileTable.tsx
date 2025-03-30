@@ -30,7 +30,6 @@ import CodeView from "./CodeView";
 import { LiaAngleRightSolid, LiaAngleDownSolid } from "react-icons/lia";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { BranchInfo } from "../model/experiment";
-import { IoMdCheckboxOutline } from "react-icons/io";
 
 const CodeFileTable = () => {
   const currentSelectedGroup = useCustomStore(
@@ -60,10 +59,6 @@ const CodeFileTable = () => {
   const isBranchClicked = useCustomStore((state) => state.isBranchClicked);
   const setIsBranchClicked = useCustomStore(
     (state) => state.setIsBranchClicked
-  );
-
-  const setBranchInfoOfSelectedLine = useCustomStore(
-    (state) => state.setBranchInfoOfSelectedLine
   );
 
   const filePath = useMemo(() => {
@@ -103,7 +98,6 @@ const CodeFileTable = () => {
       const branch = experiment.branchInfo.find(
         (b) => b.branch === selectedBranchId
       );
-      // console.log("Setting branch info:", branch);
       setBranchInfo(branch);
     }
   }, [selectedBranchId, experiment.branchInfo]);
@@ -177,9 +171,6 @@ const CodeFileTable = () => {
           groupByLine[child.line].group2.push(child.group2);
         }
       });
-      // console.log("children", children);
-
-      // console.log("groupByLine", groupByLine);
 
       return {
         id: i,
@@ -317,8 +308,6 @@ const CodeFileTable = () => {
 
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
-  // useEffect (() => {
-  //   setExpanded({})
   const [open, setOpen] = useState([]);
 
   useEffect(() => {
@@ -355,21 +344,6 @@ const CodeFileTable = () => {
 
   const rows = table.getRowModel().rows;
 
-  // useEffect(() => {
-  //   if (isBranchClicked) {
-  //     rows.map((row) => {
-  //       if (
-  //         row.original.children.find((c) => c.ids.includes(selectedBranchId))
-  //       ) {
-  //         console.log("row", row);
-  //         row.toggleExpanded();
-  //       }
-  //     });
-  //   }
-  // }, [isBranchClicked, rows, selectedBranchId, setIsBranchClicked]);
-
-  // CodeFileTable 컴포넌트의 useEffect 수정
-
   const lineNumberClicked = useCustomStore((state) => state.lineNumberClicked);
   const setLineNumberClicked = useCustomStore(
     (state) => state.setLineNumberClicked
@@ -386,9 +360,6 @@ const CodeFileTable = () => {
         "/" +
         lineNumberClicked.filePath.split("/").slice(-1)[0];
 
-      // filePath.split("/").slice(-2)[0] +
-      //     "/" +
-      //     filePath.split("/").slice(-1)[0],
       const line = lineNumberClicked.lineNumber;
 
       console.log("Attempting to scroll to line:", line, filePath);
@@ -446,7 +417,6 @@ const CodeFileTable = () => {
     if (isBranchClicked) {
       console.log("Branch clicked:", selectedBranchId);
 
-      // 해당 브랜치가 포함된 파일 행 찾기
       const rowToExpand = rows.find((row) =>
         row.original.children.some((child) =>
           child.ids.includes(selectedBranchId)
@@ -462,13 +432,10 @@ const CodeFileTable = () => {
             rowToExpand.original.children.length,
         });
 
-        // 행이 이미 확장되지 않은 경우에만 확장
         if (!rowToExpand.getIsExpanded()) {
-          // 기본 표시 수 설정
           rowToExpand.toggleExpanded();
         }
         setTimeout(() => {
-          // 선택된 브랜치 ID가 포함된 행을 찾음
           const lineElement = document.querySelector(
             `[data-selected-branch="true"]`
           );
@@ -481,7 +448,6 @@ const CodeFileTable = () => {
               "Element with selected branch not found, trying alternate methods"
             );
 
-            // 대체 방법: 브랜치 ID가 포함된 모든 요소 중에서 찾기
             const allBranchElements =
               document.querySelectorAll(`tr[data-branch-ids]`);
 
@@ -497,10 +463,9 @@ const CodeFileTable = () => {
               }
             }
           }
-        }, 100); // 더 긴 지연 시간을 설정 (DOM이 완전히 업데이트될 시간)
+        }, 100);
       }
 
-      // 플래그 초기화
       setIsBranchClicked(false);
     }
   }, [
@@ -655,7 +620,6 @@ const CodeFileTable = () => {
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
                                 alignItems: "center",
-                                // height: "35px",
                               }}
                             >
                               {flexRender(

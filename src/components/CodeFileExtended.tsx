@@ -201,11 +201,8 @@ const CodeFileExtended = ({ item, showNum, sortBy }: CodeFileExtendedProps) => {
                       ? "#d0e0fc"
                       : "",
                 }}
-                // 모든 브랜치 ID에 대한 데이터 속성 추가
                 data-branch-ids={(row.original.ids as string[]).join(",")}
                 data-line-number={row.original.line}
-                // 선택된 브랜치 ID가 포함된 경우 특별한 데이터 속성 추가
-
                 onClick={() => {
                   setSelectBranchId(row.original.ids[0] as string);
                   setViewType("line");

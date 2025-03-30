@@ -33,11 +33,7 @@ function CodeDetail() {
 
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
-      <Box
-        display={"flex"}
-        // justifyContent={"space-between"}
-        alignItems={"center"}
-      >
+      <Box display={"flex"} alignItems={"center"}>
         <Heading
           as="h5"
           size="sm"
@@ -46,14 +42,9 @@ function CodeDetail() {
           display={"flex"}
           alignItems={"center"}
         >
-          Code View
+          Code Detail View
         </Heading>
-        <Text
-          // width={"80%"}
-          display={"flex"}
-          justifyContent={"flex-end"}
-          fontSize={"sm"}
-        >
+        <Text display={"flex"} justifyContent={"flex-end"} fontSize={"sm"}>
           {" ("}
           <SelectIcon type="g1" />
           {currentSelectedGroup?.name} (

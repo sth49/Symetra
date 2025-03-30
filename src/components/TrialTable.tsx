@@ -59,7 +59,6 @@ const TrialTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const { colorScale, metricScale } = useMetricScale();
 
-  // Update column visibility when hyperparams change
   useEffect(() => {
     const visibility = Object.fromEntries(
       hyperparams.map((param) => [param.name, param.visible])
@@ -67,7 +66,6 @@ const TrialTable = () => {
     setColumnVisibility(visibility);
   }, [hyperparams]);
 
-  // Memoize columns configuration
   const columns = useMemo(() => {
     return [
       {
@@ -126,7 +124,6 @@ const TrialTable = () => {
         size: 70,
       },
       ...hyperparams
-        // .sort((a, b) => b.getAbsoluteEffect() - a.getAbsoluteEffect())
         .sort((a, b) => {
           if (hparamSort !== null && hparamSort !== undefined) {
             if (hparamSort.id === "name") {
@@ -155,19 +152,12 @@ const TrialTable = () => {
                   <Text fontSize="xs">{param.description}</Text>
                 </div>
               }
-              // isOpen={row.original.fullName === "seed-time"}
             >
               <Text userSelect={"none"} display={"flex"} alignItems={"center"}>
                 <Icon as={param.icon} mr={1} color={"gray.600"} />
                 {param.displayName}
-                {/* {info.getValue()} */}
               </Text>
             </Tooltip>
-
-            // <div style={{ display: "flex", alignItems: "center" }}>
-            //   <Icon as={param.icon} mr={1} color="gray.600" />
-            //   {param.displayName}
-            // </div>
           ),
           type:
             param.type === HyperparamTypes.Binary
@@ -483,40 +473,6 @@ const TrialTable = () => {
     }
   }, [branchInfoOfSelectedLine]);
 
-  // useEffect(() => {
-  //   if (selectOneTrial !== null) {
-  //     const newSelection = { ...rowSelection };
-  //     let isLastSelected = false;
-  //     rows.forEach((row) => {
-  //       if (Number(row.original.id) === selectOneTrial) {
-  //         if (newSelection[row.id]) {
-  //           if (Object.keys(newSelection).length === 1) {
-  //             isLastSelected = true;
-  //             return;
-  //           }
-  //           delete newSelection[row.id];
-  //         } else {
-  //           newSelection[row.id] = true;
-  //         }
-  //       }
-  //     });
-  //     if (isLastSelected) {
-  //       setRowSelection({});
-  //       setSelectedTrials([]);
-  //       setSelectedRowPositions([]);
-  //     } else {
-  //       setRowSelection(newSelection);
-  //     }
-  //     setSelectOneTrial(null);
-  //   }
-  // }, [
-  //   selectOneTrial,
-  //   rowSelection,
-  //   rows,
-  //   setSelectedTrials,
-  //   setSelectedRowPositions,
-  // ]);
-
   useEffect(() => {
     if (selectOneTrial !== null) {
       const newSelection = { ...rowSelection };
@@ -545,14 +501,11 @@ const TrialTable = () => {
       } else {
         setRowSelection(newSelection);
 
-        // Scroll to the target row if found
         if (targetRowIndex !== -1 && parentRef.current) {
-          const rowHeight = 20; // Height of each row
-          const headerHeight = 35; // Approximate header height
+          const rowHeight = 20;
+          const headerHeight = 35;
           const containerHeight = parentRef.current.clientHeight;
           const targetPosition = targetRowIndex * rowHeight;
-
-          // Calculate scroll position to center the row in the viewport
           const scrollPosition = Math.max(
             0,
             targetPosition - containerHeight / 2 + rowHeight + headerHeight
@@ -770,7 +723,6 @@ const TrialTable = () => {
         <Box display={"flex"}>
           <IconButton
             aria-label="Lasso"
-            // icon={isLassoActive ? <TbLassoOff /> : <TbLasso />}
             variant={"outline"}
             icon={<MdDeselect />}
             onClick={() => {
@@ -792,20 +744,20 @@ const TrialTable = () => {
             onClick={() => {
               const updatedGroups = groups.clone();
 
-              // txt 파일로 저장 ********************
-              const selectedIds = selectedTrials.map((id) => id);
-              const blob = new Blob([JSON.stringify(selectedIds)], {
-                type: "text/plain",
-              });
-              const url = window.URL.createObjectURL(blob);
-              const link = document.createElement("a");
-              link.href = url;
-              link.download = "selected_points.txt";
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              window.URL.revokeObjectURL(url);
-              // **********************************
+              // // txt ********************
+              // const selectedIds = selectedTrials.map((id) => id);
+              // const blob = new Blob([JSON.stringify(selectedIds)], {
+              //   type: "text/plain",
+              // });
+              // const url = window.URL.createObjectURL(blob);
+              // const link = document.createElement("a");
+              // link.href = url;
+              // link.download = "selected_points.txt";
+              // document.body.appendChild(link);
+              // link.click();
+              // document.body.removeChild(link);
+              // window.URL.revokeObjectURL(url);
+              // // **********************************
 
               updatedGroups.addGroup(
                 exp?.trials.filter((trial) =>

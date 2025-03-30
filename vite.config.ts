@@ -4,5 +4,6 @@ import react from "@vitejs/plugin-react-swc";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/Symetra/",
+  // base: "/w/Symetra-D3CF/",
+  base: "/w/Symetra-D3CF/",
 });

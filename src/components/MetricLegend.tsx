@@ -15,7 +15,6 @@ const MetricLegend = () => {
   const minValue = 1;
   const maxValue = Math.max(...metricValues);
 
-  // Create gradient stops for the legend
   const gradientStops = useMemo(() => {
     return d3.range(0, 1.01, 0.1).map((t) => {
       const value = minValue + t * (maxValue - minValue);
@@ -70,23 +69,6 @@ const MetricLegend = () => {
           {formatting(maxValue, "int")}
         </Text>
       </Box>
-      {/* {ranges.map((range, i) => (
-        <div
-          key={i}
-          style={{
-            backgroundColor: range.color,
-            color: range.textColor,
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text fontSize="12px" color={range.textColor}>
-            {range.label}
-          </Text>
-        </div>
-      ))} */}
     </div>
   );
 };

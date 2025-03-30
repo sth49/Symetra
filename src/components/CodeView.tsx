@@ -45,8 +45,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     async function loadFile() {
       if (branchInfo?.filePath) {
         try {
-          // base path를 고려한 URL 구성
-          const basePath = "/Symetra/"; // vite.config.ts의 base 설정값
+          const basePath = "/w/Symetra-D3CF/";
           const url = `${basePath}${branchInfo.filePath}`;
 
           const response = await fetch(url);
@@ -66,26 +65,17 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     loadFile();
   }, [branchInfo?.filePath, setTotalLines]);
 
-  // useEffect(() => {
-  //   if (viewType === "line") {
-  //     handleScrollToLine(branchInfo?.line);
-  //   } else if (viewType === "file") {
-  //     handleScrollToLine(1);
-  //   }
-  // }, [branchInfo?.line, viewType, selectedBranchId]);
-
   const displayContent = useMemo(() => {
     return { content: fileContent, startLine: 1 };
   }, [fileContent]);
 
-  const linesRefs = useRef<any>({}); // 각 라인에 대한 ref 저장
+  const linesRefs = useRef<any>({});
 
   const handleScrollToLine = (lineNumber: number) => {
     if (!lineNumber) return;
 
     console.log("Attempting to scroll to line:", lineNumber);
 
-    // DOM에 요소가 없으면 약간 기다린 후 다시 시도
     if (!linesRefs.current[lineNumber]) {
       console.log("Line ref not found, retrying in 100ms...");
       setTimeout(() => handleScrollToLine(lineNumber), 100);
@@ -95,13 +85,12 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     if (linesRefs.current[lineNumber]) {
       linesRefs.current[lineNumber].scrollIntoView({
         behavior: "smooth",
-        block: "center", // 라인을 화면 중앙에 위치시킴
+        block: "center",
       });
     }
   };
 
   const lines = useMemo(() => {
-    // if (viewType === "line") return [branchInfo?.line];
     if (!item || item?.children.length === 0) return [];
     if (item && item.children) return item.children.map((c) => c.line);
   }, [item]);
@@ -109,9 +98,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
 
   const calculateYPosition = () => {
     if (!branchInfo?.line) return 0;
-    // Get line height by approximation (you can measure it more precisely if needed)
-    const lineHeight = 18; // Estimated line height in pixels
-    // Calculate position based on line number (0-indexed within the component)
+    const lineHeight = 18;
     return (branchInfo.line - displayContent.startLine) * lineHeight;
   };
   const setLineNumberClicked = useCustomStore(
@@ -151,17 +138,14 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
       w={"100%"}
       height={`calc(100% - 45px)`}
       overflow={"hidden"}
-      // position = "relative"
       ref={containerRef}
     >
       <Box position="relative" width="100%" height="100%" overflow="auto">
-        {/* Container for both SVG and code */}
         <div style={{ position: "relative", width: "100%", minHeight: "100%" }}>
-          {/* SVG overlay positioned at the same scroll position */}
           {viewType === "line" && bInfo && (
             <Box
               width="18px"
-              height="20px" // Set to line height
+              height="20px"
               style={{
                 position: "absolute",
                 zIndex: 1000,
@@ -184,18 +168,6 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
             </Box>
           )}
 
-          {/* <svg
-            width="10%"
-            height="18px" // Set to line height
-            style={{
-              position: "absolute",
-              zIndex: 1000,
-              top: calculateYPosition(),
-              left: 0,
-            }}
-          >
-            <rect x="0" y="0" width="100" height="100%" fill="yellow"></rect> */}
-
           <SyntaxHighlighter
             customStyle={{
               fontSize: "12px",
@@ -205,7 +177,6 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
               overflow: "auto",
               margin: 0,
               padding: 0,
-              // paddingLeft: "10px",
             }}
             startingLineNumber={displayContent.startLine}
             language="c"
@@ -219,14 +190,11 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                 boxSizing: "border-box",
                 textShadow: "none",
               };
-              // Line highlight logic
               if (lines.includes(lineNumber)) {
                 const lineItem = item.children.find(
                   (c) => c.line === lineNumber
                 );
-                // console.log("lineItem", lineItem);
                 const diff = lineItem.group1Count - lineItem.group2Count;
-                // const colorIntensity = Math.abs(diff) / 100;
 
                 style.backgroundColor =
                   lineItem.group1Count > lineItem.group2Count
@@ -265,9 +233,8 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                       )?.branch
                     );
                   }
-                  // console.log("Clicked line:", lineNumber);
                 },
-              }; // Save ref for each line
+              };
             }}
           >
             {displayContent.content}

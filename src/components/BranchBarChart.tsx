@@ -46,7 +46,6 @@ const BranchBarChart = ({
     showTooltip,
   } = useTooltip<TooltipData>();
 
-  // console.log("hparamKey, hparamValue:", hparamKey, hparamValue);
   const margin = { top: 2, right: 1, bottom: 5, left: 15 };
 
   const { TooltipInPortal } = useTooltipInPortal({
@@ -67,14 +66,8 @@ const BranchBarChart = ({
   const binCount = 9;
   const isInteger = data.every(Number.isInteger);
   const isSame = data.every((val, i, arr) => val === arr[0]);
-  // const xMin = Math.min(...(data as number[]));
-  // const xMax =
-  //   isInteger && isSame
-  //     ? xMin + 10
-  //     : isSame
-  //     ? xMin + 0.5
-  //     : Math.max(...(data as number[]));
-  const xMin = 1; // ★ xMin을 0으로 강제 설정
+
+  const xMin = 1;
   const xMax =
     isInteger && isSame
       ? xMin + 10
@@ -121,11 +114,6 @@ const BranchBarChart = ({
     range: [height - margin.bottom, margin.top],
   });
 
-  // const zeroBins = bins.filter((bin) => bin.count === 0);
-  // 기존 bins 앞에 (0~0) bin 추가
-
-  // bins 리스트의 맨 앞에 zeroBin 삽입
-
   return (
     <ParentSize>
       {({ width: parentWidth, height: parentHeight }) => (
@@ -136,7 +124,6 @@ const BranchBarChart = ({
                 x={margin.left}
                 y={yScale(Number(zeroBin.count))}
                 width={barWidth}
-                // width={xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 1}
                 height={Math.max(
                   0,
                   parentHeight - margin.bottom - yScale(Number(zeroBin.count))

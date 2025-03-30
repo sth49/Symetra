@@ -76,9 +76,7 @@ const GroupDetailView = () => {
                   display={"flex"}
                   alignItems={"center"}
                 >
-                  {/* <SelectIcon type="g1" /> */}
                   {currentSelectedGroup.name}{" "}
-                  {/* {`(${formatting(currentSelectedGroup.trials.length, "int")})`} */}
                 </Text>
                 <IconButton
                   variant={"outline"}

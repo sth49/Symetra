@@ -31,11 +31,7 @@ const BaseBidirectionalChart: React.FC<
   height = defaultProps.height,
   isHalf = defaultProps.isHalf,
 }) => {
-  // Calculate the center position
   const diff = leftValue - rightValue;
-
-  // Find the maximum absolute value to create a symmetrical scale
-  // Create scale for the bars (using absolute values for width calculation)
   const barScale = scaleLinear<number>({
     domain: [0, 100],
     range: [
@@ -46,16 +42,13 @@ const BaseBidirectionalChart: React.FC<
     ],
   });
 
-  // Bar height
   const barHeight = height * 0.5;
   const barY = (height - barHeight) / 2;
 
-  // Conditionally show labels based on available space
   const fontSize = width < 200 ? 10 : 12;
 
   const dir = diff > 0 ? "left" : "right";
 
-  // Calculate bar width
   const leftBarWidth = barScale(dir === "left" ? Math.abs(diff) : 0);
   const rightBarWidth = barScale(dir === "right" ? Math.abs(diff) : 0);
 
@@ -69,7 +62,6 @@ const BaseBidirectionalChart: React.FC<
     [0, 100],
     d3.interpolateRgb("rgba(255, 0, 0, 0.2)", "rgba(255, 0, 0, 0.8)")
   );
-  // const colorIntensity = Math.abs(diff) / 100;
 
   return (
     <svg width={width} height={height}>
@@ -91,10 +83,7 @@ const BaseBidirectionalChart: React.FC<
           width={leftBarWidth}
           height={barHeight}
           fill={colorIntensityBlue(Math.abs(diff))}
-          // fill={"rgba(0, 0, 255," + colorIntensity(Math.abs(diff)) + ")"}
-          // opacity={colorIntensity}
           rx={0}
-          // stroke="black"
         />
 
         {/* Right bar */}
@@ -104,20 +93,14 @@ const BaseBidirectionalChart: React.FC<
           width={rightBarWidth}
           height={barHeight}
           fill={colorIntensityRed(Math.abs(diff))}
-          // fill={"rgba(255, 0, 0," + colorIntensity(Math.abs(diff)) + ")"}
-          // fill="rgba(255, 0, 0)"
-          // opacity={colorIntensity}
           rx={0}
-          // stroke="black"
         />
 
         {dir === "left" && (
           <Text
-            // x={centerX - leftBarWidth - 5}
             x={centerX + rightBarWidth + 5}
             y={barY + barHeight / 2}
             verticalAnchor="middle"
-            // textAnchor="end"
             textAnchor="start"
             fontSize={fontSize}
           >
@@ -128,10 +111,8 @@ const BaseBidirectionalChart: React.FC<
         {dir === "right" && (
           <Text
             x={centerX - leftBarWidth - 5}
-            // x={centerX + rightBarWidth + 5}
             y={barY + barHeight / 2}
             verticalAnchor="middle"
-            // textAnchor="start"
             textAnchor="end"
             fontSize={fontSize}
           >
@@ -143,7 +124,6 @@ const BaseBidirectionalChart: React.FC<
   );
 };
 
-// Wrapper component that uses ParentSize to make the chart responsive
 const BidirectionalChart: React.FC<Omit<BidirectionalChartProps, "width">> = (
   props
 ) => {

@@ -57,10 +57,6 @@ export const generateBinnedData = (
   }
 };
 
-// export const formatting = (value: number, isInt: boolean) => {
-//   return isInt ? Math.round(value) : value.toFixed(2);
-// };
-
 export const formatting = (
   value: number,
   valueType: string,
@@ -88,10 +84,8 @@ export function rgbaFromHex(hex: string, opacity: number): string {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 export function hexToRgb(hex: string): number[] {
-  // HEX에서 # 제거
   const cleanHex = hex.replace("#", "");
 
-  // RGB 값 추출
   const r = parseInt(cleanHex.substring(0, 2), 16);
   const g = parseInt(cleanHex.substring(2, 4), 16);
   const b = parseInt(cleanHex.substring(4, 6), 16);
@@ -100,7 +94,6 @@ export function hexToRgb(hex: string): number[] {
 }
 
 export const getLuminance = (color) => {
-  // Convert hex or rgb string to rgb values
   let r, g, b;
 
   if (color.startsWith("rgb")) {
@@ -112,7 +105,6 @@ export const getLuminance = (color) => {
     b = rgb.b;
   }
 
-  // Calculate relative luminance using WCAG formula
   const [rs, gs, bs] = [r, g, b].map((c) => {
     c = c / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -121,7 +113,6 @@ export const getLuminance = (color) => {
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 };
 
-// Should use white text if background is dark
 export const getTextColor = (backgroundColor) => {
   const luminance = getLuminance(backgroundColor);
   return luminance > 0.5 ? "#000000" : "#ffffff";

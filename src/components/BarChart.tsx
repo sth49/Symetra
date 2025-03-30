@@ -1,4 +1,4 @@
-import { Box, Text } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
 import { useCustomStore } from "../store";
@@ -41,7 +41,6 @@ interface BarChartProps {
 const BarChart = ({
   dist,
   trialIds,
-  viewType,
   opacity,
   isGroup = false,
 }: BarChartProps) => {
@@ -63,12 +62,6 @@ const BarChart = ({
   const currentSelectedGroup2 = useCustomStore(
     (state) => state.currentSelectedGroup2
   );
-  const setClickedHparamValue = useCustomStore(
-    (state) => state.setClickedHparamValue
-  );
-  const clickedHparamValue = useCustomStore(
-    (state) => state.clickedHparamValue
-  );
 
   const margin = { top: 2, right: 2, bottom: 5, left: 2 };
 
@@ -82,32 +75,6 @@ const BarChart = ({
       : exp?.trials.map((trial) => trial.params[dist]);
   const allData = exp?.trials.map((trial) => trial.params[dist]);
   const hparam = hyperparams.find((hparam) => hparam.name === dist);
-
-  const handleBarClick = (binX0: string | number[]) => {
-    if (viewType !== "hparam") return;
-    if (clickedHparamValue?.name === dist) {
-      if (
-        (typeof binX0 === "string" && clickedHparamValue?.value[0] === binX0) ||
-        (typeof binX0 !== "string" &&
-          clickedHparamValue?.value[0] === binX0[0] &&
-          clickedHparamValue?.value[1] === binX0[1])
-      ) {
-        setClickedHparamValue(null);
-      } else {
-        setClickedHparamValue({
-          name: dist,
-          displayName: hparam?.displayName,
-          value: typeof binX0 === "string" ? [binX0] : binX0,
-        });
-      }
-    } else {
-      setClickedHparamValue({
-        name: dist,
-        displayName: hparam?.displayName,
-        value: typeof binX0 === "string" ? [binX0] : binX0,
-      });
-    }
-  };
 
   return (
     <div style={{ width: "100%", height: "100%" }}>
@@ -141,32 +108,6 @@ const BarChart = ({
               range: [height - margin.bottom, margin.top],
             });
 
-            const calculateOverlayBins = () => {
-              if (!clickedHparamValue) return [];
-
-              return keys.map((key) => {
-                const relevantTrials = exp?.trials.filter(
-                  (trial) => trial.params[dist] === key
-                );
-                const overlayCount =
-                  relevantTrials?.filter((trial) =>
-                    clickedHparamValue.value.length === 1
-                      ? trial.params[clickedHparamValue.name].toString() ===
-                        clickedHparamValue.value[0]
-                      : clickedHparamValue.value[0] <=
-                          trial.params[clickedHparamValue.name] &&
-                        trial.params[clickedHparamValue.name] <
-                          clickedHparamValue.value[1]
-                  ).length || 0;
-                return {
-                  x0: key,
-                  x1: key,
-                  count: overlayCount,
-                };
-              });
-            };
-            const bins2 = calculateOverlayBins();
-
             return (
               <Box display="flex" justifyContent="center" alignItems="center">
                 <svg width={width} height={height}>
@@ -180,9 +121,7 @@ const BarChart = ({
                           0,
                           height - margin.bottom - yScale(Number(bin.count))
                         )}
-                        // fill={hparam.getColorByValue(bin.x0)}
                         fill="#C4CFDB"
-                        // opacity={1}
                         opacity={opacity}
                       />
                       <Bar
@@ -204,53 +143,9 @@ const BarChart = ({
                           });
                         }}
                         onMouseLeave={hideTooltip}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBarClick(bin.x0.toString());
-                        }}
                       />
                     </g>
                   ))}
-                  {viewType === "hparam" &&
-                    bins2.map((bin, i) => (
-                      <Bar
-                        key={i}
-                        x={xScale(bin.x0)}
-                        y={yScale(Number(bin.count))}
-                        width={xScale.bandwidth() - 1}
-                        height={Math.max(
-                          0,
-                          height - margin.bottom - yScale(Number(bin.count))
-                        )}
-                        fill={"url(#pattern)"}
-                        opacity={1}
-                        stroke="#030f1b"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBarClick(bin.x0);
-                        }}
-                        onMouseMove={(event) => {
-                          showTooltip({
-                            tooltipData: {
-                              key: `${
-                                hparam.displayName
-                              } = ${bin.x0.toString()} & ${
-                                clickedHparamValue.displayName
-                              } = ${
-                                typeof clickedHparamValue.value[0] === "string"
-                                  ? clickedHparamValue.value[0]
-                                  : `${clickedHparamValue.value[0]} ~ ${clickedHparamValue.value[1]}`
-                              }`,
-                              value: "",
-                              count: bin.count,
-                            },
-                            tooltipLeft: event.clientX,
-                            tooltipTop: event.clientY,
-                          });
-                        }}
-                        onMouseLeave={hideTooltip}
-                      />
-                    ))}
                   <PatternLines
                     id="pattern"
                     height={5}
@@ -344,38 +239,6 @@ const BarChart = ({
               range: [height - margin.bottom, margin.top],
             });
 
-            const calculateOverlayBins = () => {
-              if (!clickedHparamValue) return [];
-
-              return bins.map((bin, i) => {
-                const relevantTrials = exp?.trials.filter((trial) => {
-                  const val = Number(trial.params[dist]);
-                  if (i < binCount - 1) {
-                    return val >= Number(bin.x0) && val < Number(bin.x1);
-                  } else {
-                    return val >= Number(bin.x0) && val <= Number(bin.x1);
-                  }
-                });
-                const overlayCount =
-                  relevantTrials?.filter((trial) =>
-                    clickedHparamValue.value.length === 1
-                      ? trial.params[clickedHparamValue.name].toString() ===
-                        clickedHparamValue.value[0]
-                      : clickedHparamValue.value[0] <=
-                          trial.params[clickedHparamValue.name] &&
-                        trial.params[clickedHparamValue.name] <
-                          clickedHparamValue.value[1]
-                  ).length || 0;
-                return {
-                  x0: bin.x0,
-                  x1: bin.x1,
-                  count: overlayCount,
-                };
-              });
-            };
-
-            const bins2 = calculateOverlayBins();
-
             return (
               <Box display="flex" justifyContent="center" alignItems="center">
                 <svg width={width} height={height}>
@@ -423,66 +286,10 @@ const BarChart = ({
                             });
                           }}
                           onMouseLeave={hideTooltip}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleBarClick([Number(bin.x0), Number(bin.x1)]);
-                          }}
                         />
                       </g>
                     );
                   })}
-
-                  {viewType === "hparam" &&
-                    bins2.map((bin, i) => (
-                      <Bar
-                        key={i}
-                        x={xScale(Number(bin.x0))}
-                        y={yScale(Number(bin.count))}
-                        width={Math.max(
-                          0,
-                          xScale(Number(bin.x1)) - xScale(Number(bin.x0)) - 2
-                        )}
-                        height={Math.max(
-                          0,
-                          height - margin.bottom - yScale(Number(bin.count))
-                        )}
-                        onMouseMove={(event) => {
-                          showTooltip({
-                            tooltipData: {
-                              key: `${hparam.displayName} = ${formatting(
-                                Number(bin.x0),
-                                isInteger ? "int" : "float"
-                              )} ~ ${formatting(
-                                Number(bin.x1),
-                                isInteger ? "int" : "float"
-                              )} & ${clickedHparamValue.displayName} = ${
-                                typeof clickedHparamValue.value[0] === "string"
-                                  ? clickedHparamValue.value[0]
-                                  : `${formatting(
-                                      clickedHparamValue.value[0],
-                                      isInteger ? "int" : "float"
-                                    )} ~ ${formatting(
-                                      clickedHparamValue.value[1],
-                                      isInteger ? "int" : "float"
-                                    )}`
-                              }`,
-                              value: "",
-                              count: bin.count,
-                            },
-                            tooltipLeft: event.clientX,
-                            tooltipTop: event.clientY,
-                          });
-                        }}
-                        onMouseLeave={hideTooltip}
-                        fill={"url(#pattern)"}
-                        opacity={1}
-                        stroke="#030f1b"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBarClick([Number(bin.x0), Number(bin.x1)]);
-                        }}
-                      />
-                    ))}
                 </svg>
                 {tooltipOpen && tooltipData && (
                   <TooltipInPortal

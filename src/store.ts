@@ -103,7 +103,7 @@ export const useCustomStore = create<CustomStore>((set) => ({
       return state;
     }),
 
-  clickedHparamValue: null, // 선택된 하이퍼파라미터 값에 대한 다른 하이퍼파라미터 값들의 correlation 구할때 사용
+  clickedHparamValue: null,
   setClickedHparamValue: (value) => set({ clickedHparamValue: value }),
 
   trialPathModel: new TrialPathModel(),

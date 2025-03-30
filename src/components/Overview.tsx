@@ -5,7 +5,6 @@ import { formatting } from "../model/utils";
 import { useConstDataStore } from "./store/constDataStore";
 import MetricLegend from "./MetricLegend";
 import BranchIcon from "./BranchIcon";
-// import { FaCodeBranch } from "react-icons/fa6";
 const Overview = () => {
   const { exp, target } = useConstDataStore();
   return (
@@ -48,7 +47,6 @@ const Overview = () => {
               Branches
             </Text>
             <Text fontSize="sm" color={"gray.600"} display={"flex"} mr={2}>
-              {/* {formatting(exp.metric.totalBranch, "int")} */}
               {formatting(
                 target.filter((t) => t.name === exp.name)[0].total,
                 "int"

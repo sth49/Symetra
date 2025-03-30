@@ -90,12 +90,9 @@ export class Hyperparam {
     trialJson.map((trial) => {
       hparam.shapValues.push(trial.shap_values[hparam.name]);
     });
-    // hparam.shapValues = shapValue;
-    // console.log(hparam.getMeanAbsoluteEffect());
     if (hparam.getMeanAbsoluteEffect() < 0.3) {
       hparam.visible = false;
     }
-    // console.log("visibility", hparam.name, hparam.visible);
     return hparam;
   }
   getColor(index: number): string | undefined {
@@ -105,11 +102,8 @@ export class Hyperparam {
     throw new Error("Method not implemented.");
   }
   getEffect(trialIds: number[] = []): number {
-    // shapValues 배열의 절대값의 합 계산
-
     if (trialIds.length > 0) {
       const effect = trialIds.reduce(
-        // (acc, currentValue) => acc + Math.abs(this.shapValues[currentValue]),
         (acc, currentValue) => acc + this.shapValues[currentValue],
         0
       );
@@ -119,7 +113,6 @@ export class Hyperparam {
       return effect;
     }
     const effect = this.shapValues.reduce(
-      // (acc, currentValue) => acc + Math.abs(currentValue),
       (acc, currentValue) => acc + currentValue,
       0
     );
@@ -140,7 +133,6 @@ export class Hyperparam {
     return Math.abs(this.getMeanEffect());
   }
   getPositiveEffect(trialIds: number[] = []): number {
-    // shapValues 배열의 양수 합 계산
     if (trialIds.length > 0) {
       const effect = trialIds.reduce(
         (acc, currentValue) => acc + Math.max(0, this.shapValues[currentValue]),
@@ -174,7 +166,6 @@ export class Hyperparam {
   }
 
   getNegativeEffect(trialIds: number[] = []): number {
-    // shapValues 배열의 음수 합 계산
     if (trialIds.length > 0) {
       const effect = trialIds.reduce(
         (acc, currentValue) => acc + Math.min(0, this.shapValues[currentValue]),
@@ -209,7 +200,6 @@ export class Hyperparam {
   }
 
   toggleVisible() {
-    // console.log("toggleVisible");
     this.visible = !this.visible;
   }
   getColorByValue(value: any): string {
@@ -236,7 +226,6 @@ export class ContinuousHyperparam extends Hyperparam {
   icon = HiHashtag;
   binCount = 5;
   constructor(json: HyperparamJson, trialJson: any) {
-    // const value = json.value as number[];
     const values = trialJson.map((trial) => trial.config[json.name] as number);
     const sortedValues = values.sort((a, b) => a - b);
     const value = [sortedValues[0], sortedValues[sortedValues.length - 1]];
@@ -280,7 +269,6 @@ export class ContinuousHyperparam extends Hyperparam {
     const isInteger = this.values.every(Number.isInteger);
     const isSame = this.values.every((val, i, arr) => val === arr[0]);
 
-    // 값들의 최소/최대값 계산
     const xMin = Math.min(...this.values);
     const xMax =
       isInteger && isSame
@@ -299,7 +287,6 @@ export class ContinuousHyperparam extends Hyperparam {
     const xRange = niceXMax - niceXMin;
     const binSize = xRange / this.binCount;
 
-    // 구간 범위 계산
     const bins = Array.from({ length: this.binCount }, (_, i) => ({
       x0: isInteger
         ? Math.floor(xMin + i * binSize)
@@ -319,7 +306,6 @@ export class ContinuousHyperparam extends Hyperparam {
       }
     });
 
-    // 각 구간별 trial id 저장
     bins.forEach((bin, i) => {
       const binIds = [];
       this.values.forEach((value, j) => {
@@ -342,11 +328,10 @@ export class ContinuousHyperparam extends Hyperparam {
   }
 
   getEffectsByValue() {
-    const effectsByValue: { [key: string]: number[] } = {}; // 각 구간별 영향력 저장
+    const effectsByValue: { [key: string]: number[] } = {};
     const isInteger = this.values.every(Number.isInteger);
     const isSame = this.values.every((val, i, arr) => val === arr[0]);
 
-    // 값들의 최소/최대값 계산
     const xMin = Math.min(...this.values);
     const xMax =
       isInteger && isSame
@@ -365,7 +350,6 @@ export class ContinuousHyperparam extends Hyperparam {
     const xRange = niceXMax - niceXMin;
     const binSize = xRange / this.binCount;
 
-    // 구간 범위 계산
     const bins = Array.from({ length: this.binCount }, (_, i) => ({
       x0: isInteger
         ? Math.floor(xMin + i * binSize)
@@ -385,8 +369,6 @@ export class ContinuousHyperparam extends Hyperparam {
       }
     });
 
-    // 각 구간별 영향력 저장
-
     bins.forEach((bin, i) => {
       const binShapValues = [];
       this.values.forEach((value, j) => {
@@ -395,7 +377,6 @@ export class ContinuousHyperparam extends Hyperparam {
           (i === this.binCount - 1 && value === xMax)
         ) {
           binShapValues.push(this.shapValues[j]);
-          // binShapValues.push(Math.abs(this.shapValues[j]));
         }
       });
       effectsByValue[
@@ -424,7 +405,6 @@ export class ContinuousHyperparam extends Hyperparam {
     }
 
     const keys = Object.keys(effectByValue);
-    // console.log(keys);
     let max = -100000;
     let maxKey = "";
     keys.forEach((key) => {
@@ -472,7 +452,6 @@ export class CategoricalHyperparam extends Hyperparam {
   constructor(json: HyperparamJson) {
     if (json.valueType === "int") {
       const value = (json.value as number[]).sort();
-      // super(json.name, json.displayName, value, json.valueType);
       super(
         json.name,
         json.displayName,
@@ -484,7 +463,6 @@ export class CategoricalHyperparam extends Hyperparam {
       );
     } else {
       const value = (json.value as string[]).sort();
-      // super(json.name, json.displayName, value, json.valueType);
       super(
         json.name,
         json.displayName,
@@ -519,7 +497,6 @@ export class CategoricalHyperparam extends Hyperparam {
       effectsByValue[value] = [];
       this.shapValues.forEach((val, index) => {
         if (this.values[index] === value) {
-          // effectsByValue[value].push(Math.abs(val));
           effectsByValue[value].push(val);
         }
       });
@@ -579,7 +556,7 @@ export class BinaryHyperparam extends CategoricalHyperparam {
   constructor(json: HyperparamJson) {
     super(json);
     this.scale = d3
-      .scaleOrdinal<string, string>(["#E2E8F0", "#718096"]) // Add the missing type arguments
+      .scaleOrdinal<string, string>(["#E2E8F0", "#718096"])
       .domain(["true", "false"]);
   }
   getColor(index: number): string | undefined {
@@ -599,7 +576,7 @@ export class NominalHyperparam extends CategoricalHyperparam {
   constructor(json: HyperparamJson) {
     super(json);
     this.scale = d3
-      .scaleOrdinal<string, string>(schemeSet3) // Add the missing type arguments
+      .scaleOrdinal<string, string>(schemeSet3)
       .domain(this.values);
   }
   getColorByValue(value: any): string {

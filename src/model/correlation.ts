@@ -5,11 +5,9 @@ function removeOutlierPairs(
   values1: number[],
   values2: number[]
 ): [number[], number[]] {
-  // Sort values while keeping track of original indices
   const indexedValues1 = values1.map((value, index) => ({ value, index }));
   const indexedValues2 = values2.map((value, index) => ({ value, index }));
 
-  // Calculate Q1, Q3, IQR for values1
   const sorted1 = [...indexedValues1].sort((a, b) => a.value - b.value);
   const q1_1 = sorted1[Math.floor(sorted1.length * 0.25)].value;
   const q3_1 = sorted1[Math.floor(sorted1.length * 0.75)].value;
@@ -17,7 +15,6 @@ function removeOutlierPairs(
   const lowerBound1 = q1_1 - 1.5 * iqr1;
   const upperBound1 = q3_1 + 1.5 * iqr1;
 
-  // Calculate Q1, Q3, IQR for values2
   const sorted2 = [...indexedValues2].sort((a, b) => a.value - b.value);
   const q1_2 = sorted2[Math.floor(sorted2.length * 0.25)].value;
   const q3_2 = sorted2[Math.floor(sorted2.length * 0.75)].value;
@@ -25,11 +22,9 @@ function removeOutlierPairs(
   const lowerBound2 = q1_2 - 1.5 * iqr2;
   const upperBound2 = q3_2 + 1.5 * iqr2;
 
-  // Create arrays for valid pairs
   const validValues1: number[] = [];
   const validValues2: number[] = [];
 
-  // Only keep pairs where both values are within bounds
   for (let i = 0; i < values1.length; i++) {
     const val1 = values1[i];
     const val2 = values2[i];
@@ -119,53 +114,6 @@ export function calculateCorrelation(
     );
   }
 }
-// export function calculateCorrelation(
-//   groupTrials: Trial[],
-//   param1: Hyperparam,
-//   param2: Hyperparam
-// ) {
-//   const values1 = groupTrials.map((trial) => trial.params[param1.name]);
-//   const values2 = groupTrials.map((trial) => trial.params[param2.name]);
-
-//   if (
-//     param1.type === HyperparamTypes.Continuous &&
-//     param2.type === HyperparamTypes.Continuous
-//   ) {
-//     return calculatePearsonCorrelation(
-//       param1,
-//       param2,
-//       values1 as number[],
-//       values2 as number[]
-//     );
-//   } else if (
-//     param1.type === HyperparamTypes.Binary &&
-//     param2.type === HyperparamTypes.Binary
-//   ) {
-//     return calculatePhiCoefficient(param1, param2, values1, values2);
-//   } else if (
-//     (param1.type === HyperparamTypes.Continuous &&
-//       param2.type === HyperparamTypes.Binary) ||
-//     (param1.type === HyperparamTypes.Binary &&
-//       param2.type === HyperparamTypes.Continuous)
-//   ) {
-//     // Point-biserial correlation을 위해 continuous와 binary 변수의 순서 확인
-//     const [contParam, binParam] =
-//       param1.type === HyperparamTypes.Continuous
-//         ? [param1, param2]
-//         : [param2, param1];
-//     const [contValues, binValues] =
-//       param1.type === HyperparamTypes.Continuous
-//         ? [values1 as number[], values2]
-//         : [values2 as number[], values1];
-
-//     return calculatePointBiserialCorrelation(
-//       contParam,
-//       binParam,
-//       contValues,
-//       binValues
-//     );
-//   }
-// }
 
 function calculatePointBiserialCorrelation(
   contParam: Hyperparam,
@@ -173,10 +121,8 @@ function calculatePointBiserialCorrelation(
   contValues: number[],
   binValues: any[]
 ) {
-  // 이진 변수의 고유값 찾기
   const uniqueBinValues = Array.from(new Set(binValues));
 
-  // 각 이진값에 대한 연속 변수 그룹 분리
   const group1Values = contValues.filter(
     (_, i) => binValues[i] === uniqueBinValues[0]
   );
@@ -184,7 +130,6 @@ function calculatePointBiserialCorrelation(
     (_, i) => binValues[i] === uniqueBinValues[1]
   );
 
-  // 전체 연속 변수 평균 및 표준편차 계산
   const mean =
     contValues.reduce((sum, val) => sum + val, 0) / contValues.length;
 
@@ -196,17 +141,14 @@ function calculatePointBiserialCorrelation(
 
   const stdDev = Math.sqrt(variance);
 
-  // 각 그룹의 평균 계산
   const mean1 =
     group1Values.reduce((sum, val) => sum + val, 0) / group1Values.length;
   const mean2 =
     group2Values.reduce((sum, val) => sum + val, 0) / group2Values.length;
 
-  // 각 그룹의 비율 계산
   const p = group1Values.length / contValues.length;
   const q = 1 - p;
 
-  // Point-biserial correlation 계산
   const rpb = ((mean1 - mean2) / stdDev) * Math.sqrt(p * q);
 
   return {
@@ -215,8 +157,6 @@ function calculatePointBiserialCorrelation(
     hp: {
       hp1: binParam,
       hp2: contParam,
-      // continuous: contParam,
-      // binary: binParam,
     },
     value: {
       val1: binValues,
