@@ -46,7 +46,7 @@ function CodeDetail() {
           display={"flex"}
           alignItems={"center"}
         >
-          Code Detail View
+          Code View
         </Heading>
         <Text
           // width={"80%"}

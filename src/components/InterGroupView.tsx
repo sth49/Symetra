@@ -397,11 +397,7 @@ const InterGroupView = () => {
 
   return (
     <div style={{ height: "100%", width: "100%", userSelect: "none" }}>
-      <Box
-        display={"flex"}
-        justifyContent={"space-between"}
-        alignItems={"center"}
-      >
+      <Box display={"flex"} justifyContent={"left"} alignItems={"center"}>
         <Heading
           as="h5"
           size="sm"
@@ -416,8 +412,9 @@ const InterGroupView = () => {
           display={"flex"}
           justifyContent={"space-between"}
           alignItems={"center"}
+          pl={1}
         >
-          <Text fontSize="10px" color="gray.600">
+          <Text fontSize="xs" color="gray.600">
             Effect Size of parameter difference:
           </Text>
 
@@ -427,7 +424,7 @@ const InterGroupView = () => {
             alignItems={"center"}
             padding={"0 8px"}
           >
-            <Text fontSize="10px" color={"gray.600"}>
+            <Text fontSize="xs" color={"gray.600"}>
               small
             </Text>
             <Box display={"flex"} alignItems={"center"} pr={1} pl={1}>
@@ -437,7 +434,7 @@ const InterGroupView = () => {
                 </Box>
               ))}
             </Box>
-            <Text fontSize="10px" color={"gray.600"}>
+            <Text fontSize="xs" color={"gray.600"}>
               large
             </Text>
           </Box>
@@ -608,7 +605,7 @@ const InterGroupView = () => {
                         colSpan={3}
                       >
                         {/* {key} */}
-                        <Text fontSize={"xs"}>Union Coverage Value</Text>
+                        <Text fontSize={"xs"}>Merged Coverage Value</Text>
                       </td>
                       <td
                         colSpan={2}

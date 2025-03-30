@@ -229,7 +229,7 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
       },
       {
         id: "acc",
-        header: "Accum",
+        header: "Accum.",
         accessorKey: "acc",
         type: "number",
 
@@ -261,7 +261,9 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
                 zIndex={100}
                 label={
                   <Box>
-                    <Text>{`${info.row.original.name} vs ${group.name}`}</Text>
+                    <Text
+                      borderBottom={"1px solid white"}
+                    >{`${info.row.original.name} vs ${group.name}`}</Text>
                     <Text>
                       {heatmapType === "difference"
                         ? "# of statistically different parameters: "

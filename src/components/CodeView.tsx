@@ -232,7 +232,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
                   lineItem.group1Count > lineItem.group2Count
                     ? colorIntensityBlue(Math.abs(diff))
                     : lineItem.group1Count === lineItem.group2Count
-                    ? "rgba(0, 255, 0, 0.5)"
+                    ? "rgba(0,0,0, 0.2)"
                     : colorIntensityRed(Math.abs(diff));
                 style.width = "180%";
                 style.position = "relative";
