@@ -211,9 +211,7 @@ const StatTest: React.FC<StatTestProps> = ({
               <Tbody>
                 {hparamResults
                   .filter(
-                    (result) =>
-                      result.param.type === HyperparamTypes.Nominal ||
-                      result.param.type === HyperparamTypes.Ordinal
+                    (result) => result.param.type === HyperparamTypes.Nominal
                   )
                   .sort((a, b) => a.pValue - b.pValue)
                   .map((result, index) => (

@@ -84,7 +84,6 @@ export function performStatisticalTest(
     case HyperparamTypes.Continuous:
       return performTTest(group1, group2, param);
     case HyperparamTypes.Nominal:
-    case HyperparamTypes.Ordinal:
       return performChiSquareTest(group1, group2, param);
     case HyperparamTypes.Binary:
       return performFisherExactTest(group1, group2, param);

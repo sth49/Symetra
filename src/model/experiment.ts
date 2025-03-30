@@ -94,7 +94,7 @@ export class Experiment {
     public branchInfo: BranchInfo[]
   ) {}
 
-  static fromJson(configJson: ConfigJson, trialJson, paramList, branchInfo) {
+  static fromJson(configJson: any, trialJson, paramList, branchInfo) {
     const allHyperparams = [] as Hyperparam[];
     configJson["hyperparameters"].map((column: HyperparamJson) => {
       allHyperparams.push(Hyperparam.fromJson(column, trialJson));
@@ -106,9 +106,6 @@ export class Experiment {
 
     const trials = [] as Trial[];
 
-    // console.log(trialJson[0]);
-    // console.log(trialJson[1]);
-
     trialJson.map((trial: TrialJson) => {
       trials.push(Trial.fromJson(trial));
     });
@@ -116,8 +113,6 @@ export class Experiment {
     for (const trial of trials) {
       trial.branch.forEach((b) => unionSet.add(b));
     }
-
-    // hyperparams.map((param) => param.name );
 
     const branchInfoList = [] as BranchInfo[];
     // branchInfo.map((branchInfoString, index) => {
@@ -130,7 +125,6 @@ export class Experiment {
 
     // console.log("branchInfoString", branchInfo[index]);
 
-    // column 이름 추출
     return new Experiment(
       configJson.name,
       hyperparams,

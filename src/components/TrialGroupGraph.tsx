@@ -295,6 +295,7 @@ const TrialGroupGraph = () => {
                     avg: 0,
                     max: 0,
                     min: 0,
+                    acc: 0,
                   },
                 },
                 tooltipLeft: event.clientX,

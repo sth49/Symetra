@@ -6,7 +6,6 @@ import {
   BinaryHyperparam,
   ContinuousHyperparam,
   NominalHyperparam,
-  OrdinalHyperparam,
 } from "../model/hyperparam";
 
 import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
@@ -116,14 +115,9 @@ const BarChart = ({
         {({ width, height }) => {
           if (
             hparam instanceof BinaryHyperparam ||
-            hparam instanceof NominalHyperparam ||
-            hparam instanceof OrdinalHyperparam
+            hparam instanceof NominalHyperparam
           ) {
-            const keys = Array.from(new Set(hparam.values)).sort(
-              hparam instanceof OrdinalHyperparam
-                ? (a, b) => Number(a) - Number(b)
-                : undefined
-            );
+            const keys = Array.from(new Set(hparam.values)).sort();
             const count = data.reduce((acc: { [key: string]: number }, cur) => {
               acc[cur as keyof typeof acc] =
                 (acc[cur as keyof typeof acc] || 0) + 1;
@@ -302,20 +296,6 @@ const BarChart = ({
                 )
               : [];
 
-            // const xMin = isGroup
-            //   ? Math.min(
-            //       ...(groupData as number[]),
-            //       ...(groupData2 as number[])
-            //     )
-            //   : Math.min(...(allData as number[]));
-            // const xMax = isGroup
-            //   ? Math.max(...groupData, ...groupData2)
-            //   : isInteger && isSame
-            //   ? xMin + 10
-            //   : isSame
-            //   ? xMin + 0.5
-            //   : Math.max(...(allData as number[]));
-
             const xMin = isGroup
               ? Math.min(
                   ...(groupData as number[]),
@@ -340,33 +320,6 @@ const BarChart = ({
             const xRange = niceXMax - niceXMin;
             const binSize = xRange / binCount;
 
-            // const bins = Array.from({ length: binCount }, (_, i) => ({
-            //   x0: isInteger
-            //     ? Math.floor(xMin + i * binSize).toString()
-            //     : (xMin + i * binSize).toFixed(2),
-            //   x1: isInteger
-            //     ? Math.floor(xMin + (i + 1) * binSize).toString()
-            //     : (xMin + (i + 1) * binSize).toFixed(2),
-            //   count: 0,
-            // }));
-
-            // const bins = Array.from({ length: binCount }, (_, i) => ({
-            //   x0: isInteger
-            //     ? Math.floor(niceXMin + i * binSize).toString()
-            //     : (niceXMin + i * binSize).toFixed(2),
-            //   x1: isInteger
-            //     ? Math.floor(niceXMin + (i + 1) * binSize).toString()
-            //     : (niceXMin + (i + 1) * binSize).toFixed(2),
-            //   count: 0,
-            // }));
-
-            // data.forEach((d) => {
-            //   const binIndex = Math.floor((Number(d) - xMin) / binSize);
-            //   if (binIndex >= 0 && binIndex < binCount) {
-            //     bins[binIndex].count++;
-            //   } else if (d === xMax) bins[binCount - 1].count++;
-            // });
-
             const bins = Array.from({ length: binCount }, (_, i) => ({
               x0: isInteger
                 ? Math.floor(niceXMin + i * binSize).toString()
@@ -377,7 +330,6 @@ const BarChart = ({
               count: 0,
             }));
 
-            // 데이터 할당 시, niceXMin 기준으로 계산
             data.forEach((d) => {
               const binIndex = Math.floor((Number(d) - niceXMin) / binSize);
               if (binIndex >= 0 && binIndex < binCount) {
@@ -392,18 +344,15 @@ const BarChart = ({
               range: [height - margin.bottom, margin.top],
             });
 
-            // Overlay bins 계산
             const calculateOverlayBins = () => {
               if (!clickedHparamValue) return [];
 
               return bins.map((bin, i) => {
-                // experiment.trials를 사용하여 해당 bin에 해당하는 trial 필터링
                 const relevantTrials = exp?.trials.filter((trial) => {
                   const val = Number(trial.params[dist]);
                   if (i < binCount - 1) {
                     return val >= Number(bin.x0) && val < Number(bin.x1);
                   } else {
-                    // 마지막 bin은 x1 값을 포함
                     return val >= Number(bin.x0) && val <= Number(bin.x1);
                   }
                 });
@@ -426,34 +375,6 @@ const BarChart = ({
             };
 
             const bins2 = calculateOverlayBins();
-            // const calculateOverlayBins = () => {
-            //   if (!clickedHparamValue) return [];
-
-            //   return bins.map((bin) => {
-            //     // experiment.trials로 수정 (원래 exp가 아닌 experiment 사용)
-            //     const relevantTrials = exp?.trials.filter(
-            //       (trial) =>
-            //         Number(trial.params[dist]) >= Number(bin.x0) &&
-            //         Number(trial.params[dist]) < Number(bin.x1)
-            //     );
-            //     const overlayCount =
-            //       relevantTrials?.filter((trial) =>
-            //         clickedHparamValue.value.length === 1
-            //           ? trial.params[clickedHparamValue.name].toString() ===
-            //             clickedHparamValue.value[0]
-            //           : clickedHparamValue.value[0] <=
-            //               trial.params[clickedHparamValue.name] &&
-            //             trial.params[clickedHparamValue.name] <
-            //               clickedHparamValue.value[1]
-            //       ).length || 0;
-            //     return {
-            //       x0: bin.x0,
-            //       x1: bin.x1,
-            //       count: overlayCount,
-            //     };
-            //   });
-            // };
-            // const bins2 = calculateOverlayBins();
 
             return (
               <Box display="flex" justifyContent="center" alignItems="center">
@@ -473,9 +394,6 @@ const BarChart = ({
                             0,
                             height - margin.bottom - yScale(Number(bin.count))
                           )}
-                          // fill={hparam.getColorByValue(
-                          //   (Number(bin.x1) + Number(bin.x0)) / 2
-                          // )}
                           fill="#C4CFDB"
                           opacity={opacity}
                         />

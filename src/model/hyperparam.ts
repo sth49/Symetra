@@ -80,8 +80,6 @@ export class Hyperparam {
       hparam = new NominalHyperparam(json);
     } else if (json.type === "boolean") {
       hparam = new BinaryHyperparam(json);
-    } else if (json.type === "ordinal") {
-      hparam = new OrdinalHyperparam(json);
     } else {
       throw new Error("Invalid hyperparam type");
     }
@@ -412,8 +410,6 @@ export class ContinuousHyperparam extends Hyperparam {
   }
 
   getNotification() {
-    // default value가 속한 구간이, 제일 좋은 영향력을 가졌는지 아닌지 확인
-
     if (this.defaultValue === null) {
       return false;
     }
@@ -459,12 +455,6 @@ export class ContinuousHyperparam extends Hyperparam {
   getIsDefault(value) {
     const [start, end] = value.split(" ~ ");
     const defaultVal = this.defaultValue;
-    // console.log(defaultVal);
-    // console.log(value);
-    // console.log(
-    //   Number(start.trim().replace(/,/g, "")),
-    //   Number(end.trim().replace(/,/g, ""))
-    // );
 
     if (
       typeof defaultVal === "number" &&
@@ -476,44 +466,6 @@ export class ContinuousHyperparam extends Hyperparam {
       return false;
     }
   }
-  // getEffectByValue() {
-  //   let bins = 5; // 구간 수
-  //   let effectByValue: { [key: string]: number } = {}; // 각 구간별 영향력 평균 저장
-  //   const isInt = this.valueType === "int";
-
-  //   // 값들의 최소/최대값 계산
-  //   let min = Math.min(...this.values);
-  //   let max = Math.max(...this.values);
-
-  //   // 구간 범위 계산
-  //   let step = (max - min) / bins;
-  //   let range = Array.from({ length: bins }, (_, i) => min + i * step);
-  //   range.push(max);
-
-  //   // 각 구간별 영향력 평균 계산
-  //   for (let i = 0; i < bins; i++) {
-  //     let start = range[i];
-  //     let end = range[i + 1];
-  //     let effectSum = 0;
-  //     let count = 0;
-
-  //     this.shapValues.forEach((val, index) => {
-  //       let value = this.values[index];
-  //       if (value >= start && value < end) {
-  //         effectSum += val;
-  //         count++;
-  //       }
-  //     });
-
-  //     let effectAvg = count > 0 ? effectSum / count : 0;
-  //     let val = isInt
-  //       ? Math.round(start) + " ~ " + Math.round(end)
-  //       : start.toFixed(2) + " ~ " + end.toFixed(2);
-  //     effectByValue[val] = effectAvg;
-  //   }
-
-  //   return effectByValue;
-  // }
 }
 
 export class CategoricalHyperparam extends Hyperparam {
@@ -654,107 +606,3 @@ export class NominalHyperparam extends CategoricalHyperparam {
     return this.scale(value);
   }
 }
-export class OrdinalHyperparam extends CategoricalHyperparam {
-  type = HyperparamTypes.Ordinal;
-  icon = MdOutlineHdrStrong;
-  constructor(json: HyperparamJson) {
-    super(json);
-    // this.scale = d3
-    //   .scaleOrdinal<string, string>([
-    //     "rgba(0, 0, 0, 0.2)",
-    //     "rgba(0, 0, 0, 0.5)",
-    //   ]) // Add the missing type arguments
-    //   .domain(this.values);
-    // this.scale = scaleLinear<string>()
-    //   .domain([Math.min(...domain), Math.max(...domain)])
-    //   .range(d3.interpolateGreys);
-    const value = json.value as number[];
-    this.scale = d3
-      .scaleSequential(d3.interpolateReds)
-      .domain([Math.min(...value) - 1, Math.max(...value) + 1]);
-  }
-  getColorByValue(value: any): string {
-    return this.scale(value);
-  }
-}
-// export class BooleanHyperparam extends Hyperparam {
-//   type = HyperparamTypes.Boolean;
-//   constructor(json: HyperparamJson) {
-//     const value = json.value as boolean[];
-//     super(json.name, json.displayName, value, json.valueType);
-//     this.scale = d3
-//       .scaleOrdinal<string, string>(["gray", "white"]) // Add the missing type arguments
-//       .domain([true, false]);
-//   }
-//   getColor(index: number): string | undefined {
-//     // return this.values[index] ? "gray" : "white";
-//     return this.scale(this.values[index]);
-//   }
-//   getEffectByValue() {
-//     let effectByValue: { [key: string]: number } = {};
-//     this.value.map((value) => {
-//       effectByValue[value] = 0;
-//       let count = 0;
-//       this.values.map((val, index) => {
-//         if (val === value) {
-//           effectByValue[value] += this.shapValues[index];
-//           count++;
-//         }
-//       });
-//       effectByValue[value] /= count;
-//     });
-
-//     // sort effectByValue by key
-//     let ordered = {};
-//     Object.keys(effectByValue)
-//       .sort()
-//       .reverse()
-//       .forEach(function (key) {
-//         ordered[key] = effectByValue[key];
-//       });
-//     return ordered;
-//   }
-// }
-
-// import { scaleOrdinal } from "d3-scale";
-
-// export class BooleanHyperparam extends Hyperparam {
-//   readonly type = HyperparamTypes.Boolean;
-//   private static readonly scale = scaleOrdinal<boolean, string>()
-//     .domain([true, false])
-//     .range(["gray", "white"]);
-
-//   constructor(json: HyperparamJson) {
-//     const value = json.value as boolean[];
-//     super(json.name, json.displayName, value, json.valueType);
-//   }
-
-//   getColor(index: number): string {
-//     return BooleanHyperparam.scale(this.values[index]);
-//   }
-
-//   getEffectByValue(): Record<string, number> {
-//     const effectSum: Record<boolean, number> = { true: 0, false: 0 };
-//     const count: Record<boolean, number> = { true: 0, false: 0 };
-
-//     this.values.forEach((val, index) => {
-//       effectSum[val] += this.shapValues[index];
-//       count[val]++;
-//     });
-
-//     const effectByValue: Record<string, number> = {
-//       true: effectSum[true] / (count[true] || 1),
-//       false: effectSum[false] / (count[false] || 1),
-//     };
-
-//     return effectByValue;
-//   }
-// }
-
-// export class ListHyperparam extends Hyperparam {
-//   type = HyperparamTypes.List;
-//   constructor(json: HyperparamJson) {
-//     const value = json.value as number[];
-//     super(json.name, json.displayName, value, json.valueType);
-//   }
-// }

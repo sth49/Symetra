@@ -23,7 +23,7 @@ const HparamExtended = ({ item }: HparamExtendedProps) => {
   const data = useMemo(() => {
     return Object.keys(item.effctsByValue).map((key) => {
       return {
-        value: item.type === HyperparamTypes.Ordinal ? Number(key) : key,
+        value: key,
         count: item.effctsByValue[key].length,
         effect:
           item.effctsByValue[key].reduce((a, b) => a + b, 0) /

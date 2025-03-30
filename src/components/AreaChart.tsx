@@ -36,8 +36,6 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
   const setSelectedBranchId = useCustomStore(
     (state) => state.setSelectedBranchId
   );
-
-  // 툴팁 상태 관리
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
 
@@ -60,7 +58,6 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
 
   const data = useMemo(() => {
     const branches = trialGroup.getBranches(exp.branchInfo);
-    // console.log("Branches:", branches);
 
     return selectedData.map((d) => {
       const branchData = branches.find((b) => b[0] === d.branch);
@@ -97,22 +94,6 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
     [data, height, margin.bottom, margin.top]
   );
 
-  // 마우스 이벤트 핸들러
-  // const handleMouseMove = useCallback(
-  //   (event: React.MouseEvent) => {
-  //     const { x } = localPoint(event) || { x: 0 };
-  //     const x0 = xScale.invert(x);
-  //     const index = Math.round(x0);
-
-  //     if (index >= 0 && index < data.length) {
-  //       const d = data[index];
-  //       setTooltipData(d);
-  //       setTooltipLeft(xScale(d.x));
-  //     }
-  //   },
-  //   [data, xScale]
-  // );
-
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
       const { x } = localPoint(event) || { x: 0 };
@@ -121,7 +102,6 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
 
       if (index >= 0 && index < data.length) {
         const d = data.find((d) => d.x === index);
-        // 값이 0인 경우(해당 branch가 실제로 없는 경우) 툴팁 표시하지 않음
         setTooltipData(d);
         setTooltipLeft(xScale(d.x));
       }
@@ -134,20 +114,9 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
     setTooltipLeft(null);
   };
   const setViewType = useCustomStore((state) => state.setViewType);
-  // const handleTooltipClick = useCallback(() => {
-  //   if (tooltipData) {
-  //     // console.log("Selected Branch ID:", tooltipData.branch);
-  //     setSelectedBranchId(tooltipData.branch);
-  //     setViewType("line");
-
-  //     // 여기에 브랜치 ID를 사용하는 추가 로직을 구현할 수 있습니다
-  //     // 예: 상태 업데이트, 콜백 함수 호출 등
-  //   }
-  // }, [setSelectedBranchId, setViewType, tooltipData]);
 
   const handleTooltipClick = useCallback(() => {
     if (tooltipData) {
-      // 값이 유효한 경우에만 브랜치 선택
       console.log("Selected Branch ID:", tooltipData);
 
       setSelectedBranchId(tooltipData.branch);
@@ -174,21 +143,7 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
           fill={currentSelectedGroup.id === trialGroup.id ? "blue" : "red"}
           opacity={currentSelectedGroup.id === trialGroup.id ? 0.2 : 0.5}
         />
-        {/* {selectedBranchId && (
-          <Line
-            x1={xScale(
-              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
-            )}
-            x2={xScale(
-              xAccessor(selectedData.find((d) => d.branch === selectedBranchId))
-            )}
-            y1={margin.top}
-            y2={height - margin.bottom}
-            stroke="black"
-            strokeWidth={1}
-          />
-        )}
-         */}
+
         {selectedBranchId && (
           <>
             <Line
@@ -206,18 +161,8 @@ const AreaChartBase = ({ trialGroup, width, height }) => {
               y2={height - margin.bottom}
               stroke="black"
               strokeWidth={1}
-              // 해당 branch가 이 차트에 존재하는 경우에만 표시
               opacity={data.find((d) => d.branch === selectedBranchId) ? 1 : 0}
             />
-            {/* <text
-              x={xScale(xAccessor(data[0]))}
-              y={margin.top + 10}
-              fill="black"
-            >
-              {selectedBranchId},{" "}
-              {data.find((d) => d.branch === selectedBranchId)?.x}
-              {data.find((d) => d.branch === selectedBranchId)?.y}
-            </text> */}
           </>
         )}
         {tooltipLeft && (

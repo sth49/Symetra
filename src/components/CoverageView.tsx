@@ -26,7 +26,6 @@ import {
   BinaryHyperparam,
   ContinuousHyperparam,
   NominalHyperparam,
-  OrdinalHyperparam,
 } from "../model/hyperparam";
 import { TbLasso } from "react-icons/tb";
 import { TbLassoOff } from "react-icons/tb";
@@ -126,42 +125,6 @@ const CoverageView: React.FC = () => {
   const numThresholds = 5;
 
   const { metricScale, colorScale } = useMetricScale();
-
-  // const densityData = useMemo(() => {
-  //   const validData = data.filter(d => d.x !== undefined && d.y !== undefined);
-
-  //   const densityGenerator = d3.contourDensity()
-  //     .x(d => xScale(d.x)) // x좌표 변환
-  //     .y(d => yScale(d.y)) // y좌표 변환
-  //     .weight(d => metricScale(d.metric)) // 가중치 설정
-  //     .size([containerSize.width, containerSize.height]) // 컨테이너 크기
-  //     .bandwidth(12)
-  //     .thresholds(numThresholds);
-
-  //   return densityGenerator(validData); // 필터링된 데이터 사용
-  // }, [data, xScale, yScale, metricScale, containerSize]);
-  const densityData = useMemo(() => {
-    const validData = data.filter(
-      (d) => d.x !== undefined && d.y !== undefined
-    );
-
-    const densityGenerator = d3
-      .contourDensity()
-      .x((d) => xScale(d.x)) // x좌표 변환
-      .y((d) => yScale(d.y)) // y좌표 변환
-      .weight((d) => d.metric) // **metric 값을 가중치로 사용**
-      .size([containerSize.width, containerSize.height]) // 컨테이너 크기
-      .bandwidth(12)
-      .thresholds(numThresholds);
-
-    return densityGenerator(
-      validData.map((d) => [d.x, d.y] as [number, number])
-    );
-  }, [data, xScale, yScale, containerSize]);
-
-  const maxMetricValue = useMemo(() => {
-    return d3.max(data, (d) => d.metric) || 1;
-  }, [data]);
 
   const gridResolution = 25; // 격자 해상도 조정
 
@@ -932,10 +895,7 @@ const CoverageView: React.FC = () => {
                           </>
                         ) : hyperparams.find(
                             (hp) => hp.name === selected
-                          ) instanceof ContinuousHyperparam ||
-                          hyperparams.find(
-                            (hp) => hp.name === selected
-                          ) instanceof OrdinalHyperparam ? (
+                          ) instanceof ContinuousHyperparam ? (
                           <g>
                             {(() => {
                               const hp = hyperparams.find(

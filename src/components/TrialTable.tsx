@@ -172,8 +172,7 @@ const TrialTable = () => {
           type:
             param.type === HyperparamTypes.Binary
               ? "boolean"
-              : param.type === HyperparamTypes.Nominal ||
-                param.type === HyperparamTypes.Ordinal
+              : param.type === HyperparamTypes.Nominal
               ? "string"
               : param.type === HyperparamTypes.Continuous
               ? "number"
