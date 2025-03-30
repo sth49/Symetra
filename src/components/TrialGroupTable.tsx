@@ -67,7 +67,7 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
 
   const data = useMemo(() => {
     const emptyData = Array.from(
-      { length: 8 - groups.groups.length },
+      { length: 6 - groups.groups.length },
       (_, i) => {
         return {
           id: `empty-${i}`,
