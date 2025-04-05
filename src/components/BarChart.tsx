@@ -22,8 +22,8 @@ type TooltipData = {
 
 const tooltipStyles = {
   ...defaultStyles,
-  background: "rgba(0, 0, 0, 1)",
-  color: "white",
+  background: "white",
+  color: "black",
   padding: "8px",
   borderRadius: "4px",
   zIndex: 1000,
@@ -77,7 +77,12 @@ const BarChart = ({
   const hparam = hyperparams.find((hparam) => hparam.name === dist);
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+    >
       <ParentSize>
         {({ width, height }) => {
           if (
@@ -164,7 +169,7 @@ const BarChart = ({
                     <div
                       style={{
                         fontWeight: "bold",
-                        borderBottom: "1px solid white",
+                        borderBottom: "1px solid gray",
                         paddingBottom: "4px",
                         marginBottom: "4px",
                       }}
@@ -300,7 +305,7 @@ const BarChart = ({
                     <div
                       style={{
                         fontWeight: "bold",
-                        borderBottom: "1px solid white",
+                        borderBottom: "1px solid gray",
                         paddingBottom: "4px",
                         marginBottom: "4px",
                       }}

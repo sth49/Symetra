@@ -56,8 +56,8 @@ export class Metric {
 
 export class Hyperparam {
   public type!: HyperparamTypes;
-  public shapValues: number[] = []; // 모든 trial의 해당 hp에 대한 shap value 저장
-  public values: any[] = []; // 모든 trial의 해당 hp에 대한 값 저장
+  public shapValues: number[] = [];
+  public values: any[] = [];
   public visible = true;
   public scale: any;
   public icon: any;

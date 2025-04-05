@@ -147,7 +147,8 @@ const TrialGroupView = () => {
     //     exp?.trials.filter((t) => group5.includes(t.id)) ?? [],
     //     "S=bfs"
     //   );
-    // } else if (exp.name === "grep_2200_250302") {
+    // }
+    // if (exp.name === "grep_2200_250302") {
     //   const group1 = [
     //     1, 2, 3, 4, 6, 9, 12, 13, 15, 21, 22, 24, 26, 28, 30, 31, 32, 34, 35,
     //     37, 40, 43, 44, 46, 48, 49, 53, 54, 55, 56, 59, 60, 61, 62, 69, 71, 72,
@@ -356,18 +357,18 @@ const TrialGroupView = () => {
     //     235, 259, 264, 307, 310, 315, 324, 328, 341, 342, 345, 347, 350, 352,
     //     384, 388, 408, 412, 413, 1642, 1739, 2190,
     //   ];
-
-    //   updatedGroups.addGroup(
-    //     exp?.trials.filter((t) => group1.includes(t.id)) ?? [],
-    //     "UIS=false"
-    //   );
     //   updatedGroups.addGroup(
     //     exp?.trials.filter((t) => group2.includes(t.id)) ?? [],
     //     "UIS=true"
     //   );
     //   updatedGroups.addGroup(
+    //     exp?.trials.filter((t) => group1.includes(t.id)) ?? [],
+    //     "UIS=false"
+    //   );
+
+    //   updatedGroups.addGroup(
     //     exp?.trials.filter((t) => group4.includes(t.id)) ?? [],
-    //     "Zero CVRG"
+    //     "Failed"
     //   );
 
     //   updatedGroups.addGroup(

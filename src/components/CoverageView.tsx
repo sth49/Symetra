@@ -748,7 +748,12 @@ const CoverageView: React.FC = () => {
               />
             )}
             {selected === "metric" && (
-              <g transform={`translate(${10}, ${legendMargin.top})`}>
+              <g
+                transform={`translate(${10}, ${legendMargin.top})`}
+                style={{
+                  userSelect: "none",
+                }}
+              >
                 <defs>
                   <linearGradient
                     id="gradient"

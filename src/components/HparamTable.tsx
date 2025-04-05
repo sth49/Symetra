@@ -422,6 +422,7 @@ const HparamTable = () => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
+                            cursor: header.column.getCanSort() ? "pointer" : "",
                           }}
                         >
                           {header.column.getCanSort() &&

@@ -37,8 +37,9 @@ function App() {
         );
         setTarget(targets);
 
+        const initialTarget = "grep_2200_250404"; // case1
         // const initialTarget = "gcal_2200_250302"; // case1
-        const initialTarget = "grep_2200_250302"; // case2
+        // const initialTarget = "grep_2200_250302"; // case2
         // const initialTarget = "gawk_800_250325";
         setCurrentTarget(initialTarget);
 
@@ -49,7 +50,18 @@ function App() {
           `./data/branch_info_${initialTarget.split("_")[0]}.json`
         );
         const trialJson = module.default;
-        const paramList = Object.keys(trialJson[0].config);
+        // const paramList = Object.keys(trialJson[0].config);
+        const paramList = Object.keys(trialJson[0].config).filter(
+          (p) =>
+            [
+              "sym-files-2",
+              "max-memory",
+              "max-static-cpsolve-pct",
+              "redzone-size",
+              "batch-instructions",
+              "use-branch-cache",
+            ].includes(p) === false
+        );
         const updatedConfig = { ...configData, name: initialTarget };
         const experiment = await Experiment.fromJson(
           updatedConfig,

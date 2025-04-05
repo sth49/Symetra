@@ -259,18 +259,29 @@ const TrialGroupTable = ({ heatmapType }: TrialGroupTableProps) => {
             return (
               <Tooltip
                 zIndex={100}
+                borderRadius={"4px"}
+                backgroundColor={"white"}
+                color={"black"}
                 label={
-                  <Box>
-                    <Text
-                      borderBottom={"1px solid white"}
-                    >{`${info.row.original.name} vs ${group.name}`}</Text>
-                    <Text>
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: "bold",
+                        borderBottom: "1px solid gray",
+                        paddingBottom: "4px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {`${info.row.original.name} vs ${group.name}`}
+                    </div>
+                    <div>
                       {heatmapType === "difference"
                         ? "# of statistically different parameters: "
                         : "Increase in accumulated CVRG when merged: "}{" "}
                       {info.getValue()}
-                    </Text>
-                  </Box>
+                    </div>
+                  </div>
+                  // </div>
                 }
                 aria-label="A tooltip"
               >

@@ -15,8 +15,8 @@ type TooltipData = {
 
 const tooltipStyles = {
   ...defaultStyles,
-  background: "rgba(0, 0, 0, 0.8)",
-  color: "white",
+  background: "white",
+  color: "black",
   padding: "8px",
   borderRadius: "4px",
   zIndex: 1000,
@@ -197,7 +197,7 @@ const BranchBarChart = ({
               <Box
                 style={{
                   fontWeight: "bold",
-                  borderBottom: "1px solid white",
+                  borderBottom: "1px solid gray",
                   paddingBottom: "4px",
                   marginBottom: "4px",
                 }}

@@ -42,7 +42,7 @@ function CodeDetail() {
           display={"flex"}
           alignItems={"center"}
         >
-          Code Detail View
+          Code View
         </Heading>
         <Text display={"flex"} justifyContent={"flex-end"} fontSize={"sm"}>
           {" ("}

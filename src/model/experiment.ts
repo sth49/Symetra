@@ -81,6 +81,7 @@ export class Experiment {
       allHyperparams.push(Hyperparam.fromJson(column, trialJson));
     });
 
+    console.log("paramList", paramList);
     const hyperparams = allHyperparams.filter((param) =>
       paramList.includes(param.name)
     );
