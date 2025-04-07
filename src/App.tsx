@@ -11,6 +11,8 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Spinner,
+  Text,
 } from "@chakra-ui/react";
 import Overview from "./components/Overview";
 import CoverageView from "./components/CoverageView";
@@ -37,31 +39,31 @@ function App() {
         );
         setTarget(targets);
 
-        const initialTarget = "grep_2200_250406"; // case1
+        const initialTarget = "grep_2200"; // case1
         // const initialTarget = "gcal_2200_250302"; // case1
         // const initialTarget = "grep_2200_250302"; // case2
         // const initialTarget = "gawk_800_250325";
         setCurrentTarget(initialTarget);
 
         const module = await import(
-          `./data/tuned_parameters_${initialTarget}_final.json`
+          `./data/tuned_parameters_${initialTarget}.json`
         );
         const branchInfo = await import(
           `./data/branch_info_${initialTarget.split("_")[0]}.json`
         );
         const trialJson = module.default;
-        // const paramList = Object.keys(trialJson[0].config);
-        const paramList = Object.keys(trialJson[0].config).filter(
-          (p) =>
-            [
-              "sym-files-2",
-              "max-memory",
-              "max-static-cpsolve-pct",
-              "redzone-size",
-              "batch-instructions",
-              "use-branch-cache",
-            ].includes(p) === false
-        );
+        const paramList = Object.keys(trialJson[0].config);
+        // const paramList = Object.keys(trialJson[0].config).filter(
+        //   (p) =>
+        //     [
+        //       "sym-files-2",
+        //       "max-memory",
+        //       "max-static-cpsolve-pct",
+        //       "redzone-size",
+        //       "batch-instructions",
+        //       "use-branch-cache",
+        //     ].includes(p) === false
+        // );
         console.log("trialJson", trialJson);
         const updatedConfig = { ...configData, name: initialTarget };
         const experiment = await Experiment.fromJson(
@@ -228,7 +230,24 @@ function App() {
           </Box>
         </Box>
       ) : (
-        <div>Loading ...</div>
+        <Box
+          width={"100vw"}
+          height={"100vh"}
+          display={"flex"}
+          justifyContent={"center"}
+          alignItems={"center"}
+        >
+          <Text
+            fontSize="3xl"
+            // fontSize={"lg"}
+            color="gray.600"
+            fontWeight={"bold"}
+            textAlign={"center"}
+          >
+            <Spinner mr={2} />
+            Loading ...
+          </Text>
+        </Box>
       )}
     </ChakraProvider>
   );

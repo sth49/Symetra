@@ -59,8 +59,7 @@ const Overview = () => {
               Parameters
             </Text>
             <Text fontSize="sm" color={"gray.600"}>
-              {/* {exp?.hyperparams.length} */}
-              61
+              {exp?.hyperparams.length}
             </Text>
           </Box>
 
@@ -75,12 +74,11 @@ const Overview = () => {
                     {key}
                   </Text>
                   <Text fontSize="sm">
-                    {key === "Continuous" ? 20 : key === "Binary" ? 35 : 6}
-                    {/* {
+                    {
                       exp?.hyperparams.filter(
                         (hp) => hp.type === HyperparamTypes[key]
                       ).length
-                    } */}
+                    }
                   </Text>
                 </Box>
               );

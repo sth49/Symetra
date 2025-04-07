@@ -533,36 +533,22 @@ const CoverageView: React.FC = () => {
         height="calc(100% - 35px - 40px)"
       >
         {isPreference && (
-          <Box display={"flex"} width={"100%"} alignItems={"center"}>
-            {/* <Select size={"xs"} width={"100px"}>
-              <option>UMAP</option>
-            </Select>
-
+          <Box
+            display={"flex"}
+            width={"100%"}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+          >
             <FormControl
               display="flex"
-              justifyContent="center"
+              justifyContent="left"
               alignItems="center"
-              width={"200px"}
+              width={"50%"}
+              pl={2}
             >
-              <FormLabel mb={0} mr={1}>
+              <FormLabel mb={0} mr={2}>
                 <Text fontSize="xs" color="gray.600">
-                  Metric
-                </Text>
-              </FormLabel>
-              <Select size={"xs"} width={"50%"}>
-                <option>jaccard</option>
-              </Select>
-            </FormControl> */}
-
-            <FormControl
-              display="flex"
-              justifyContent="right"
-              alignItems="center"
-              // width={"250px"}
-            >
-              <FormLabel mb={0} mr={1} width={"50%"}>
-                <Text fontSize="xs" color="gray.600">
-                  Dimentionality Reduction
+                  Dimensionality Reduction
                 </Text>
               </FormLabel>
               <Select
@@ -598,10 +584,13 @@ const CoverageView: React.FC = () => {
               pr={2}
               display="flex"
               justifyContent="right"
+              // justifyContent="space-between"
               alignItems="center"
+              width={"50%"}
+
               // width={"180px"}
             >
-              <FormLabel mb={0} mr={1}>
+              <FormLabel mb={0} mr={2}>
                 <Text fontSize="xs" color="gray.600">
                   Distance Measure
                 </Text>

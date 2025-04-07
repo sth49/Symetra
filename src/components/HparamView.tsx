@@ -59,9 +59,9 @@ const HparamView = () => {
         alignItems={"center"}
       >
         <Heading as="h5" size="sm" color="gray.600" p={2}>
-          Parameter View ({hyperparams.filter((hp) => hp.visible).length} / 61
+          Parameter View ({hyperparams.filter((hp) => hp.visible).length} /{" "}
+          {hyperparams.length}
           Visible)
-          {/* {hyperparams.length} */}
         </Heading>
       </Box>
       <Box display={"flex"} justifyContent={"center"}>
