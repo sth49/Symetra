@@ -84,11 +84,12 @@ export class Hyperparam {
       throw new Error("Invalid hyperparam type");
     }
     trialJson.map((trial) => {
-      hparam.values.push(trial.config[hparam.name]);
+      hparam.values.push(trial.config[hparam.name][0]);
     });
 
     trialJson.map((trial) => {
-      hparam.shapValues.push(trial.shap_values[hparam.name]);
+      // hparam.shapValues.push(trial.shap_values[hparam.name]);
+      hparam.shapValues.push(trial.config[hparam.name][1]);
     });
     if (hparam.getMeanAbsoluteEffect() < 0.3) {
       hparam.visible = false;

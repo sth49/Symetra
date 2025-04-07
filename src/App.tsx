@@ -37,7 +37,7 @@ function App() {
         );
         setTarget(targets);
 
-        const initialTarget = "grep_2200_250404"; // case1
+        const initialTarget = "grep_2200_250406"; // case1
         // const initialTarget = "gcal_2200_250302"; // case1
         // const initialTarget = "grep_2200_250302"; // case2
         // const initialTarget = "gawk_800_250325";
@@ -62,6 +62,7 @@ function App() {
               "use-branch-cache",
             ].includes(p) === false
         );
+        console.log("trialJson", trialJson);
         const updatedConfig = { ...configData, name: initialTarget };
         const experiment = await Experiment.fromJson(
           updatedConfig,

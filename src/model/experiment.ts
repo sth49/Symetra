@@ -91,6 +91,8 @@ export class Experiment {
     trialJson.map((trial: TrialJson) => {
       trials.push(Trial.fromJson(trial));
     });
+    console.log("trials", trials);
+
     const unionSet = new Set<number>();
     for (const trial of trials) {
       trial.branch.forEach((b) => unionSet.add(b));
