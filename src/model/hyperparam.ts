@@ -227,9 +227,12 @@ export class ContinuousHyperparam extends Hyperparam {
   icon = HiHashtag;
   binCount = 5;
   constructor(json: HyperparamJson, trialJson: any) {
-    const values = trialJson.map((trial) => trial.config[json.name] as number);
+    const values = trialJson.map(
+      (trial) => trial.config[json.name][0] as number
+    );
     const sortedValues = values.sort((a, b) => a - b);
     const value = [sortedValues[0], sortedValues[sortedValues.length - 1]];
+    console.log("value", value);
     super(
       json.name,
       json.displayName,
