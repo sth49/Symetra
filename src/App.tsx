@@ -39,10 +39,7 @@ function App() {
         );
         setTarget(targets);
 
-        const initialTarget = "grep_2200"; // case1
-        // const initialTarget = "gcal_2200_250302"; // case1
-        // const initialTarget = "grep_2200_250302"; // case2
-        // const initialTarget = "gawk_800_250325";
+        const initialTarget = "grep_2200";
         setCurrentTarget(initialTarget);
 
         const module = await import(
@@ -53,17 +50,7 @@ function App() {
         );
         const trialJson = module.default;
         const paramList = Object.keys(trialJson[0].config);
-        // const paramList = Object.keys(trialJson[0].config).filter(
-        //   (p) =>
-        //     [
-        //       "sym-files-2",
-        //       "max-memory",
-        //       "max-static-cpsolve-pct",
-        //       "redzone-size",
-        //       "batch-instructions",
-        //       "use-branch-cache",
-        //     ].includes(p) === false
-        // );
+
         console.log("trialJson", trialJson);
         const updatedConfig = { ...configData, name: initialTarget };
         const experiment = await Experiment.fromJson(
@@ -239,7 +226,6 @@ function App() {
         >
           <Text
             fontSize="3xl"
-            // fontSize={"lg"}
             color="gray.600"
             fontWeight={"bold"}
             textAlign={"center"}

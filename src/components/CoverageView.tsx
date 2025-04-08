@@ -54,8 +54,6 @@ const CoverageView: React.FC = () => {
   const setSelectOneTrial = useCustomStore((state) => state.setSelectOneTrial);
   const hparamSort = useConstDataStore((state) => state.hparamSort);
   const { exp, hyperparams } = useConstDataStore();
-  // const [minDist, setMinDist] = useState(0.9);
-  // const [nNeighbors, setNNeighbors] = useState(15);
   const [drType, setDrType] = useState("umap");
   const [distanceMetric, setDistanceMetric] = useState("J");
   const [isPreference, setIsPreference] = useState(false);
@@ -70,27 +68,12 @@ const CoverageView: React.FC = () => {
             : drType === "tsne"
             ? trial.tsne.filter((pos) => pos.metric === distanceMetric)[0]?.x
             : trial.pca.filter((pos) => pos.metric === distanceMetric)[0]?.x,
-        // x: trial.umap.filter((pos) => pos.metric === distanceMetric)[0]?.x,
-        // x: Array.isArray(trial.umapPositions)
-
         y:
           drType === "umap"
             ? trial.umap.filter((pos) => pos.metric === distanceMetric)[0]?.y
             : drType === "tsne"
             ? trial.tsne.filter((pos) => pos.metric === distanceMetric)[0]?.y
             : trial.pca.filter((pos) => pos.metric === distanceMetric)[0]?.y,
-        // x: Array.isArray(trial.umapPositions)
-        //   ? trial.umapPositions.filter(
-        //       (pos) =>
-        //         pos.n_neighbors === nNeighbors && pos.min_dist === minDist
-        //     )[0]?.x
-        //   : undefined,
-        // y: Array.isArray(trial.umapPositions)
-        //   ? trial.umapPositions.filter(
-        //       (pos) =>
-        //         pos.n_neighbors === nNeighbors && pos.min_dist === minDist
-        //     )[0]?.y
-        //   : undefined,
         metric: trial.metric,
       })) || [],
     [exp?.trials, drType, distanceMetric]
@@ -552,9 +535,7 @@ const CoverageView: React.FC = () => {
                 </Text>
               </FormLabel>
               <Select
-                // onChange={(e) => setNNeighbors(Number(e.target.value))}
                 onChange={(e) => setDrType(e.target.value)}
-                // value={nNeighbors}
                 value={drType}
                 size={"xs"}
                 width={"100px"}
@@ -562,33 +543,14 @@ const CoverageView: React.FC = () => {
                 <option value="umap">UMAP</option>
                 <option value="tsne">t-SNE</option>
                 <option value="pca">PCA</option>
-
-                {/* {[
-                  ...new Set(
-                    // @ts-ignore
-                    exp.trials[0].umapPositions.map((pos) => pos.n_neighbors)
-                  ),
-                ]
-                  .sort((a, b) => (a as number) - (b as number))
-                  .map((n_neighbor) => (
-                    <option
-                      key={n_neighbor as number}
-                      value={n_neighbor as number}
-                    >
-                      {n_neighbor as number}
-                    </option>
-                  ))} */}
               </Select>
             </FormControl>
             <FormControl
               pr={2}
               display="flex"
               justifyContent="right"
-              // justifyContent="space-between"
               alignItems="center"
               width={"50%"}
-
-              // width={"180px"}
             >
               <FormLabel mb={0} mr={2}>
                 <Text fontSize="xs" color="gray.600">
@@ -596,30 +558,14 @@ const CoverageView: React.FC = () => {
                 </Text>
               </FormLabel>
               <Select
-                // onChange={(e) => setMinDist(Number(e.target.value))}
                 onChange={(e) => setDistanceMetric(e.target.value)}
-                // value={minDist}
                 value={distanceMetric}
                 size={"xs"}
-                // width={"50%"}
                 width={"100px"}
               >
                 <option value="C">Cosine</option>
                 <option value="E">Euclidean</option>
                 <option value="J">Jaccard</option>
-
-                {/* {[
-                  ...new Set(
-                    // @ts-ignore
-                    exp.trials[0].umapPositions.map((pos) => pos.min_dist)
-                  ),
-                ]
-                  .sort((a, b) => (a as number) - (b as number))
-                  .map((min_dist) => (
-                    <option key={min_dist as number} value={min_dist as number}>
-                      {min_dist as number}
-                    </option>
-                  ))} */}
               </Select>
             </FormControl>
           </Box>
