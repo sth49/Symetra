@@ -58,7 +58,6 @@
     "faker": "^6.6.6",
     "framer-motion": "^11.3.8",
     "genBins": "link:@types/visx/mock-data/lib/generators/genBins",
-    "gh-pages": "^6.1.1",
     "jstat": "^1.9.6",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
@@ -93,6 +92,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "gh-pages": "^6.2.0",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
   }
