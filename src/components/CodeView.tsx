@@ -45,7 +45,7 @@ const CodeView: React.FC<CodeViewProps> = ({ item }) => {
     async function loadFile() {
       if (branchInfo?.filePath) {
         try {
-          const basePath = "/w/Symetra-7752/";
+          const basePath = import.meta.env.BASE_URL;
           const url = `${basePath}${branchInfo.filePath}`;
 
           const response = await fetch(url);
